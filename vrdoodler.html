@@ -1,0 +1,824 @@
+ <!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>Home, in search of refuge</title>
+    <style>
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            background-color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+            font-family: arial;
+        }
+        #canvas {
+  
+    position: static; /* fixed or static */
+    top: 0;
+    left: 0;
+}
+   
+   
+   #infoPanel{
+	position: absolute;
+	border: 2px solid white;
+	background-color:gray;
+	color:white;
+}
+
+.gradient-menu {
+  padding-left: 1.25em;
+  position: relative;
+}
+.gradient-menu:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.21em;
+  bottom: 0.21em;
+  width: 1em;
+  background: linear-gradient(
+    to bottom, 
+    black, black 20%, 
+    white 20%, white 40%, 
+    black 40%, black 60%, 
+    white 60%, white 80%, 
+    black 80%, black 100%
+  );
+}
+    </style>
+</head>
+ 
+     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script>
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<!--<script src="js/controls/OrbitControls.js"></script>-->
+<script src="js/controls/TrackballControls.js"></script>
+
+
+
+
+
+
+ <script id="vertexShader" type="x-shader/x-vertex">  
+      
+	varying vec2 vUv;
+	uniform float color;
+	varying float noise;
+	uniform float time;
+	
+	
+	
+	
+	void main() {
+	
+		vUv = uv;
+	
+		// add time to the noise parameters so it's animated
+		//noise = 15.0 *  -.10 * turbulence( .2 * normal + time );
+		//float b = 2.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 2.0 ) );
+		//float displacement = noise/.5;
+		//- noise + b;
+		//sin(fTimer+Tex.x*10)*0.01f;
+		//	float newXPosition = sin(time + position.x * 2.)  ;
+		
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position,1.0 );
+	
+	}
+               
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+
+    varying vec2 vUv;
+	uniform float color;
+	void main() {
+
+    // colour is RGBA: u, v, 0, 1
+	gl_FragColor = vec4( vec3(color), 1. );
+
+	}
+    </script>
+    
+    <script src="js/shaders/LineDisplacementShader.js"></script>
+    
+    
+<div class="hero-unit">
+	<input id="show" type="checkbox" value="showme" />ShowMe
+	<input id="draw" type="checkbox" value="draw"/>Draw
+	<input id="width" type="checkbox" value="lineWidth"/>Line Width
+	<input id="rotateX" type="checkbox" value="rotate90"/>Rotate 90
+	<input id="snapTo" type="checkbox" value="snapTo" />Snap To Line
+	<input id="trace" type="checkbox" value="trace"/>Trace
+	<input id="exportLine" type="checkbox" value="exportLine" enabled="false"/>Export
+	<input id="colorToggle" type="checkbox" value="colorToggle"/>Color
+</div>
+<div id="infoPanel">
+ <p>Draw Mode is </p>
+   </div>
+    <!--<a id="turnedoffinfoPanelTag" href="#menu" class="gradient-menu"></a>-->
+    <br>
+<script>
+ 
+ 
+ 	var camera, scene, renderer,orbitcamera;
+    var geometry, material, mesh;
+    var controls;
+ 	var context = null;
+	var currentPlane = 0;
+	var splineArray= [];
+	var drawnline = [];
+	var container, canvas;
+	var controls;
+	
+	var manager;
+
+
+	var MAX_POINTS = 400;
+	var drawCount;
+	var sketchContainer,objContainer ;
+	var CURRENTspline = -1; //incremented at initNewLine
+	var raycaster, parentTransform, sphereInter;
+	var mouse = new THREE.Vector2();
+	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
+	var currentMouseRay;
+	
+	var bIsDrawing = false;
+	var bShowInfo = true;
+	
+	var ORBITMODE = 0;  //when not drawing
+	var FREEHANDMODE = 1;  //when drawing
+	var SNAPMODE = 0;		//snap to pre-existing line/objects	
+	var DRAWMODE = ORBITMODE;
+	var CURRENTLINEWIDTH = 5;
+	
+	var cameraAngle = 0;
+	var orbitRange = 5;
+	var orbitSpeed = 2 * Math.PI/4;
+	var desiredAngle = 90 * Math.PI/180;
+	var plane, planegeo, planemat;
+	var PLANEROTATE = 0;
+	var COLOR = 0;
+	var linematerial = null;
+	var start = Date.now();
+	
+	
+	
+	function init(){	
+		container = document.createElement( 'div' );
+		container.style.position = 'absolute';
+		container.style.top = '30px';
+		container.style.width = '100%';
+		container.style.textAlign = 'center';
+		container.style.color = '#fff';
+		container.style.fontWeight = 'bold';
+		container.style.backgroundColor = 'transparent';
+		container.style.zIndex = '1';
+		container.style.fontFamily = 'Monospace';
+		container.innerHTML = "draw1";
+		document.body.appendChild( container );
+
+	
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set( 0, 0, 10);
+		
+	/*	better to use this when drawing? hmm
+		camera =new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 1000 );
+				camera.position.set( 0, 0, 10);
+	*/
+		scene = new THREE.Scene();
+    
+    	scene.add( new THREE.AxisHelper(500) );    	
+
+		renderer = new THREE.WebGLRenderer( { antialias: false } );		
+		renderer.setSize( window.innerWidth, window.innerHeight );
+
+		container.appendChild( renderer.domElement );
+			   		   
+		sketchContainer = new THREE.Object3D();
+		objContainer = new THREE.Object3D();
+  		//sketchContainer.position = {x:0,y:0,z:0};
+  		
+  		//objContainer.  = (3,3,3);
+  		scene.add(objContainer);
+  		
+  		//sketchContainer.scale = (3,3,3);
+  		scene.add(sketchContainer);
+		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		
+		
+	
+  		
+  		raycaster = new THREE.Raycaster();
+		raycaster.linePrecision = .05;
+		
+		var geometry = new THREE.SphereGeometry( .1 );
+		var material = new THREE.MeshBasicMaterial( { color: 0xffcc00 } );
+		sphereInter = new THREE.Mesh( geometry, material );
+		sphereInter.visible = false;
+		scene.add( sphereInter );
+		
+		planegeo = new THREE.PlaneGeometry(.5,.5);
+		 planemat = new THREE.MeshBasicMaterial( {color: 0xffcc00, side: THREE.DoubleSide, opacity:.4} );
+		
+		
+
+		
+
+
+		window.addEventListener('resize', onWindowResize, false);
+		document.addEventListener('mousedown', onSketchMouseDown, false);
+		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		
+    
+		document.getElementById('show').onclick = printVerts;
+		document.getElementById('draw').onclick = toggleDrawMode;
+		document.getElementById('width').onclick = toggleCurrentLineWidth;
+		document.getElementById('rotateX').onclick = rotateX;
+		document.getElementById('trace').onclick = trace;
+		document.getElementById('exportLine').onclick = exportLine;
+		document.getElementById('snapTo').onclick = snapTo;
+		document.getElementById('colorToggle').onclick = colorToggle;
+		
+		
+        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+			
+            
+        document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
+
+		manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+				console.log( item, loaded, total );
+
+		};
+	
+		$('#infoPanelTag').click(function() {
+		  $("#infoPanel").toggle( "slow" );		  
+		});
+		
+		$('input').click(function() {
+		 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
+	  });
+	  
+	//loadAnObject();
+	}
+	
+	
+
+	
+	/* TBD how to save the drawing  */
+	function exportScene(){
+				/* something like this *
+			for ( var i = 0; i < CURRENTspline ;  i ++ ) {		
+				var exportOBJ = new THREE.OBJExporter;
+				var result = exportOBJ.parse(scene);	 //export array of lines--  scene or lines?
+				//save result to a file...
+			}
+			*/
+	}
+	
+	
+	function importScene(){
+			/* something like this *
+			var loader = new THREE.OBJLoader( manager );
+				loader.load( 'prevscene.obj', function ( object ) {
+
+					object.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) { //THREE.Line
+
+							splineArray[].push(child);
+
+						}
+
+					} );
+
+					object.position.y = - 80;//?
+					scene.add( object );
+
+				}, onProgress, onError );
+			*/
+	}
+
+
+	/*make it easier for user to draw on standard rotation*/
+	function rotateX(){
+ 		cameraAngle += orbitSpeed;
+		 camera.position.x = Math.cos(cameraAngle) * orbitRange;
+  		camera.position.z = Math.sin(cameraAngle) * orbitRange;
+	}
+
+
+	function getCurrentLineWidth(){
+		return CURRENTLINEWIDTH;
+	}
+	
+	
+	/*will eventually offer black on white or white on black (default) */
+	function colorToggle(){
+		//TODO need to change background color in tandem...
+		COLOR = COLOR?0:1;
+		return COLOR;
+	}
+	
+	/* not yet implemented */
+	function toggleInfoPanel(){
+		//controls.stop();
+		bShowInfo = bShowInfo?0:1;
+		return bShowInfo;
+	}
+
+	/* not really a toggle anymore, but vary the line width. should be an input box actually*/
+	function toggleCurrentLineWidth(){
+		//controls.stop();
+		CURRENTLINEWIDTH = (CURRENTLINEWIDTH==1)?5:
+			((CURRENTLINEWIDTH==5)?9:
+			((CURRENTLINEWIDTH==9)?1:1));
+			
+			
+		return CURRENTLINEWIDTH;
+	}
+	
+	function changeControls(){
+	 var prevCamera = camera;
+
+		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.copy( prevCamera.position );
+		camera.rotation.copy( prevCamera.rotation );
+
+		if (!DRAWMODE && SNAPMODE){
+			controls = new THREE.OrbitControls(camera, renderer.domElement );
+			controls.target = lastIntersectedPoint;
+			camera.lookAt(lastIntersectedPoint);
+		}else if (!DRAWMODE ){ 
+			controls = new THREE.OrbitControls(camera, renderer.domElement );
+		}else{ //if Drawmode
+			controls = null;
+		}
+
+	
+	
+	}
+	
+	function snapTo(){
+ 		SNAPMODE = SNAPMODE?0:1;
+ 		changeControls();
+ 		//if (SNAPMODE) plane.visible = true; else plane.visible = false;
+ 		$("#snapTo").prop("checked",SNAPMODE);
+ 		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
+
+	}
+	
+	
+/* if draw, mouse draws (snapping or not). if false, mouse moves camera */
+	function toggleDrawMode(mode){
+       
+		DRAWMODE = DRAWMODE?0:1;
+		changeControls();
+		$("#draw").prop("checked",DRAWMODE);
+		console.log("draw mode is " + DRAWMODE);
+		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
+
+    	return DRAWMODE;
+	}
+	
+	
+	
+	
+	function currentLine(){
+		return splineArray[CURRENTspline];
+	}
+	
+	function currentDrawnLine(){
+		return drawnline[CURRENTspline];
+	}
+
+	function initMasterLine(){
+		splineArray[CURRENTspline] = [];
+	}
+	
+	function initDrawnLine(){
+		
+		
+		
+		var geometry = new THREE.BufferGeometry();
+	
+		// attributes
+		var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+		geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+	
+		// drawcalls
+		drawCount = 0; 
+		geometry.setDrawRange( 0, drawCount );
+	
+		// material
+		//linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+	    linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+	    linematerial.linewidth = CURRENTLINEWIDTH;
+		// line
+		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line
+		
+		
+		objContainer.add( currentDrawnLine() );  
+		
+		currentDrawnLine().position.x = 0;
+		currentDrawnLine().position.y = 0;
+		currentDrawnLine().position.z = 0;
+		
+	}
+	
+	function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+	}
+	
+	
+	function loadAnObject(){
+		var loader = new THREE.JSONLoader( manager );
+		var path = "assets/chairVert.json"; //callback needs real var I guess
+		var pos = new THREE.Vector3(0,0,10);
+		loader.load(path , function ( geo ) {
+
+		var material = new THREE.MeshLambertMaterial({
+			//map: THREE.ImageUtils.loadTexture(path+ currentConfig.objTex),  // specify and load the texture
+			color:0xff00ff,
+			side:THREE.DoubleSide
+		  });
+			
+		var object = new THREE.Mesh(geo, material);
+		object.position.x = pos.x;
+		object.position.y = pos.y;
+		object.position.z = pos.z;
+		//object.scale.set(5,5,5);
+		
+		object.userData.name = "chair";
+
+		
+		objContainer.add( object );
+		});
+	
+	}
+
+
+
+
+	function onDocumentMouseMove( evt ) {
+
+				evt.preventDefault();
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
+				
+				console.log("mouse.x " + mouse.x + " and y " + mouse.y + " ");
+				if (PLANEROTATE){
+					var whichz = currentIntersectedPoint? currentIntersectedPoint.z: lastIntersectedPoint.z;
+					var degToRotate = Math.round((mouseQuotient * 10)%90);
+					console.log( "degToRotate " + degToRotate);
+					//plane.rotateY((degToRotate * 90)* Math.PI/180);  //(Math.cos(mouse.x) * 100)/90;
+					//plane.lookAt(THREE.Vector3(mouse.x, mouse.y, whichz));
+					
+				}
+	}
+			
+	function onVRDoodlerKeyDown(evt) {
+
+                switch (evt.keyCode) {
+
+                   case 68: //d draw mode
+                   		toggleDrawMode();
+                   		
+		 					  	
+                   break;
+                    case 65: // a for axis
+                    
+                        PLANEROTATE = PLANEROTATE?0:1;
+                        edges.update();
+                  
+                        break;
+                     case 82: //rotate panel 90
+						//plane.rotation.y= Math.cos(90) * 90;
+						
+							
+						break;
+                    case 83: //snap to s	
+						snapTo();
+						break;
+						/* case 80: //p audio
+                    	if (CURRENTCOLLISION){
+                    		if(CURRENTCOLLISION.userData.audio)
+                    			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
+                    	
+                    	}
+                     */ 
+                   case 90: //control-z to erase last
+                   	if (evt.ctrlKey)
+                   		if (currentLine()){
+                   			splineArray.pop(CURRENTspline);
+                   			currentDrawnLine().geometry.attributes.position.array = [];//necessary
+                   			drawnline.pop(CURRENTspline);
+                   			--CURRENTspline;
+                   		}
+                   	break;
+               
+                }
+            }			
+			
+			
+
+/* if draw mode, add new vertex to line as mouse moves */
+    function onSketchMouseMove(evt) {
+    
+    	//var whatZ = .5;
+        if(renderer) {
+          
+           	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
+  			mouse.y =  - ( (evt.clientY- container.offsetTop) / window.innerHeight ) * 2 + 1;
+                
+            var vNow = new THREE.Vector3(mouse.x, mouse.y, .5);
+            
+            if(DRAWMODE){
+            	if (SNAPMODE){
+            		if (plane.position !== undefined ){
+            			//vNow.z = 0;
+            		
+
+					vNow.set(
+						( event.clientX / window.innerWidth ) * 2 - 1,
+						- ( event.clientY / window.innerHeight ) * 2 + 1,
+						0.5 );
+			
+					console.log(vNow.unproject); 
+					vNow.unproject( camera ); 
+			
+					var dir = vNow.sub( camera.position ).normalize();
+			
+				   var distance = (plane.position.z - camera.position.z) / dir.z;
+			
+					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+						vNow.copy(pos);			//;
+						console.log("drawing at plane vNow.x "+ vNow.x + " mouse.x " + mouse.x + " y " + vNow.y +  " z " + vNow.z);
+					}//else {
+            		//	vNow.z = lastIntersectedPoint.z;
+					//	console.log("drawing at last intersected " + vNow);
+					//}
+            	}else { //freehand
+
+            		vNow.unproject(camera);
+            		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
+           		}
+				 //vNow.z = 0;
+        		
+        		currentLine().push(vNow);  //push subsequent vertices into master line array
+        	
+            }          
+        }
+        else{
+        console.log("renderer null");}
+    }
+    
+
+	function initNewLine(x, y,z, bUnproject){
+				// geometry
+				
+		CURRENTspline++;
+		
+		initMasterLine();
+		
+		initDrawnLine();
+		
+        var vNow = new THREE.Vector3(x, y, z);
+		if (bUnproject)
+			vNow.unproject(camera);
+		
+
+		console.log("new line vertex" + vNow.x + " " + vNow.y+  " " + vNow.z); 
+	
+		currentLine().push(vNow);  //push first vertex into master line array, drawn line updated in animate()
+		//unprojected if freehand. not unprojected if according to prev line segment
+	}    
+    
+    /* after initing new line
+    */
+    function onSketchMouseUp(evt) {
+    	document.removeEventListener("mousemove",onSketchMouseMove,false);
+  	
+    	if (DRAWMODE){// && evt.target.nodeName == 'CANVAS'){
+			bIsDrawing=false;
+			//now that we are done drawing, trim drawn array to number of master line's vertices 
+    		var positions = currentDrawnLine().geometry.attributes.position.array;
+    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, (splineArray[CURRENTspline].length-1) *3);
+    		
+
+    		
+    		currentIntersected = undefined;
+			currentIntersectedPoint = undefined;
+			
+    	
+    		console.log("current is " + CURRENTspline);
+    		}        
+    }
+    
+    
+     function onSketchMouseDown(evt) {
+     
+   		if(evt.which == 3) return;      	
+    	if (evt.target.nodeName == 'CANVAS'){
+          	
+          	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
+  			mouse.y =  - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
+       		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+			if (DRAWMODE > ORBITMODE){
+				bIsDrawing=true;
+				
+				if (SNAPMODE){ /*constrain according to object... create a scope or something  */
+				
+					if ( currentIntersectedPoint !== undefined ) {
+						initNewLine(currentIntersectedPoint.x, currentIntersectedPoint.y,currentIntersectedPoint.z , false);
+						console.log("drawing at intersection " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
+
+					}else{ 
+						initNewLine(mouseVec.x, mouseVec.y,lastIntersectedPoint.z, false);
+						console.log("drawing at lastIntersectedPoint " + lastIntersectedPoint.x + " " + lastIntersectedPoint.y + " " + lastIntersectedPoint.z );
+
+					}
+				}else { 
+
+						//mouseVec.applyMatrix4(plane.matrixWorld);
+						initNewLine(mouseVec.x, mouseVec.y,mouseVec.z, true);
+						//console.log("drawing at .5");
+					
+				} 
+			
+				//set up for drawing line
+				document.addEventListener("mousemove",onSketchMouseMove,false);
+				document.addEventListener("mouseup",onSketchMouseUp,false);
+				
+				
+			}
+        }
+    }
+    
+    
+// animate
+	function printVerts(){		
+		for (var i=0;i<splineArray.length;i++){
+			console.log(splineArray[i].x + " " + splineArray[i].y + " " + splineArray[i].z );
+		}
+	}
+	
+	
+	function makeDirectionalPlane(vecPlane){
+
+		 plane = new THREE.Mesh( planegeo, planemat );
+		 plane.position.copy(vecPlane);
+		 //plane.visible = false;
+		 scene.add( plane );
+		 plane.lookAt(camera.position);
+		//edges = new THREE.FaceNormalsHelper( plane, 1, 0x00ff00, 1 );
+		//scene.add(edges);
+			}
+			
+	function makeCube( w,h,d){
+		var mesh;
+		var planeGeo = new THREE.BoxGeometry(w,h,d);				
+		mesh = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({color:0x000fff, side:THREE.DoubleSide}));
+		mesh.position.x = 5;
+		mesh.position.y = 1;
+		mesh.position.z = 3;
+		sketchContainer.add(mesh);
+			
+					
+				
+					
+			}
+
+
+
+// push master array vertices into drawn array
+//this was ideally an optimization - only re-draw the current line -leave previous alone
+	function updatePositions() {
+		if (currentDrawnLine()){
+		
+			//get array and update it with the new line vertices
+			var positions = currentDrawnLine().geometry.attributes.position.array;
+		
+			var index = 0;
+			for ( var i = 0; i < currentLine().length ;  i ++ ) {
+		
+				positions[ index ++ ] = currentLine()[i].x ;//+ Math.random()/50 ;
+				positions[ index ++ ] = currentLine()[i].y;
+				positions[ index ++ ] = currentLine()[i].z;
+			
+			}
+			
+			currentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
+			
+		}
+	}
+	
+	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
+	
+	/*this also has some funny behavior- doesn't always return with the line segment the mouse is intersecting with
+	...weird, seems to be related to coordinates
+	*/
+	function handleRayIntersections(intersects){
+		if ( intersects.length > 0 ) {
+				if ( currentIntersected !== undefined ) {
+					//currentIntersected.material.linewidth = CURRENTLINEWIDTH;
+					//currentIntersected.material.color.setRGB(200,200,200);
+				}
+				scene.remove(plane); 
+				
+				currentIntersected = intersects[ 0 ].object;
+				//currentIntersected.material.linewidth = 5;
+				//currentIntersected.material.color.setRGB(200,200,200);
+				//currentIntersected.material.uniforms.color.value = 1.0;
+				
+				currentIntersectedPoint= intersects[ 0 ].point;  //sorted in desc. order and not really accurate for mouse hover 
+				
+				lastIntersected = currentIntersected;
+				lastIntersectedPoint = currentIntersectedPoint;
+				
+				
+				//console.log("highlighting currentIntersectedPoint" + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z  );
+				//console.log(" camera " + camera.position.x + " " + camera.position.y + " "+ camera.position.z); 
+				makeDirectionalPlane(currentIntersectedPoint);
+
+				
+				for( var i = 0; i < intersects.length; i++ ) {
+					var intersection = intersects[ i ],
+					obj = intersection.object;
+
+					//obj.material.color.setRGB( 100,10,10);//1.0 - i / intersects.length, 0, 0 );
+					obj.material.uniforms.color.value = 1.0;
+				}
+				
+		
+		} else {
+				//reset
+				if ( currentIntersected !== undefined ) {
+					currentIntersected.material.linewidth = CURRENTLINEWIDTH;
+					//currentIntersected.material.color.setRGB(250,250,250);
+					currentIntersected.material.uniforms.color.value = 1.0;
+				}
+				
+				currentIntersected = undefined;
+				currentIntersectedPoint = undefined;
+		
+				
+		}
+	
+	}
+
+	function animate() {
+
+		requestAnimationFrame(animate);
+
+	
+		if (currentDrawnLine()) {//make sure initialized
+			currentDrawnLine().geometry.setDrawRange( 0, currentLine().length -1 );
+		
+			updatePositions();
+				
+		}
+		
+		
+		//camera.updateMatrixWorld(); //both?
+		//camera.updateProjectionMatrix();
+			
+		var camVec = camera.position;
+
+			
+		raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
+		var intersects = raycaster.intersectObjects( objContainer.children, true);
+
+	
+		if (DRAWMODE  && SNAPMODE && !bIsDrawing){
+			handleRayIntersections(intersects);
+		}else {
+			//TBD if PLAYBACK mode...
+			//restore linesegments one vertex at a time
+			//handlePlayback(intersects);
+		}
+		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
+		renderer.render(scene, camera);	 
+		  
+		if (!DRAWMODE){
+			controls.update();
+		}
+		
+	
+	   } 
+		
+	init();
+	animate();
+	
+</script>
+</html>
