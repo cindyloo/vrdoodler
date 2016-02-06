@@ -504,7 +504,7 @@
                         break;
                      case 82: //rotate panel 90
 						//plane.rotation.y= Math.cos(90) * 90;
-						
+						//currently just setting the plane geo to face the camera..
 							
 						break;
                     case 83: //snap to s	
@@ -549,25 +549,23 @@
             			//vNow.z = 0;
             		
 
-					vNow.set(
-						( event.clientX / window.innerWidth ) * 2 - 1,
-						- ( event.clientY / window.innerHeight ) * 2 + 1,
-						0.5 );
-			
-					console.log(vNow.unproject); 
-					vNow.unproject( camera ); 
-			
-					var dir = vNow.sub( camera.position ).normalize();
-			
-				   var distance = (plane.position.z - camera.position.z) / dir.z;
-			
-					var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-						vNow.copy(pos);			//;
+						vNow.set(
+							( event.clientX / window.innerWidth ) * 2 - 1,
+							- ( event.clientY / window.innerHeight ) * 2 + 1,
+							0.5 );
+				
+						console.log(vNow.unproject); 
+						vNow.unproject( camera ); 
+				
+						var dir = vNow.sub( camera.position ).normalize();
+				
+						var distance = (plane.position.z - camera.position.z) / dir.z;
+				
+						var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+						vNow.copy(pos);	
+						//;
 						console.log("drawing at plane vNow.x "+ vNow.x + " mouse.x " + mouse.x + " y " + vNow.y +  " z " + vNow.z);
-					}//else {
-            		//	vNow.z = lastIntersectedPoint.z;
-					//	console.log("drawing at last intersected " + vNow);
-					//}
+					}
             	}else { //freehand
 
             		vNow.unproject(camera);
@@ -637,7 +635,7 @@
 			if (DRAWMODE > ORBITMODE){
 				bIsDrawing=true;
 				
-				if (SNAPMODE){ /*constrain according to object... create a scope or something  */
+				if (SNAPMODE){ /*originate line according to interesected object. */
 				
 					if ( currentIntersectedPoint !== undefined ) {
 						initNewLine(currentIntersectedPoint.x, currentIntersectedPoint.y,currentIntersectedPoint.z , false);
@@ -725,9 +723,7 @@
 	
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
 	
-	/*this also has some funny behavior- doesn't always return with the line segment the mouse is intersecting with
-	...weird, seems to be related to coordinates
-	*/
+
 	function handleRayIntersections(intersects){
 		if ( intersects.length > 0 ) {
 				if ( currentIntersected !== undefined ) {
@@ -789,10 +785,6 @@
 				
 		}
 		
-		
-		//camera.updateMatrixWorld(); //both?
-		//camera.updateProjectionMatrix();
-			
 		var camVec = camera.position;
 
 			
