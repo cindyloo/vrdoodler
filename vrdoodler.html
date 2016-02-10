@@ -57,7 +57,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script>
 <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <!--<script src="js/controls/OrbitControls.js"></script>-->
-<script src="js/controls/TrackballControls.js"></script>
+<!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
 
 
 
@@ -108,14 +108,14 @@
     
     
 <div class="hero-unit">
-	<input id="show" type="checkbox" value="showme" />ShowMe
+
 	<input id="draw" type="checkbox" value="draw"/>Draw
-	<input id="width" type="checkbox" value="lineWidth"/>Line Width
-	<input id="rotateX" type="checkbox" value="rotate90"/>Rotate 90
 	<input id="snapTo" type="checkbox" value="snapTo" />Snap To Line
-	<input id="trace" type="checkbox" value="trace"/>Trace
+	<!--<input id="rotateX" type="checkbox" value="rotate90" enabled="false"/>Rotate 90
+	<input id="width" type="checkbox" value="lineWidth" enabled="false"/>Line Width
+	<input id="trace" type="checkbox" value="trace" enabled="false"/>Trace
 	<input id="exportLine" type="checkbox" value="exportLine" enabled="false"/>Export
-	<input id="colorToggle" type="checkbox" value="colorToggle"/>Color
+	<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
 </div>
 <div id="infoPanel">
  <p>Draw Mode is </p>
@@ -133,7 +133,7 @@
 	var splineArray= [];
 	var drawnline = [];
 	var container, canvas;
-	var controls;
+
 	
 	var manager;
 
@@ -165,6 +165,8 @@
 	var COLOR = 0;
 	var linematerial = null;
 	var start = Date.now();
+		var clock = new THREE.Clock();
+	var edges, cameraHelp;
 	
 	
 	
@@ -183,33 +185,36 @@
 		document.body.appendChild( container );
 
 	
+		scene = new THREE.Scene();
+
+    	scene.add( new THREE.AxisHelper(500) );  
+    	
+    	renderer = new THREE.WebGLRenderer( { antialias: false } );		
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		
+		container.appendChild( renderer.domElement );
+	
 		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
-		camera.position.set( 0, 0, 10);
+		camera.position.set( 5, 0, 5);
+		camera.name="orig";
 		
 	/*	better to use this when drawing? hmm
 		camera =new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 1000 );
 				camera.position.set( 0, 0, 10);
 	*/
-		scene = new THREE.Scene();
-    
-    	scene.add( new THREE.AxisHelper(500) );    	
+ 	
 
-		renderer = new THREE.WebGLRenderer( { antialias: false } );		
-		renderer.setSize( window.innerWidth, window.innerHeight );
 
-		container.appendChild( renderer.domElement );
+
+
 			   		   
-		sketchContainer = new THREE.Object3D();
+		sketchContainer = new THREE.Object3D();  //helpers etc that aren't included in raycasting
 		objContainer = new THREE.Object3D();
-  		//sketchContainer.position = {x:0,y:0,z:0};
-  		
-  		//objContainer.  = (3,3,3);
+
   		scene.add(objContainer);
-  		
-  		//sketchContainer.scale = (3,3,3);
   		scene.add(sketchContainer);
 		controls = new THREE.OrbitControls( camera, renderer.domElement );
-		
+		//controls.addEventListener( 'change', render ); not needed b/c I have an animate loop
 		
 	
   		
@@ -220,7 +225,7 @@
 		var material = new THREE.MeshBasicMaterial( { color: 0xffcc00 } );
 		sphereInter = new THREE.Mesh( geometry, material );
 		sphereInter.visible = false;
-		scene.add( sphereInter );
+		//scene.add( sphereInter );
 		
 		planegeo = new THREE.PlaneGeometry(.5,.5);
 		 planemat = new THREE.MeshBasicMaterial( {color: 0xffcc00, side: THREE.DoubleSide, opacity:.4} );
@@ -235,14 +240,16 @@
 		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 		
     
-		document.getElementById('show').onclick = printVerts;
+		
 		document.getElementById('draw').onclick = toggleDrawMode;
+		document.getElementById('snapTo').onclick = snapTo;
+				
+		/*document.getElementById('show').onclick = printVerts;
 		document.getElementById('width').onclick = toggleCurrentLineWidth;
 		document.getElementById('rotateX').onclick = rotateX;
 		document.getElementById('trace').onclick = trace;
 		document.getElementById('exportLine').onclick = exportLine;
-		document.getElementById('snapTo').onclick = snapTo;
-		document.getElementById('colorToggle').onclick = colorToggle;
+		document.getElementById('colorToggle').onclick = colorToggle;*/
 		
 		
         var light = new THREE.DirectionalLight( 0xcccccc, 1 );
@@ -266,6 +273,9 @@
 		 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
 	  });
 	  
+	  
+	   //scene.add(camera);
+ 
 	//loadAnObject();
 	}
 	
@@ -349,19 +359,28 @@
 	 var prevCamera = camera;
 
 		camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.name="new";
+		
 		camera.position.copy( prevCamera.position );
 		camera.rotation.copy( prevCamera.rotation );
-
+		camera.up = new THREE.Vector3(0,1,0);
+cameraHelp.camera = camera;
 		if (!DRAWMODE && SNAPMODE){
-			controls = new THREE.OrbitControls(camera, renderer.domElement );
+		controls.enabled = true;
+		controls.object = camera;
+			//controls = new THREE.OrbitControls(camera );
 			controls.target = lastIntersectedPoint;
 			camera.lookAt(lastIntersectedPoint);
 		}else if (!DRAWMODE ){ 
-			controls = new THREE.OrbitControls(camera, renderer.domElement );
+		controls.enabled = true;
+		controls.object = camera;
+			//controls = new THREE.OrbitControls(camera);
 		}else{ //if Drawmode
-			controls = null;
+		controls.object = camera;
+			controls.enabled = false;
 		}
-
+	camera.updateProjectionMatrix();
+	cameraHelp.update();
 	
 	
 	}
@@ -418,8 +437,8 @@
 		geometry.setDrawRange( 0, drawCount );
 	
 		// material
-		//linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
-	    linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    linematerial.linewidth = CURRENTLINEWIDTH;
 		// line
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line
@@ -482,7 +501,7 @@
 					var degToRotate = Math.round((mouseQuotient * 10)%90);
 					console.log( "degToRotate " + degToRotate);
 					//plane.rotateY((degToRotate * 90)* Math.PI/180);  //(Math.cos(mouse.x) * 100)/90;
-					//plane.lookAt(THREE.Vector3(mouse.x, mouse.y, whichz));
+					plane.lookAt(camera.position);
 					
 				}
 	}
@@ -541,30 +560,50 @@
            	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
   			mouse.y =  - ( (evt.clientY- container.offsetTop) / window.innerHeight ) * 2 + 1;
                 
-            var vNow = new THREE.Vector3(mouse.x, mouse.y, .5);
+            var vNow = new THREE.Vector3();
+            vNow.set(
+					( event.clientX / window.innerWidth ) * 2 - 1,
+					- ( event.clientY / window.innerHeight ) * 2 + 1,
+					0.5 );
             
             if(DRAWMODE){
             	if (SNAPMODE){
             		if (plane.position !== undefined ){
-            			//vNow.z = 0;
-            		
-
-						vNow.set(
-							( event.clientX / window.innerWidth ) * 2 - 1,
-							- ( event.clientY / window.innerHeight ) * 2 + 1,
-							0.5 );
+            			
+						//UNDER PROGRESS 
+						//currently posted in stackoverflow to help resolve...
+						//http://stackoverflow.com/questions/35303898/three-js-mouse-drawing-at-intersected-linesegment-vector-translation
+						
+						
+						/*this causes the linesegment to be correctly drawn according to the ray intersection (plane) axis
+						-however, the linesegment's x and y are constrained and do not reflect the true position of the screen mouse
+						ie., there is some perspective or matrix applied here that I don't know how to 'undo'
+						*/
+						vNow.applyMatrix4(plane.matrixWorld); //this throws the drawing back in z space
 				
-						console.log(vNow.unproject); 
-						vNow.unproject( camera ); 
 				
-						var dir = vNow.sub( camera.position ).normalize();
-				
-						var distance = (plane.position.z - camera.position.z) / dir.z;
-				
-						var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-						vNow.copy(pos);	
-						//;
-						console.log("drawing at plane vNow.x "+ vNow.x + " mouse.x " + mouse.x + " y " + vNow.y +  " z " + vNow.z);
+						
+						
+						//nope, doesn't work   vNow.applyMatrix4(camera.matrixWorld).applyMatrix4(camera.projectionMatrix);//.applyMatrix4(camera.matrixWorld);
+						
+						/*	
+						this causes the linesegment to draw accurately at the screen mouse x and y position, but there
+						is now some translation applied such that the line segment is drawn to the original camera projection
+						(or what looks like it).  I don't understand why the controls aren't having an affect on the camera position
+						*/
+						
+						/*var temp = new THREE.Vector3();
+						
+						var dir = temp.set( mouse.x, mouse.y, 0.5 ).unproject( camera ).sub( origin ).normalize();;
+						var distance = (currentIntersectedPoint.z- camera.position.z) / dir.z;			
+						var pos = temp.add( dir.multiplyScalar( distance ) );	
+						vNow.copy(pos);
+						//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));*/	
+						
+						console.log("vNow rotation = " + JSON.stringify(vNow.rotation));
+						
+					}else { 
+						console.log("hmm plane not defined");
 					}
             	}else { //freehand
 
@@ -635,7 +674,7 @@
 			if (DRAWMODE > ORBITMODE){
 				bIsDrawing=true;
 				
-				if (SNAPMODE){ /*originate line according to interesected object. */
+				if (SNAPMODE){ /*originate line according to interesected object. 	*/
 				
 					if ( currentIntersectedPoint !== undefined ) {
 						initNewLine(currentIntersectedPoint.x, currentIntersectedPoint.y,currentIntersectedPoint.z , false);
@@ -675,8 +714,10 @@
 	function makeDirectionalPlane(vecPlane){
 
 		 plane = new THREE.Mesh( planegeo, planemat );
+		 plane.position.set( 0, 0, 0 );
+	
 		 plane.position.copy(vecPlane);
-		 //plane.visible = false;
+
 		 scene.add( plane );
 		 plane.lookAt(camera.position);
 		//edges = new THREE.FaceNormalsHelper( plane, 1, 0x00ff00, 1 );
@@ -736,7 +777,7 @@
 				//currentIntersected.material.linewidth = 5;
 				//currentIntersected.material.color.setRGB(200,200,200);
 				//currentIntersected.material.uniforms.color.value = 1.0;
-				
+
 				currentIntersectedPoint= intersects[ 0 ].point;  //sorted in desc. order and not really accurate for mouse hover 
 				
 				lastIntersected = currentIntersected;
@@ -753,7 +794,7 @@
 					obj = intersection.object;
 
 					//obj.material.color.setRGB( 100,10,10);//1.0 - i / intersects.length, 0, 0 );
-					obj.material.uniforms.color.value = 1.0;
+					//obj.material.uniforms.color.value = 1.0;
 				}
 				
 		
@@ -762,7 +803,7 @@
 				if ( currentIntersected !== undefined ) {
 					currentIntersected.material.linewidth = CURRENTLINEWIDTH;
 					//currentIntersected.material.color.setRGB(250,250,250);
-					currentIntersected.material.uniforms.color.value = 1.0;
+					//currentIntersected.material.uniforms.color.value = 1.0;
 				}
 				
 				currentIntersected = undefined;
@@ -784,8 +825,8 @@
 			updatePositions();
 				
 		}
-		
-		var camVec = camera.position;
+		camera.updateMatrixWorld();
+		camera.updateProjectionMatrix();
 
 			
 		raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
@@ -800,16 +841,22 @@
 			//handlePlayback(intersects);
 		}
 		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
-		renderer.render(scene, camera);	 
+		render();	 
 		  
 		if (!DRAWMODE){
-			controls.update();
+			controls.update(clock.getDelta());
 		}
 		
 	
 	   } 
+	   
+	function render() {
+  			renderer.render( scene, camera );
+		}
 		
 	init();
+	cameraHelp = new THREE.CameraHelper(camera);
+	scene.add(cameraHelp);
 	animate();
 	
 </script>
