@@ -495,7 +495,7 @@ cameraHelp.camera = camera;
 				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
 				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
 				
-				console.log("mouse.x " + mouse.x + " and y " + mouse.y + " ");
+				//console.log("mouse.x " + mouse.x + " and y " + mouse.y + " ");
 				if (PLANEROTATE){
 					var whichz = currentIntersectedPoint? currentIntersectedPoint.z: lastIntersectedPoint.z;
 					var degToRotate = Math.round((mouseQuotient * 10)%90);
@@ -579,11 +579,17 @@ cameraHelp.camera = camera;
 						-however, the linesegment's x and y are constrained and do not reflect the true position of the screen mouse
 						ie., there is some perspective or matrix applied here that I don't know how to 'undo'
 						*/
-						vNow.applyMatrix4(plane.matrixWorld); //this throws the drawing back in z space
+						//vNow.applyMatrix4(plane.matrixWorld); //this throws the drawing back in z space
 				
+			/*var direction = new THREE.Vector3().subVectors(vNow, currentIntersectedPoint);
+            var orientation = new THREE.Matrix4();
+            orientation.lookAt(vNow, currentIntersectedPoint, new THREE.Object3D().up);
+            orientation.multiply(camera.matrixWorld).multiply(plane.matrixWorld);	
+					
+					currentDrawnLine().geometry.applyMatrix(orientation);
 				
-						
-						
+				*/
+						 
 						//nope, doesn't work   vNow.applyMatrix4(camera.matrixWorld).applyMatrix4(camera.projectionMatrix);//.applyMatrix4(camera.matrixWorld);
 						
 						/*	
@@ -592,15 +598,45 @@ cameraHelp.camera = camera;
 						(or what looks like it).  I don't understand why the controls aren't having an affect on the camera position
 						*/
 						
-						/*var temp = new THREE.Vector3();
+						var temp = new THREE.Vector3();
+						//unproject the mouse into 3d space according to camera world coordinates
 						
-						var dir = temp.set( mouse.x, mouse.y, 0.5 ).unproject( camera ).sub( origin ).normalize();;
-						var distance = (currentIntersectedPoint.z- camera.position.z) / dir.z;			
-						var pos = temp.add( dir.multiplyScalar( distance ) );	
-						vNow.copy(pos);
-						//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));*/	
+						var dir = temp.set( mouse.x, mouse.y, 0.5 ).unproject( camera );
+						//offset between the mouse world coord and the camera world coord, normalize
+						//but I don't really understand why I'm doing this...
+						//subtracting positions makes the vector
+						//subtracting vectors creates the distance between the start and end point
+						//is this just about this distance from the camera to the mouse?
+						//the mouse isn't really a vector it is a position
+						//camera position minus the mouse is what? the relative psoition from the camera to the mouse
+						//temp.subVectors( camera.position, dir ).normalize();
+						//console.log("unprojected sub  " + JSON.stringify(temp));
 						
-						console.log("vNow rotation = " + JSON.stringify(vNow.rotation));
+						//distance from camera to plane "units"
+						var distance = (plane.position.z- camera.position.z) / dir.z;	
+						
+						//get offset between mouse and plane
+						var planecopy =new THREE.Vector3();
+						var cameracopy = new THREE.Vector3();
+						planecopy.copy(plane.position);
+						cameracopy.copy(camera.position);
+						
+						var planeoffset = planecopy.subVectors(plane.position, temp);	
+						var cameraoffset = cameracopy.subVectors(camera.position, temp);	
+						
+						//add plane world coordinates to mouse
+						//I want the mouse to have a relationship to the plane - to be connected to it.
+						//so how?
+						//temp.sub(planeoffset) - the z varies according to the zoom in/out of camera...
+						
+						//temp.sub(planeoffset);
+						//temp.setZ(temp.z +  distance);	
+						//var pos = temp.add( dir.multiplyScalar( distance ) );	
+						vNow.copy(temp);
+									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
+						currentLine().push(vNow); 
+						
+						//console.log("camera -vNow  " + JSON.stringify()));
 						
 					}else { 
 						console.log("hmm plane not defined");
@@ -609,10 +645,12 @@ cameraHelp.camera = camera;
 
             		vNow.unproject(camera);
             		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
+            		
+            		currentLine().push(vNow);  
            		}
 				 //vNow.z = 0;
         		
-        		currentLine().push(vNow);  //push subsequent vertices into master line array
+        		//push subsequent vertices into master line array
         	
             }          
         }
