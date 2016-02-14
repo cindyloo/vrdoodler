@@ -599,40 +599,51 @@ cameraHelp.camera = camera;
 						*/
 						
 						var temp = new THREE.Vector3();
-						//unproject the mouse into 3d space according to camera world coordinates
+						//unproject the mouse into 3d space according to camera world coordinates or world coordinates???
 						
 						var dir = temp.set( mouse.x, mouse.y, 0.5 ).unproject( camera );
-						//offset between the mouse world coord and the camera world coord, normalize
-						//but I don't really understand why I'm doing this...
-						//subtracting positions makes the vector
-						//subtracting vectors creates the distance between the start and end point
-						//is this just about this distance from the camera to the mouse?
-						//the mouse isn't really a vector it is a position
-						//camera position minus the mouse is what? the relative psoition from the camera to the mouse
-						//temp.subVectors( camera.position, dir ).normalize();
-						//console.log("unprojected sub  " + JSON.stringify(temp));
 						
-						//distance from camera to plane "units"
-						var distance = (plane.position.z- camera.position.z) / dir.z;	
+						//rem: the mouse isn't really a vector it is a position 
 						
-						//get offset between mouse and plane
-						var planecopy =new THREE.Vector3();
-						var cameracopy = new THREE.Vector3();
-						planecopy.copy(plane.position);
-						cameracopy.copy(camera.position);
 						
-						var planeoffset = planecopy.subVectors(plane.position, temp);	
-						var cameraoffset = cameracopy.subVectors(camera.position, temp);	
+						//get the unit vector - the distance between two vectors is the hypotenuse, divide by it
+						var vPlaneSubCamera = plane.position.clone().sub(camera.position).normalize();		
+						var vMouseSubCamera = temp.clone().sub(camera.position).normalize();					
+						var vMouseSubPlane = temp.clone().sub(plane.position);	
 						
-						//add plane world coordinates to mouse
-						//I want the mouse to have a relationship to the plane - to be connected to it.
-						//so how?
-						//temp.sub(planeoffset) - the z varies according to the zoom in/out of camera...
+						//offset positions not normalized, maybe that's the problem but I can't get the normalized vectors working right	
 						
-						//temp.sub(planeoffset);
-						//temp.setZ(temp.z +  distance);	
-						//var pos = temp.add( dir.multiplyScalar( distance ) );	
+						var planeoffset = plane.position.clone().subVectors(plane.position, temp);	
+						var cameraoffset = camera.position.clone().subVectors(camera.position, temp);	
+						
+						
+						//in general, I think my question is how do I adjust the mouse position 
+						//to the plane position relative to the camera view matrix? so that the zoom doesn't mess up the z-axis
+						//vNow.sub(planeoffset) is as close as I can get, but it isn't doing the right thing
+						//w/r/t the camera zoom/distance
+			
+						
+						//z distances from units divided by normalized length
+						var mouseToCameraDistance = (-temp.z- camera.position.z) / vMouseSubCamera.z;
+						var planeToCameraDistance = (-plane.position.z - camera.position.z) / vPlaneSubCamera.z;
+						var planeToMouseDistance = (-temp.z - plane.position.z) / vMouseSubPlane.z;
+								
+
+						//
+						var posCamToMouse = camera.position.clone().add( dir.multiplyScalar( mouseToCameraDistance ) );
+						var posPlaneToMouse = plane.position.clone().add( dir.multiplyScalar( planeToMouseDistance ) );
+
+						
+						
+						temp.add(cameraoffset).sub(planeoffset);  //z -axis always in frotn or behind by a factor of what Im not sure
+						  //way back 
+						
 						vNow.copy(temp);
+						console.log("camera " + camera.position.z + " plane " + plane.position.z);
+						
+						console.log("vNow " + temp.z);
+						//var pos = temp.add( dir.multiplyScalar( distance ) );	
+						
 									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
 						currentLine().push(vNow); 
 						
