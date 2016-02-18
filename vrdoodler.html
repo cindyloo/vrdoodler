@@ -617,10 +617,19 @@ cameraHelp.camera = camera;
 					
 						var pos= camera.position.clone(); 
 						var camPos = camera.position.clone(); 
+						var dir = unprojectedMouse.sub( camPos ).normalize();
+						pos.add(dir.multiplyScalar(currentIntersectedPoint.distanceTo(camPos)));
 						
-						pos.add(unprojectedMouse.sub(camPos).normalize().multiplyScalar(currentIntersectedPoint.distanceTo(camPos)));
+						
+						/* fyi
+						this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
+						var dir = unprojectedMouse.sub( camera.position ).normalize();
+    					var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
+    					var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
+    					
+    					
 						vNow.copy(pos);
-						console.log("vNow " + JSON.stringify(projectedMouse));
+						console.log("vNow " + JSON.stringify(pos));
 						//var pos = temp.add( dir.multiplyScalar( distance ) );	
 						
 									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
