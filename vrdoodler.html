@@ -610,25 +610,16 @@ cameraHelp.camera = camera;
 						 
 						
 						var projectedMouse = new THREE.Vector3();
+						projectedMouse.set(mouse.x, mouse.y, 0.5 );				
+						var unprojectedMouse = projectedMouse.clone().unproject( camera );
 						
-						var unprojectedMouse = projectedMouse.set( mouse.x, mouse.y, 0.5 ).clone().unproject( camera );
-						
-						//rem: the mouse isn't really a vector it is a position 
-						
-						var currentIntersectedUnprojected = currentIntersectedPoint.clone(); //as it is stored unprojected 
-						
-						var currentIntersectedProjected = currentIntersectedUnprojected.clone().project(camera);
-						
-						var offsetVectorOfIntersected = currentIntersectedProjected.sub(currentIntersectedUnprojected);
 						
 					
+						var pos= camera.position.clone(); 
+						var camPos = camera.position.clone(); 
 						
-						
-						//which one to use??
-						projectedMouse.sub(offsetVectorOfIntersected);  //instead of unprojecting?
-						//unprojectedMouse.add(offsetVectorOfIntersected);  //instead of unprojecting?
-					
-						vNow.copy(projectedMouse);
+						pos.add(unprojectedMouse.sub(camPos).normalize().multiplyScalar(currentIntersectedPoint.distanceTo(camPos)));
+						vNow.copy(pos);
 						console.log("vNow " + JSON.stringify(projectedMouse));
 						//var pos = temp.add( dir.multiplyScalar( distance ) );	
 						
