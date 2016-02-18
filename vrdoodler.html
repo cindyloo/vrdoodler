@@ -588,27 +588,7 @@ cameraHelp.camera = camera;
             	if (SNAPMODE){
             		if (plane.position !== undefined ){
             			
-						//UNDER PROGRESS 
-						//currently posted in stackoverflow to help resolve...
-						//http://stackoverflow.com/questions/35303898/three-js-mouse-drawing-at-intersected-linesegment-vector-translation
-						
-						
-						/*this causes the linesegment to be correctly drawn according to the ray intersection (plane) axis
-						-however, the linesegment's x and y are constrained and do not reflect the true position of the screen mouse
-						ie., there is some perspective or matrix applied here that I don't know how to 'undo'
-						*/
-						//vNow.applyMatrix4(plane.matrixWorld); //this throws the drawing back in z space
-				
-			/*var direction = new THREE.Vector3().subVectors(vNow, currentIntersectedPoint);
-            var orientation = new THREE.Matrix4();
-            orientation.lookAt(vNow, currentIntersectedPoint, new THREE.Object3D().up);
-            orientation.multiply(camera.matrixWorld).multiply(plane.matrixWorld);	
-					
-					currentDrawnLine().geometry.applyMatrix(orientation);
-				
-				*/
-						 
-						
+
 						var projectedMouse = new THREE.Vector3();
 						projectedMouse.set(mouse.x, mouse.y, 0.5 );				
 						var unprojectedMouse = projectedMouse.clone().unproject( camera );
@@ -630,12 +610,8 @@ cameraHelp.camera = camera;
     					
 						vNow.copy(pos);
 						console.log("vNow " + JSON.stringify(pos));
-						//var pos = temp.add( dir.multiplyScalar( distance ) );	
-						
-									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
 						currentLine().push(vNow); 
 						
-						//console.log("camera -vNow  " + JSON.stringify()));
 						
 					}else { 
 						console.log("hmm plane not defined");
