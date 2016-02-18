@@ -504,6 +504,24 @@ cameraHelp.camera = camera;
 					plane.lookAt(camera.position);
 					
 				}
+				var vNow = new THREE.Vector3();
+				vNow.set(
+					( event.clientX / window.innerWidth ) * 2 - 1,
+					- ( event.clientY / window.innerHeight ) * 2 + 1,
+					0.5 );
+					vNow.unproject(camera);
+					
+					var planeoffset = vNow.clone().subVectors(plane.position, vNow);	
+						var cameraoffset = camera.position.clone().subVectors(camera.position, vNow);	
+						var cameraplaneoffset = camera.position.clone().subVectors(camera.position, plane.position);	
+						
+				var mouseToCameraDistance = (-plane.position.z - camera.position.z) / cameraoffset.z;
+						var planeToCameraDistance = (-plane.position.z - camera.position.z) / cameraplaneoffset.z;
+						var planeToMouseDistance = (plane.position.z - vNow.z) / planeoffset.z;
+						
+						console.log("distance from mouse to plane is " + planeoffset.z);
+						console.log("distance from mouse to camera is " + mouseToCameraDistance);
+						console.log("distance from plane to camera is " + cameraplaneoffset.z);
 	}
 			
 	function onVRDoodlerKeyDown(evt) {
@@ -598,50 +616,47 @@ cameraHelp.camera = camera;
 						(or what looks like it).  I don't understand why the controls aren't having an affect on the camera position
 						*/
 						
-						var temp = new THREE.Vector3();
+						var projectedMouse = new THREE.Vector3();
 						//unproject the mouse into 3d space according to camera world coordinates or world coordinates???
 						
-						var dir = temp.set( mouse.x, mouse.y, 0.5 ).unproject( camera );
+						var unprojectedMouse = projectedMouse.set( mouse.x, mouse.y, 0.5 ).clone().unproject( camera );
 						
 						//rem: the mouse isn't really a vector it is a position 
 						
+						var currentIntersectedUnproject = currentIntersectedPoint.clone(); //as it was originally stored unprojected 
+						
+						var currentIntersectedProject = currentIntersectedUnproject.clone().project(camera);
+						
+						var distIntersected = currentIntersectedUnproject.sub(currentIntersectedProject);
 						
 						//get the unit vector - the distance between two vectors is the hypotenuse, divide by it
-						var vPlaneSubCamera = plane.position.clone().sub(camera.position).normalize();		
+						/*var vPlaneSubCamera = plane.position.clone().sub(camera.position).normalize();		
 						var vMouseSubCamera = temp.clone().sub(camera.position).normalize();					
-						var vMouseSubPlane = temp.clone().sub(plane.position);	
-						
-						//offset positions not normalized, maybe that's the problem but I can't get the normalized vectors working right	
-						
-						var planeoffset = plane.position.clone().subVectors(plane.position, temp);	
-						var cameraoffset = camera.position.clone().subVectors(camera.position, temp);	
+						var vMouseSubPlane = temp.clone().sub(plane.position).normalize();*/	
 						
 						
-						//in general, I think my question is how do I adjust the mouse position 
-						//to the plane position relative to the camera view matrix? so that the zoom doesn't mess up the z-axis
-						//vNow.sub(planeoffset) is as close as I can get, but it isn't doing the right thing
-						//w/r/t the camera zoom/distance
-			
 						
-						//z distances from units divided by normalized length
-						var mouseToCameraDistance = (-temp.z- camera.position.z) / vMouseSubCamera.z;
-						var planeToCameraDistance = (-plane.position.z - camera.position.z) / vPlaneSubCamera.z;
-						var planeToMouseDistance = (-temp.z - plane.position.z) / vMouseSubPlane.z;
-								
-
-						//
-						var posCamToMouse = camera.position.clone().add( dir.multiplyScalar( mouseToCameraDistance ) );
-						var posPlaneToMouse = plane.position.clone().add( dir.multiplyScalar( planeToMouseDistance ) );
-
+						projectedMouse.add(distIntersected);  //instead of unprojecting?
+					//temp.add(cameraoffset);
+						//temp.sub(planeoffset);  // moved this off to right setX(temp.x + distMouseToPlane);				//temp.sub(planeoffset);
+						//temp.sub(cameraoffset);
 						
-						
-						temp.add(cameraoffset).sub(planeoffset);  //z -axis always in frotn or behind by a factor of what Im not sure
+						//temp.setX(0).setX(dir.x);
+						//temp.setY(dir.y);
+						//temp.sub(temp.clone().sub(currentIntersectedPoint)); //this subtracts to just the point.  I want just the z difference
+						//temp.setZ(planeToMouseDistance);
+						//temp.add(cameraoffset).sub(planeoffset);  //z -axis always in frotn or behind by a factor of what Im not sure
 						  //way back 
 						
-						vNow.copy(temp);
-						console.log("camera " + camera.position.z + " plane " + plane.position.z);
+						//temp.copy(posCamToMouse);
+						//currentDrawnLine().setRotationFromEuler(plane.rotation);
+						//whatever difference is from plane to mouse, adjust it.
+						//so,this basically does an adjustment to the perpspective mouse... starfish like
 						
-						console.log("vNow " + temp.z);
+						//else temp.add(posMouseToPlane);
+						//console.log("camera " + camera.position.z + " plane " + plane.position.z);
+						vNow.copy(projectedMouse);
+						console.log("vNow " + JSON.stringify(unprojectedMouse));
 						//var pos = temp.add( dir.multiplyScalar( distance ) );	
 						
 									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
@@ -758,6 +773,16 @@ cameraHelp.camera = camera;
 			console.log(splineArray[i].x + " " + splineArray[i].y + " " + splineArray[i].z );
 		}
 	}
+	
+	function getInverseViewMatrix()
+{
+	var testMat = plane.matrix.clone();
+    var inverseCamToSrc = new THREE.Matrix4().getInverse(camera.matrixWorld);
+    inverseCamToSrc.multiply(testMat);
+  	return inverseCamToSrc;
+  
+}
+	
 	
 	
 	function makeDirectionalPlane(vecPlane){
