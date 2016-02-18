@@ -608,55 +608,28 @@ cameraHelp.camera = camera;
 				
 				*/
 						 
-						//nope, doesn't work   vNow.applyMatrix4(camera.matrixWorld).applyMatrix4(camera.projectionMatrix);//.applyMatrix4(camera.matrixWorld);
-						
-						/*	
-						this causes the linesegment to draw accurately at the screen mouse x and y position, but there
-						is now some translation applied such that the line segment is drawn to the original camera projection
-						(or what looks like it).  I don't understand why the controls aren't having an affect on the camera position
-						*/
 						
 						var projectedMouse = new THREE.Vector3();
-						//unproject the mouse into 3d space according to camera world coordinates or world coordinates???
 						
 						var unprojectedMouse = projectedMouse.set( mouse.x, mouse.y, 0.5 ).clone().unproject( camera );
 						
 						//rem: the mouse isn't really a vector it is a position 
 						
-						var currentIntersectedUnproject = currentIntersectedPoint.clone(); //as it was originally stored unprojected 
+						var currentIntersectedUnprojected = currentIntersectedPoint.clone(); //as it is stored unprojected 
 						
-						var currentIntersectedProject = currentIntersectedUnproject.clone().project(camera);
+						var currentIntersectedProjected = currentIntersectedUnprojected.clone().project(camera);
 						
-						var distIntersected = currentIntersectedUnproject.sub(currentIntersectedProject);
+						var offsetVectorOfIntersected = currentIntersectedProjected.sub(currentIntersectedUnprojected);
 						
-						//get the unit vector - the distance between two vectors is the hypotenuse, divide by it
-						/*var vPlaneSubCamera = plane.position.clone().sub(camera.position).normalize();		
-						var vMouseSubCamera = temp.clone().sub(camera.position).normalize();					
-						var vMouseSubPlane = temp.clone().sub(plane.position).normalize();*/	
+					
 						
 						
-						
-						projectedMouse.add(distIntersected);  //instead of unprojecting?
-					//temp.add(cameraoffset);
-						//temp.sub(planeoffset);  // moved this off to right setX(temp.x + distMouseToPlane);				//temp.sub(planeoffset);
-						//temp.sub(cameraoffset);
-						
-						//temp.setX(0).setX(dir.x);
-						//temp.setY(dir.y);
-						//temp.sub(temp.clone().sub(currentIntersectedPoint)); //this subtracts to just the point.  I want just the z difference
-						//temp.setZ(planeToMouseDistance);
-						//temp.add(cameraoffset).sub(planeoffset);  //z -axis always in frotn or behind by a factor of what Im not sure
-						  //way back 
-						
-						//temp.copy(posCamToMouse);
-						//currentDrawnLine().setRotationFromEuler(plane.rotation);
-						//whatever difference is from plane to mouse, adjust it.
-						//so,this basically does an adjustment to the perpspective mouse... starfish like
-						
-						//else temp.add(posMouseToPlane);
-						//console.log("camera " + camera.position.z + " plane " + plane.position.z);
+						//which one to use??
+						projectedMouse.sub(offsetVectorOfIntersected);  //instead of unprojecting?
+						//unprojectedMouse.add(offsetVectorOfIntersected);  //instead of unprojecting?
+					
 						vNow.copy(projectedMouse);
-						console.log("vNow " + JSON.stringify(unprojectedMouse));
+						console.log("vNow " + JSON.stringify(projectedMouse));
 						//var pos = temp.add( dir.multiplyScalar( distance ) );	
 						
 									//console.log("drawing at plane vNow "+ JSON.stringify(vNow) + " pos " + JSON.stringify(pos));	
