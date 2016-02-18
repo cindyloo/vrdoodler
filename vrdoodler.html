@@ -565,8 +565,23 @@ cameraHelp.camera = camera;
                    	break;
                
                 }
-            }			
+            }
+     
+     /* with camera position and the object with which we want to align our next line, transform
+     where the mouse thinks it is to where we want it to be */
+     
+	function transformMouseToDesiredPlaneOfInterest(mv, desiredPOI){
+	
+			var unprojectedMouse = mv.clone().unproject( camera );
+			var pos= camera.position.clone(); 
+			var camPos = camera.position.clone(); 
+			var dir = unprojectedMouse.sub( camPos ).normalize();
+			pos.add(dir.multiplyScalar(desiredPOI.distanceTo(camPos)));
 			
+			return pos;
+	
+	
+	}
 			
 
 /* if draw mode, add new vertex to line as mouse moves */
@@ -587,18 +602,14 @@ cameraHelp.camera = camera;
             if(DRAWMODE){
             	if (SNAPMODE){
             		if (plane.position !== undefined ){
-            			
-
+            			var snapToThis = currentIntersectedPoint;
+						if (!currentIntersectedPoint)
+							snapToThis = lastIntersectedPoint;
 						var projectedMouse = new THREE.Vector3();
 						projectedMouse.set(mouse.x, mouse.y, 0.5 );				
-						var unprojectedMouse = projectedMouse.clone().unproject( camera );
 						
 						
-					
-						var pos= camera.position.clone(); 
-						var camPos = camera.position.clone(); 
-						var dir = unprojectedMouse.sub( camPos ).normalize();
-						pos.add(dir.multiplyScalar(currentIntersectedPoint.distanceTo(camPos)));
+						unprojectedAndTransformedMouse = transformMouseToDesiredPlaneOfInterest(projectedMouse, snapToThis);
 						
 						
 						/* fyi
@@ -608,8 +619,8 @@ cameraHelp.camera = camera;
     					var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
     					
     					
-						vNow.copy(pos);
-						console.log("vNow " + JSON.stringify(pos));
+						vNow.copy(unprojectedAndTransformedMouse);
+						console.log("vNow " + JSON.stringify(unprojectedAndTransformedMouse));
 						currentLine().push(vNow); 
 						
 						
@@ -694,7 +705,10 @@ cameraHelp.camera = camera;
 						console.log("drawing at intersection " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
 
 					}else{ 
-						initNewLine(mouseVec.x, mouseVec.y,lastIntersectedPoint.z, false);
+					
+					    
+						var adjustedMouse = transformMouseToDesiredPlaneOfInterest(mouseVec, lastIntersectedPoint);
+						initNewLine(adjustedMouse.x ,adjustedMouse.y ,adjustedMouse.z, false);
 						console.log("drawing at lastIntersectedPoint " + lastIntersectedPoint.x + " " + lastIntersectedPoint.y + " " + lastIntersectedPoint.z );
 
 					}
@@ -786,7 +800,7 @@ cameraHelp.camera = camera;
 	}
 	
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
-	
+	//shader code currently commented out...
 
 	function handleRayIntersections(intersects){
 		if ( intersects.length > 0 ) {
