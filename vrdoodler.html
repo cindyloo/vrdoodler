@@ -59,7 +59,7 @@
 <!--<script src="js/controls/OrbitControls.js"></script>-->
 <!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
 
-
+	<script src="../js/exporters/OBJExporter.js"></script>
 
 
 
@@ -111,10 +111,12 @@
 
 	<input id="draw" type="checkbox" value="draw"/>Draw
 	<input id="snapTo" type="checkbox" value="snapTo" />Snap To Line
+	<input id="width" type="checkbox" value="lineWidth" enabled="false"/>Line Width
+	<input id="exportLine" type="checkbox" value="exportLine" enabled="false"/>Export
 	<!--<input id="rotateX" type="checkbox" value="rotate90" enabled="false"/>Rotate 90
 	<input id="width" type="checkbox" value="lineWidth" enabled="false"/>Line Width
 	<input id="trace" type="checkbox" value="trace" enabled="false"/>Trace
-	<input id="exportLine" type="checkbox" value="exportLine" enabled="false"/>Export
+	
 	<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
 </div>
 <div id="infoPanel">
@@ -243,12 +245,13 @@
 		
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
-				
+				document.getElementById('exportLine').onclick = exportToObj;
+						document.getElementById('width').onclick = toggleCurrentLineWidth;
 		/*document.getElementById('show').onclick = printVerts;
-		document.getElementById('width').onclick = toggleCurrentLineWidth;
+
 		document.getElementById('rotateX').onclick = rotateX;
 		document.getElementById('trace').onclick = trace;
-		document.getElementById('exportLine').onclick = exportLine;
+
 		document.getElementById('colorToggle').onclick = colorToggle;*/
 		
 		
@@ -293,7 +296,22 @@
 			*/
 	}
 	
-	
+	function exportToObj ()
+			{
+				var exporter = new THREE.OBJExporter ();
+				var result = exporter.parse (scene);
+				
+				
+				var xmlhttp = new XMLHttpRequest();
+				xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
+				xmlhttp.onreadystatechange = function () {
+				  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+					//Handle response
+				  }
+				};
+				 xmlhttp.send(result);
+				
+	}
 	function importScene(){
 			/* something like this *
 			var loader = new THREE.OBJLoader( manager );
@@ -364,7 +382,7 @@
 		camera.position.copy( prevCamera.position );
 		camera.rotation.copy( prevCamera.rotation );
 		camera.up = new THREE.Vector3(0,1,0);
-cameraHelp.camera = camera;
+
 		if (!DRAWMODE && SNAPMODE){
 		controls.enabled = true;
 		controls.object = camera;
@@ -380,7 +398,7 @@ cameraHelp.camera = camera;
 			controls.enabled = false;
 		}
 	camera.updateProjectionMatrix();
-	cameraHelp.update();
+
 	
 	
 	}
@@ -547,7 +565,7 @@ cameraHelp.camera = camera;
                     case 83: //snap to s	
 						snapTo();
 						break;
-						/* case 80: //p audio
+					/* case 80: //p audio
                     	if (CURRENTCOLLISION){
                     		if(CURRENTCOLLISION.userData.audio)
                     			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
@@ -579,6 +597,14 @@ cameraHelp.camera = camera;
 			pos.add(dir.multiplyScalar(desiredPOI.distanceTo(camPos)));
 			
 			return pos;
+			
+				
+						
+			/* fyi
+			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
+			var dir = unprojectedMouse.sub( camera.position ).normalize();
+			var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
+			var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
 	
 	
 	}
@@ -595,33 +621,25 @@ cameraHelp.camera = camera;
                 
             var vNow = new THREE.Vector3();
             vNow.set(
-					( event.clientX / window.innerWidth ) * 2 - 1,
-					- ( event.clientY / window.innerHeight ) * 2 + 1,
+					mouse.x,
+					mouse.y,
 					0.5 );
             
             if(DRAWMODE){
-            	if (SNAPMODE){
+            	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
+            	
             		if (plane.position !== undefined ){
+            		
             			var snapToThis = currentIntersectedPoint;
 						if (!currentIntersectedPoint)
 							snapToThis = lastIntersectedPoint;
 						var projectedMouse = new THREE.Vector3();
-						projectedMouse.set(mouse.x, mouse.y, 0.5 );				
+						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
 						
 						
 						unprojectedAndTransformedMouse = transformMouseToDesiredPlaneOfInterest(projectedMouse, snapToThis);
-						
-						
-						/* fyi
-						this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
-						var dir = unprojectedMouse.sub( camera.position ).normalize();
-    					var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
-    					var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
-    					
-    					
-						vNow.copy(unprojectedAndTransformedMouse);
-						console.log("vNow " + JSON.stringify(unprojectedAndTransformedMouse));
-						currentLine().push(vNow); 
+
+						currentLine().push(unprojectedAndTransformedMouse); 
 						
 						
 					}else { 
@@ -892,8 +910,8 @@ cameraHelp.camera = camera;
 		}
 		
 	init();
-	cameraHelp = new THREE.CameraHelper(camera);
-	scene.add(cameraHelp);
+	//cameraHelp = new THREE.CameraHelper(camera);
+	//scene.add(cameraHelp);
 	animate();
 	
 </script>
