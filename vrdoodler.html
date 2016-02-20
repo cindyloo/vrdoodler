@@ -60,7 +60,7 @@
 <!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
 
 	<script src="../js/exporters/OBJExporter.js"></script>
-
+	<script src="../js/loaders/OBJLoader.js"></script>
 
 
 
@@ -132,7 +132,6 @@
     var controls;
  	var context = null;
 	var currentPlane = 0;
-	var splineArray= [];
 	var drawnline = [];
 	var container, canvas;
 
@@ -141,7 +140,7 @@
 
 
 	var MAX_POINTS = 400;
-	var drawCount;
+	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
 	var raycaster, parentTransform, sphereInter;
@@ -285,21 +284,11 @@
 	
 
 	
-	/* TBD how to save the drawing  */
-	function exportScene(){
-				/* something like this *
-			for ( var i = 0; i < CURRENTspline ;  i ++ ) {		
-				var exportOBJ = new THREE.OBJExporter;
-				var result = exportOBJ.parse(scene);	 //export array of lines--  scene or lines?
-				//save result to a file...
-			}
-			*/
-	}
-	
+
 	function exportToObj ()
 			{
 				var exporter = new THREE.OBJExporter ();
-				var result = exporter.parse (scene);
+				var result = exporter.parse (scene);  /*only exports as mesh and buffer geometry*/
 				
 				
 				var xmlhttp = new XMLHttpRequest();
@@ -313,27 +302,41 @@
 				
 	}
 	function importScene(){
-			/* something like this *
+			/* something like this */
 			var loader = new THREE.OBJLoader( manager );
-				loader.load( 'prevscene.obj', function ( object ) {
+				loader.load( '../test.obj', function ( object ) {
 
 					object.traverse( function ( child ) {
-
-						if ( child instanceof THREE.Mesh ) { //THREE.Line
-
-							splineArray[].push(child);
+						
+						if ( child.children instanceof Array ) { //THREE.Line
+						
+							child.children.every( function ( gchild ){
+								if ( gchild instanceof THREE.Mesh ) { //THREE.Line
+									initNewLine(null, null, gchild.geometry, gchild.geometry.attributes.position);
+								}
+							});
 
 						}
 
-					} );
+					 });
 
 					object.position.y = - 80;//?
 					scene.add( object );
 
 				}, onProgress, onError );
-			*/
+			
 	}
 
+
+	var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+	var onError = function ( xhr ) {
+	};
 
 	/*make it easier for user to draw on standard rotation*/
 	function rotateX(){
@@ -427,49 +430,7 @@
 	
 	
 	
-	
-	function currentLine(){
-		return splineArray[CURRENTspline];
-	}
-	
-	function currentDrawnLine(){
-		return drawnline[CURRENTspline];
-	}
 
-	function initMasterLine(){
-		splineArray[CURRENTspline] = [];
-	}
-	
-	function initDrawnLine(){
-		
-		
-		
-		var geometry = new THREE.BufferGeometry();
-	
-		// attributes
-		var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-		geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-	
-		// drawcalls
-		drawCount = 0; 
-		geometry.setDrawRange( 0, drawCount );
-	
-		// material
-		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
-	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
-	    linematerial.linewidth = CURRENTLINEWIDTH;
-		// line
-		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line
-		
-		
-		objContainer.add( currentDrawnLine() );  
-		
-		currentDrawnLine().position.x = 0;
-		currentDrawnLine().position.y = 0;
-		currentDrawnLine().position.z = 0;
-		
-	}
-	
 	function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -575,7 +536,7 @@
                    case 90: //control-z to erase last
                    	if (evt.ctrlKey)
                    		if (currentLine()){
-                   			splineArray.pop(CURRENTspline);
+                   			
                    			currentDrawnLine().geometry.attributes.position.array = [];//necessary
                    			drawnline.pop(CURRENTspline);
                    			--CURRENTspline;
@@ -639,7 +600,9 @@
 						
 						unprojectedAndTransformedMouse = transformMouseToDesiredPlaneOfInterest(projectedMouse, snapToThis);
 
-						currentLine().push(unprojectedAndTransformedMouse); 
+						
+						updateLineBuffer(unprojectedAndTransformedMouse);
+						//currentLine().push(unprojectedAndTransformedMouse); 
 						
 						
 					}else { 
@@ -650,7 +613,7 @@
             		vNow.unproject(camera);
             		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
             		
-            		currentLine().push(vNow);  
+            		updateLineBuffer(vNow); 
            		}
 				 //vNow.z = 0;
         		
@@ -662,26 +625,86 @@
         console.log("renderer null");}
     }
     
+    
+	function currentDrawnLine(){
+		return drawnline[CURRENTspline];
+	}
 
-	function initNewLine(x, y,z, bUnproject){
-				// geometry
-				
+
+	function initDrawnLine(geometry, positions,mv){
+		
+
+		if (!geometry){  //freehand or snap, doesn't matter, init the line
+			geometry = new THREE.BufferGeometry();
+			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+			countVertices = 0;
+			if (mv){
+				positions[0] = mv.x;
+				positions[1] = mv.y;
+				positions[2] = mv.z;
+				countVertices = 1;
+			}
+			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+	
+			geometry.setDrawRange( 0, 0 );	
+			
+
+		
+		}else{ //loaded from OBJ file
+			
+			geometry.addAttribute( 'position', positions )
+			geometry.setDrawRange( 0, geometry.attributes.position.length-1 );
+		}
+	
+		// material
+		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+	    linematerial.linewidth = CURRENTLINEWIDTH;
+		// line
+		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
+		currentDrawnLine().geometry.attributes.position.needsUpdate = true; 
+	
+	}
+	
+ function updateLineBuffer(newvec) {
+		if (currentDrawnLine()){
+		
+			//get array and update it with the new line vertices
+			var positions = currentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
+			
+			var index = countVertices *3 ;
+			
+			if (newvec){
+				positions[index ++] = newvec.x;
+				positions[index ++] =newvec.y;
+				positions[index ++] =newvec.z;
+			}
+			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
+			currentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
+			
+			countVertices++;
+		}
+	}
+	
+	//called from mouseDown
+	function initNewLine(mouseVec, bUnproject, geo,positions){
+	
 		CURRENTspline++;
 		
-		initMasterLine();
+		if (!geo){
+			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
+			 if (bUnproject)
+				vNow.unproject(camera);
 		
-		initDrawnLine();
-		
-        var vNow = new THREE.Vector3(x, y, z);
-		if (bUnproject)
-			vNow.unproject(camera);
-		
+			initDrawnLine(null, null, vNow);
 
-		console.log("new line vertex" + vNow.x + " " + vNow.y+  " " + vNow.z); 
+		}else
+		 	initDrawnLine(geo, positions);
+		
+		objContainer.add( currentDrawnLine() );  
 	
-		currentLine().push(vNow);  //push first vertex into master line array, drawn line updated in animate()
-		//unprojected if freehand. not unprojected if according to prev line segment
-	}    
+	}
+	    
     
     /* after initing new line
     */
@@ -692,9 +715,9 @@
 			bIsDrawing=false;
 			//now that we are done drawing, trim drawn array to number of master line's vertices 
     		var positions = currentDrawnLine().geometry.attributes.position.array;
-    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, (splineArray[CURRENTspline].length-1) *3);
+    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, (countVertices-1) *3);
     		
-
+		
     		
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined;
@@ -703,7 +726,8 @@
     		console.log("current is " + CURRENTspline);
     		}        
     }
-    
+   
+	
     
      function onSketchMouseDown(evt) {
      
@@ -719,21 +743,21 @@
 				if (SNAPMODE){ /*originate line according to interesected object. 	*/
 				
 					if ( currentIntersectedPoint !== undefined ) {
-						initNewLine(currentIntersectedPoint.x, currentIntersectedPoint.y,currentIntersectedPoint.z , false);
+						initNewLine(currentIntersectedPoint , false);
 						console.log("drawing at intersection " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
 
 					}else{ 
 					
 					    
 						var adjustedMouse = transformMouseToDesiredPlaneOfInterest(mouseVec, lastIntersectedPoint);
-						initNewLine(adjustedMouse.x ,adjustedMouse.y ,adjustedMouse.z, false);
+						initNewLine(adjustedMouse, false);
 						console.log("drawing at lastIntersectedPoint " + lastIntersectedPoint.x + " " + lastIntersectedPoint.y + " " + lastIntersectedPoint.z );
 
 					}
 				}else { 
 
 						//mouseVec.applyMatrix4(plane.matrixWorld);
-						initNewLine(mouseVec.x, mouseVec.y,mouseVec.z, true);
+						initNewLine(mouseVec, true);
 						//console.log("drawing at .5");
 					
 				} 
@@ -750,9 +774,7 @@
     
 // animate
 	function printVerts(){		
-		for (var i=0;i<splineArray.length;i++){
-			console.log(splineArray[i].x + " " + splineArray[i].y + " " + splineArray[i].z );
-		}
+		
 	}
 	
 	function getInverseViewMatrix()
@@ -795,28 +817,6 @@
 
 
 
-// push master array vertices into drawn array
-//this was ideally an optimization - only re-draw the current line -leave previous alone
-	function updatePositions() {
-		if (currentDrawnLine()){
-		
-			//get array and update it with the new line vertices
-			var positions = currentDrawnLine().geometry.attributes.position.array;
-		
-			var index = 0;
-			for ( var i = 0; i < currentLine().length ;  i ++ ) {
-		
-				positions[ index ++ ] = currentLine()[i].x ;//+ Math.random()/50 ;
-				positions[ index ++ ] = currentLine()[i].y;
-				positions[ index ++ ] = currentLine()[i].z;
-			
-			}
-			
-			currentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
-			
-		}
-	}
-	
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
 	//shader code currently commented out...
 
@@ -875,9 +875,9 @@
 
 	
 		if (currentDrawnLine()) {//make sure initialized
-			currentDrawnLine().geometry.setDrawRange( 0, currentLine().length -1 );
+			currentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );
 		
-			updatePositions();
+			//updatePositions();
 				
 		}
 		camera.updateMatrixWorld();
