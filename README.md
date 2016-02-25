@@ -7,7 +7,7 @@ VRDoodler makes this rapidly expanding medium more accessible to everyone becaus
 draw/sketch their spatialized ideas, and render them into a virtual reality(3D) space.  
 I welcome your enhancement requests or inputs
 
-This uses node.js - download the VRDoodler files into a folder, run node server.js in the terminal. Access vrdoodler.html via localhost:8080
+This uses node.js - install node.js and '>npm install ...' the requisite modules as noted in the server.js file.  Download the VRDoodler files into a folder, run >node server.js in the terminal. Access vrdoodler.html via localhost:8080
 
 Currently in ALPHA!!!  Lots of cool features to add, I just need time - and more hands!
 
