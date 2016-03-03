@@ -2,85 +2,9 @@
 <head>
     <meta charset="utf-8">
     <title>VRDoodler!!!</title>
-    <style>
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-        }
-        body {
-            background-color: #ffffff;
-            margin: 0;
-            overflow: hidden;
-            font-family: calibri;
-        }
-        #canvas {
-  
-    position: static; /* fixed or static */
-    top: 0;
-    left: 0;
-}
-   
-   div.hero-unit{
-   float:left;
-   position:absolute;
-   width:250px;
-   z-index:10;
-   background-color:gray;
-   color:white;
-   opacity:.8
-   }
-   h2{
-   margin-top:0;
-   padding-top:0;
-   }
-   ul {
-   padding:5px;
-   margin:10px;
-   	list-style:none;
-   	
-   }
-   #infoPanel{
-	text-decoration:none;
-	
-	float:right;
-    width:250px;
-    height:100px;
-    position:relative;
-    opacity:.8;
-    z-index:10;
-	padding:5px;	
-	background-color:gray;
-	color:white;
-	overflow:hidden;
-}
-
-li span {text-decoration: underline; }
-
-.gradient-menu {
-  padding-left: 1.25em;
-  position: relative;
-}
-.gradient-menu:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.21em;
-  bottom: 0.21em;
-  width: 1em;
-  background: linear-gradient(
-    to bottom, 
-    black, black 20%, 
-    white 20%, white 40%, 
-    black 40%, black 60%, 
-    white 60%, white 80%, 
-    black 80%, black 100%
-  );
-}
-    </style>
-</head>
  
+</head>
+ <link rel="stylesheet" href="css/style.css">
      <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script>
 <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
@@ -448,6 +372,33 @@ li span {text-decoration: underline; }
 		
 	}
 	
+	function checkRotation(){
+
+		var x = camera.position.x,
+			y = camera.position.y,
+			z = camera.position.z;
+			
+		var orbitRadius =  5;
+		cameraAngle+=90 * Math.PI/180;
+		
+		
+		//camera.position.x = currentIntersectedPoint.x + radius * Math.cos(90);         
+		//camera.position.z = currentIntersectedPoint.z + radius * Math.sin( 90 );
+		 //camera.position.x = x * Math.cos(rotSpeed) + z * Math.sin(rotSpeed);
+        //camera.position.z = z * Math.cos(rotSpeed) - x * Math.sin(rotSpeed);
+       // camera.position.x = camera.position.x + radius * Math.cos( angle );  
+		//camera.position.z = camera.position.y + radius * Math.sin( angle );
+		
+  		camera.position.x = Math.cos(cameraAngle) * orbitRadius;
+  		camera.position.z = Math.sin(cameraAngle) * orbitRadius;
+  		
+		camera.target = currentIntersectedPoint;
+		camera.lookAt(currentIntersectedPoint);
+		if (cameraAngle >360) cameraAngle = 0;
+    
+} 
+
+	
 	
 	function rotateAroundWorldAxis( object, axis, radians ) {
 
@@ -477,10 +428,7 @@ li span {text-decoration: underline; }
 		var snapToThis = currentIntersectedPoint;
 		if (!currentIntersectedPoint)  //if drawing along selected plane...
 			snapToThis = lastIntersectedPoint;
-		
-		
-		
-			
+				
 		scene.remove(planeBounds);
 		var euler;
 		var pos;
@@ -587,7 +535,8 @@ li span {text-decoration: underline; }
 			controls.enabled = true;
 			controls.object = camera;
 			//controls = new THREE.OrbitControls(camera);
-		}else{ //if Drawmode
+			
+		}else{ //if EXTRUDEMODE  //acutally suggesting a flow draw...
 			controls.object = camera;
 			controls.enabled = false;
 		}
@@ -732,7 +681,7 @@ li span {text-decoration: underline; }
                   
                         break;
                      case 82: //rotate panel 90
-						rotateX();
+						checkRotation();
 							
 						break;
                     case 83: //snap to s	
@@ -870,12 +819,9 @@ li span {text-decoration: underline; }
 											
 						
 						unprojectedAndTransformedMouse = transformMouseToDesiredPlaneOfInterest(projectedMouse, snapToThis);
-						/* depending on the camera lock, translate the mouse along the locked axis...
-							this is the relative axis of the object/currentIntersection
-							in order to translate along world axes, we have to do something else
-							...like x would have to be ?*/
+						
 						if (SNAPPINGTOGRID ==1){
-						//not really what I want.  I want the plane to be perp to grid. and draw along that plane's face
+						
             				//unprojectedAndTransformedMouse.x = plane.position.x;
             			}else if (SNAPPINGTOGRID == 3){
             				unprojectedAndTransformedMouse.x = snapToThis.x;
@@ -1073,7 +1019,9 @@ li span {text-decoration: underline; }
 }
 	
 	
-	
+/* the little plane indicates location and direction
+   the outline plane is the canvas/plane on which to draw... I guess it could be a vertical grid
+*/
 	function makeDirectionalPlane(material, vecPlane, name, planeObj){
 
 		 planeObj = new THREE.Mesh( planegeo, material );
@@ -1084,9 +1032,12 @@ li span {text-decoration: underline; }
 		 scene.add( planeObj );
 		 planeObj.lookAt(camera.position);
 		 if (name != "bounds"){ //cheap, fix
+		 
+		 //the greater the zoom out, the bigger this plane should be..
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.1,side: THREE.FrontSide } );
+
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
-			planeLockOutline.scale.multiplyScalar(5.05);
+			planeLockOutline.scale.multiplyScalar(4.05); //figure something out here
 			planeLockOutline.position.copy(planeObj.position);
 			var dir = planeObj.position.clone().sub( camera.position ).normalize();
 			planeLockOutline.position.add(dir.multiplyScalar(.005));
