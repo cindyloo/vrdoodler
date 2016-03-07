@@ -16,14 +16,23 @@ html,
     left: 0;
 }
    
+   h1{
+   	display:block;
+   	background: url("../vrdoodler_icon.jpg") no-repeat bottom center;
+    height:30px;
+    
+   		
+   }
+   
    div.hero-unit{
-   float:left;
-   position:absolute;
+   float:right;
+   position:relative;
    width:250px;
    z-index:10;
    background-color:gray;
    color:white;
-   opacity:.8
+   opacity:.8;
+   visibility:hidden;
    }
    h2{
    margin-top:0;
@@ -35,13 +44,13 @@ html,
    	list-style:none;
    	
    }
-   #infoPanel{
+#tutorial, #infoPanel{
 	text-decoration:none;
 	
-	float:right;
+	float:left;
     width:250px;
-    height:100px;
-    position:relative;
+    height:200px;
+    position:absolute;
     opacity:.8;
     z-index:10;
 	padding:5px;	
@@ -49,7 +58,12 @@ html,
 	color:white;
 	overflow:hidden;
 }
+, #tutorial{
 
+	float:left;
+	
+	}
+	#infoPanel{ visibility:hidden;}
 li span {text-decoration: underline; }
 
 .gradient-menu {
