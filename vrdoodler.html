@@ -138,7 +138,7 @@
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
-	var raycaster, parentTransform, planeLockInd, lineLockInd, planeLockOutline, grid ;
+	var raycaster, parentTransform, planeLockInd, rayPointInd, planeLockOutline, grid ;
 	var mouse = new THREE.Vector2();
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var currentMouseRay;
@@ -169,13 +169,19 @@
 		var clock = new THREE.Clock();
 	var edges, cameraHelp;
 	
-	var tuteBegPhrases = ["When you are done drawing, press r to rotate to the side view of your drawing",
+	var tuteBegPhrases = ["Begin drawing. When you are done drawing, press r to rotate to the side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Now, when you are done drawing, press r to rotate to the back view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Now, when you are done drawing, press r to rotate to the other side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Press r to return to the front view of your 3D drawing!"];
+	var tuteAdvPhrases = ["Rotate the camera to desired view and press the d key to enter draw mode",
+							"Press the s key to snap your new line to either the grid or to a previous line",
+							"Start drawing!",
+							"Toggle the d key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
+							"Hover over the previous drawn line to connect your new lines",
+							"Familiarize yourself with the Snapping keys on the menu"];
 	var tuteBegCount = 0;
 	
 	function init(){	
@@ -230,9 +236,9 @@
 		
 		var geometry = new THREE.SphereGeometry( .05 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
-		lineLockInd = new THREE.Mesh( geometry, material );
-		lineLockInd.visible = false;
-		scene.add( lineLockInd );
+		rayPointInd = new THREE.Mesh( geometry, material );
+		rayPointInd.visible = false;
+		scene.add( rayPointInd );
 		
 		geometry = new THREE.SphereGeometry( .1 );
 		material = new THREE.MeshBasicMaterial( { color: 0x003333 } );
@@ -264,7 +270,7 @@
 		document.getElementById('width').onchange = setCurrentLineWidth;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('toggleCameraPlaneLock').onchange=toggleCameraPlaneLock;
-		document.getElementById('rotateX').onclick = rotateX;
+		document.getElementById('rotateX').onclick = horizontalRotation;
 ;
 		/*document.getElementById('show').onclick = printVerts;
 
@@ -377,34 +383,32 @@
 
 	var onError = function ( xhr ) {
 	};
+	
+	
+	
 
 	/*make it easier for user to draw on standard rotation*/
 	function rotateX(){
  		
-		camera.lookAt(lastIntersectedPoint);
- 		camera.rotation.x += 90 * Math.PI / 180;
- 		
-		
+		//camera.lookAt(lastIntersectedPoint);
+ 		//camera.rotation.x += 90 * Math.PI / 180;	
 	}
 	function rotateY(){
  	
- 		planeBounds.rotation.y += 90 * Math.PI / 180;
- 		
-		
+ 		//planeBounds.rotation.y += 90 * Math.PI / 180;	
 	}
 	function rotateZ(){
  
- 		planeBounds.rotation.z += 90 * Math.PI / 180
- 		
-		
+ 		//planeBounds.rotation.z += 90 * Math.PI / 180	
 	}
+	
+	
 	
 	function setPivotPoint(pt){
 		if (pivotPoint != 0){
 			pivotPoint = pt;
 			pivotRadius = camera.position.distanceTo(pivotPoint);
-		}
-		
+		}		
 	}
 	
 
@@ -424,7 +428,7 @@
 		cameraInitRotPos();
 			
 		cameraAngle-=angle?angle:squareAngle; //later when a user can specify degree of rotation
-		cameraInitRotPos();
+	
 		
   		camera.position.x =  pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
   		camera.position.z = pivotPoint.z +  Math.sin(cameraAngle) * pivotRadius;
@@ -456,12 +460,7 @@
 			level = e.currentTarget.value;
 		else
 			level = e;
-	//return functionality at desired level
-	//like, can orbit camera?
-	//turn off grid?
-	//draw at plane vs snapped plane?
-		
-		/*let user draw on plane. rotate at pivotpoint(lastintersected or currentIntersected), 
+			/*let user draw on plane. rotate at pivotpoint(lastintersected or currentIntersected), 
 			turn grid ray off, let user hover over line to draw off of
 		*/
 			if (level == "0"){ //beginner
@@ -478,8 +477,6 @@
 				changeControls(false);
 				
 				camera.lookAt(lastIntersectedPoint);
-				//if (!grid) setupGrid();
-				//grid.visible = true;
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","hidden");
 			}else if (level =="1"){
@@ -491,11 +488,14 @@
 				
 			}else if (level ==2){ //advanced
 				setDrawMode(false);//allow user to set camera orbit
-				setSnapMode(true);
-					snapPlane(0);
+				setSnapMode(false);
+				snapPlane(0);
+				
 				$(".hero-unit").css("visibility","visible");
 				if (!grid) setupGrid();
-				grid.visible = true;
+
+				tuteBegCount = 0;
+				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteBegCount++];
 				//take off all restraints
 				//don't set draw mode, snap or grid, etc
 			}
@@ -589,8 +589,7 @@
 	function setSnapMode(onoroff){
 		SNAPMODE = onoroff;
 		$("#snapTo").prop("checked",SNAPMODE);
- 		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
-		
+ 		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
 		return SNAPMODE;
 	}
 	
@@ -600,21 +599,18 @@
 			scene.remove(plane);
 			scene.remove(planeLockOutline);
 			$("#freehand").prop("checked",true);
-			lineLockInd.visible = false;
-			}
-		else{
-			
+			rayPointInd.visible = false;
+		}else{			
 			$('html,body').css('cursor','crosshair');
 		}
 		
  		SNAPMODE = SNAPMODE?setSnapMode(0):setSnapMode(1);
  		changeControls(true);
- 		//if (SNAPMODE) plane.visible = true; else plane.visible = false;
  		
  		return SNAPMODE;
 	}
 	
-	
+	/*reset rotation so plane can be oriented along grid  via key strokes */
 	function snapPlanesToLocal(keepOrientation){
 	
 		var cameraclone = camera.clone();
@@ -659,13 +655,11 @@
 	function toggleDrawMode(){
        
 		DRAWMODE = DRAWMODE?setDrawMode(0):setDrawMode(1);       
-		changeControls(true);
-		
+		changeControls(true);		
     	return DRAWMODE;
 	}
 	
-	
-	
+
 
 	function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -673,7 +667,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
 	}
 	
-	
+	/* use this to pull in an object file */
 	function loadAnObject(){
 		var loader = new THREE.JSONLoader( manager );
 		var path = "assets/chairVert.json"; //callback needs real var I guess
@@ -707,16 +701,7 @@
 		var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
 		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
 		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
-		
-		//console.log("mouse.x " + mouse.x + " and y " + mouse.y + " ");
-		if (PLANEROTATE){
-			var whichz = currentIntersectedPoint? currentIntersectedPoint.z: lastIntersectedPoint.z;
-			var degToRotate = Math.round((mouseQuotient * 10)%90);
-			console.log( "degToRotate " + degToRotate);
-			//plane.rotateY((degToRotate * 90)* Math.PI/180);  //(Math.cos(mouse.x) * 100)/90;
-			plane.lookAt(camera.position);
-			
-		}
+	
 		
 	}
 	
@@ -736,19 +721,19 @@
                    		
 		 					  	
                    break;
-                    case 65: // a for axis
+                    /*case 65: // a for axis 
                     
                         PLANEROTATE = PLANEROTATE?0:1;
                         edges.update();
                   
                         break;
-                        
+                     */   
                         
                      case 16: //shift to snap the plane to square alignment
                     	SNAPPLANETOGRID =1;
                    	  	snapPlane(1, true);  //keep orientation
                    	break;
-                    case 71: // g for grid,  make plane 'snapped' to grid, so to speak
+                    case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
                     
                       
                        if (evt.shiftKey && evt.ctrlKey){  //d
@@ -785,11 +770,7 @@
                         
                         
                      case 82: //r for rotate panel 90
-						if (evt.shiftKey){
-						  //setCameraInitRotPos(camera.position);
-						  setPivotPoint(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
-						  initCameraRotPos = 0;
-						}
+						
 						horizontalRotation();
 							
 						break;
@@ -836,6 +817,9 @@
                    	break;
             }
      }
+     
+     
+     
      /* with camera position and the object with which we want to align our next line, transform
      where the projection thinks the mouse is to where we want it to be */
      
@@ -852,8 +836,7 @@
 			
 			var dir = unprojectedMouse.sub( camPos ).normalize();
 			
-			destpos.add(camPlaneDiff.multiplyScalar(desiredPOI.distanceTo(camPos)));
-		
+			destpos.add(camPlaneDiff.multiplyScalar(desiredPOI.distanceTo(camPos)));	
 		
 			if (destpos == desiredPOI){
 			//	destpos = mv.clone();
@@ -891,7 +874,7 @@
             if(DRAWMODE){
             	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
             	
-            		if (plane.position !== undefined ){  //plane-of-interest better be valid
+            		if (plane.position !== undefined ){  //plane-of-interest better be valid!
           		
             			var snapToThis = currentIntersectedPoint;
 						if (!currentIntersectedPoint)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
@@ -961,13 +944,13 @@
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
     	
-    		console.log("current is " + CURRENTspline);
+    		console.log("current line is " + CURRENTspline);
     		}        
     }
    
 	
 
-
+	/* setup buffer geometry to store drawn vertices*/
 	function initDrawnLine(geometry, positions,mv){
 		
 
@@ -1003,6 +986,7 @@
 	
 	}
 	
+/* update the line with the new vertices coming from onvrhmousemove*/
  function updateLineBuffer(newvec) {
 		if (currentDrawnLine()){
 		
@@ -1047,6 +1031,10 @@
 	
 	}
 
+
+
+    /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
+    according to unprojected mouse vector */
     
      function onSketchMouseDown(evt) {
      
@@ -1067,12 +1055,10 @@
 						initNewLine(currentIntersectedPoint , false);
 						console.log("drawing at plane lock intersection " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
 
-				}else { 
+				}else { //freehand draw
 
-						//mouseVec.applyMatrix4(plane.matrixWorld);
 						initNewLine(mouseVec, true);
-						//console.log("drawing at .5");
-					
+									
 				} 
 			
 				//set up for drawing line
@@ -1089,35 +1075,37 @@
 	function printVerts(){		
 		
 	}
-	
-	function getInverseViewMatrix()
-{
-	var testMat = plane.matrix.clone();
-    var inverseCamToSrc = new THREE.Matrix4().getInverse(camera.matrixWorld);
-    inverseCamToSrc.multiply(testMat);
-  	return inverseCamToSrc;
-  
-}
-	
+		
 	
 	function makeDrawingPlane(planePos, name){
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
 
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
 			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
+			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
-			var dir = planePos.clone().sub( camera.position ).normalize();
+			var dir = planePos.clone().sub( camera.position ).normalize(); //put this plane right behind inner plane
 			planeLockOutline.position.add(dir.multiplyScalar(.005));					
 			
 			planeLockOutline.lookAt(camera.position);
 			planeLockOutline.visible = true;
 			planeLockOutline.name = name;
 			
-			scene.add(planeLockOutline);
+			objContainer.add(planeLockOutline); //note- adding this to raycasting objects
 			
 			return planeLockOutline;
+
+	}
 	
-	
+	/*create a plane with desired material and set to desired position) */
+	function makePlane(material, vecPlane, name, planeObj){
+	 	 planeObj = new THREE.Mesh( planegeo, material );
+		 planeObj.position.set( 0, 0, 0 );
+		 planeObj.name = name;
+		 planeObj.position.copy(vecPlane);
+
+		 scene.add( planeObj );
+		 return planeObj;
 	
 	}
 /* the little plane indicates location and direction
@@ -1125,24 +1113,13 @@
 */
 	function makePlanes(material, vecPlane, name, planeObj){
 
-		 planeObj = new THREE.Mesh( planegeo, material );
-		 planeObj.position.set( 0, 0, 0 );
-		 planeObj.name = name;
-		 planeObj.position.copy(vecPlane);
-
-		 scene.add( planeObj );
+		 planeObj = makePlane(material, vecPlane, name, planeObj);
 		 planeObj.lookAt(camera.position);
 		 
 		 if (!isDrawingPlaneLocked()){
 		 	planeLockOutline = makeDrawingPlane(planeObj.position, name);
 		 }	
-		
-		
-		
 
-		//edges = new THREE.FaceNormalsHelper( plane, 1, 0x00ff00, 1 );
-		//scene.add(edges);
-		
 		return planeObj;
 	}
 	
@@ -1151,22 +1128,19 @@
 	function isDrawingPlaneLocked(){
 	
 		/*if set, we need the plane to stay fixed in place according to framing
-		   therefore, do not change plane, but allow raytracing 
 		*/
 		if (SNAPPLANETOGRID){
 			return true;	
 		}
 		return false;
+	}	
 	
-	
-	
-	}	/*given what the user is doing, disallow ray intersection to change*/
+	/*given what the user is doing, disallow grid ray intersection */
 	function ignoreGridRays(){
 	
-		/*if set, we need the currentIntersectedPoint to stay fixed in place according to framing
-		   therefore, do not change point
+		/*we don't want to disrupt drawing on the plane to the grid by raycasting to the grid
 		*/
-		if (SNAPMODE && SNAPPLANETOGRID && !bIsDrawing ){
+		if (SNAPMODE && SNAPPLANETOGRID && bIsDrawing ){
 			return true;	
 		}
 		return false;
@@ -1213,12 +1187,25 @@
 						else{
 							currentIntersected = undefined;
 							currentIntersectedPoint = undefined;
-							lineLockInd.visible = false;
+							rayPointInd.visible = false;
 							return;
 						}
 					
-					}else if (currentIntersected.name == 'grid')
-						lineLockInd.material.color.set(0xffffcc);
+					}else if (currentIntersected.name == 'grid'){
+						rayPointInd.material.color.set(0xffffcc);
+					}else if (currentIntersected.name == 'guide'){ //plane intersection
+						//if there are other intersections, ignore plane intersection,hmmm
+						if (intersects[1])
+								currentIntersected = intersects[ 1 ].object;
+						
+						
+						else
+							rayPointInd.material.color.set(0x00ff00);
+						
+						
+					}else {
+						rayPointInd.material.color.set(0xff0000); //line intersection
+					}
 					
 
 					currentIntersectedPoint= intersects[ 0 ].point;  //sorted in desc. order, not really accurate for mouse hover FYI 
@@ -1233,14 +1220,15 @@
 				
 					if (!isDrawingPlaneLocked()){
 						scene.remove(plane); 
-						scene.remove(planeLockOutline);
-						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);	
-									
+						objContainer.remove(planeLockOutline);
+						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);									
 					}
+	
+	
 	console.log("plane pos " + plane.position.x + " " + plane.position.y + " "+ plane.position.z + " ");
 					
-					lineLockInd.position.copy(currentIntersectedPoint);
-					lineLockInd.visible = true;
+					rayPointInd.position.copy(currentIntersectedPoint);
+					rayPointInd.visible = true;
 					
 					/*for use with shaders
 					for( var i = 0; i < intersects.length; i++ ) {
@@ -1263,7 +1251,7 @@
 				
 				currentIntersected = undefined;
 				currentIntersectedPoint = undefined;
-				lineLockInd.visible = false;
+				rayPointInd.visible = false;
 				
 		}
 	
@@ -1285,11 +1273,11 @@
 		var intersects = raycaster.intersectObjects( objContainer.children, true);
 		
 		if (DRAWMODE && SNAPMODE &&!bIsDrawing){
-			lineLockInd.material.color.set(0xff0000);
+		
 			handleRayIntersections(intersects);
 			
-		}else if (DRAWMODE && SNAPMODE && bIsDrawing){
-			lineLockInd.material.color.set(0x00ff00);
+		}else if (DRAWMODE && SNAPMODE && bIsDrawing){  //only look at plane intersections if we are drawing (on that plane!)
+		
 			var intersects = raycaster.intersectObjects([planeLockOutline], true);
 			handleRayIntersections(intersects);
 		}
