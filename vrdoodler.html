@@ -208,7 +208,8 @@
 				scene.add( light );
     	renderer = new THREE.WebGLRenderer( { antialias: false } );		
 		renderer.setSize( window.innerWidth, window.innerHeight );
-		
+	
+		renderer.autoClear = false;	
 		container.appendChild( renderer.domElement );
 	
 		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -476,6 +477,9 @@
 				setSnapMode(true); //need this to properly pivot for rotation.
 				changeControls(false);
 				
+				if (!grid) setupGrid();
+				grid.visible = true;
+				
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","hidden");
@@ -493,6 +497,7 @@
 				
 				$(".hero-unit").css("visibility","visible");
 				if (!grid) setupGrid();
+				grid.visible = true;
 
 				tuteBegCount = 0;
 				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteBegCount++];
@@ -876,9 +881,9 @@
             	
             		if (plane.position !== undefined ){  //plane-of-interest better be valid!
           		
-            			var snapToThis = currentIntersectedPoint;
+            			var snapToThis = currentIntersectedPoint.clone();
 						if (!currentIntersectedPoint)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
-							snapToThis = lastIntersectedPoint;
+							snapToThis = lastIntersectedPoint.clone();
 						var projectedMouse = new THREE.Vector3();
 						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
 											
@@ -1084,14 +1089,14 @@
 			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
-			var dir = planePos.clone().sub( camera.position ).normalize(); //put this plane right behind inner plane
-			planeLockOutline.position.add(dir.multiplyScalar(.005));					
+			//var dir = planePos.clone().sub( camera.position ).normalize(); //put this plane right behind inner plane
+			//planeLockOutline.position.add(dir.multiplyScalar(.005));					
 			
 			planeLockOutline.lookAt(camera.position);
 			planeLockOutline.visible = true;
 			planeLockOutline.name = name;
 			
-			objContainer.add(planeLockOutline); //note- adding this to raycasting objects
+			scene.add(planeLockOutline); //note- can adding this to raycasting objects
 			
 			return planeLockOutline;
 
@@ -1129,7 +1134,7 @@
 	
 		/*if set, we need the plane to stay fixed in place according to framing
 		*/
-		if (SNAPPLANETOGRID){
+		if (SNAPPLANETOGRID && SNAPPLANETOGRID != 1){
 			return true;	
 		}
 		return false;
@@ -1196,7 +1201,7 @@
 					}else if (currentIntersected.name == 'guide'){ //plane intersection
 						//if there are other intersections, ignore plane intersection,hmmm
 						if (intersects[1])
-								currentIntersected = intersects[ 1 ].object;
+							currentIntersected = intersects[ 1 ].object;
 						
 						
 						else
@@ -1220,12 +1225,14 @@
 				
 					if (!isDrawingPlaneLocked()){
 						scene.remove(plane); 
-						objContainer.remove(planeLockOutline);
-						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);									
+						scene.remove(planeLockOutline);
+						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);		
+						console.log("plane pos " + plane.position.x + " " + plane.position.y + " "+ plane.position.z + " ");
+						console.log("currentIntersectedPoint " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " "+ currentIntersectedPoint.z + " ");
 					}
 	
 	
-	console.log("plane pos " + plane.position.x + " " + plane.position.y + " "+ plane.position.z + " ");
+	
 					
 					rayPointInd.position.copy(currentIntersectedPoint);
 					rayPointInd.visible = true;
@@ -1295,7 +1302,40 @@
 	   } 
 	   
 	function render() {
-  			renderer.render( scene, camera );
+	
+	
+		var minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		minicamera.name="mini";
+	
+		scene.add(minicamera);
+
+
+	//renderer.clear();
+	
+		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);
+	
+		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
+					//renderer.setScissorTest( true );
+					//renderer.setClearColor( view.background );
+		camera.updateProjectionMatrix();
+	
+  		renderer.render( scene, camera );
+  			//renderer.clearDepth();
+  			
+
+		minicamera.position.set(5,5,5);
+		minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+			
+		renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
+	
+		renderer.setScissor( 10, 10, 200, 200  );
+					//renderer.setScissorTest( true );
+					//renderer.setClearColor( view.background );
+		minicamera.updateProjectionMatrix();
+		renderer.render( scene, minicamera );
+  			
+  				
+  	
 		}
 		
 	init();
