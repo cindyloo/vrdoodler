@@ -169,8 +169,20 @@
 		var clock = new THREE.Clock();
 	var edges, cameraHelp;
 	
-	var tuteBegPhrases = ["Press the mouse to begin drawing. When you are done drawing, press r to rotate to the side view of your drawing",
+	var defUserSettings = {
+	
+		userLevel:0,
+		snapMode:1,
+		drawMode:1,
+		lockPlane:1
+
+	
+	};
+	
+	var tuteBegPhrases = ["Press the mouse to begin drawing.",
+							"When you are done drawing, press r to rotate to the side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
+							"You can also Toggle the D key to stop drawing and rotate the view to a specific perspective",
 							"Now, when you are done drawing, press r to rotate to the back view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Now, when you are done drawing, press r to rotate to the other side view of your drawing",
@@ -223,8 +235,10 @@
 		minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
 		minicamera.name="mini";
 		scene.add(minicamera);
+		
+		
 
-
+		//TODO merge the settings param here - when we have a user config
 
 			   		   
 		sketchContainer = new THREE.Object3D();  //helpers etc that aren't included in raycasting
@@ -487,10 +501,28 @@
   		camera.position.x =  pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
   		camera.position.z = pivotPoint.z +  Math.sin(cameraAngle) * pivotRadius;
   		
-  		/* do something here to evaluate the rotation of the plane and color code it */
-  		/*if (..)
+  		
+  		/* is plane parallel or perpendicular to x axis? */
+  		/* get dot product of normal vectors*/
+  		var vX = new THREE.Vector3(1,0,0);
+  		var vZ = new THREE.Vector3(0,0,1);
+  		plane.geometry.computeBoundingBox();
+  		//var isPerpend = vZ.dot(plane.geometry.boundingBox.max);
+  		
+  		var vert0 = planeLockOutline.geometry.vertices[0];
+  		var vert1 = planeLockOutline.geometry.vertices[1];
+  		var vert2 = planeLockOutline.geometry.vertices[2];
+  		
+  		var vecA = new THREE.Vector3(vert1.x - vert0.x, vert1.y - vert0.y, vert1.z - vert0.z);
+  		var vecB = new THREE.Vector3(vert2.x - vert0.x, vert2.y - vert0.y, vert2.z - vert0.z);
+  		
+  		var isPerpToX = vZ.dot(vecA);
+  		var isPerpToY = vZ.dot(vecB);
+  		if (isPerpToX == 0 && isPerpToY == 0) //squared plane perp to z axis
   			planeLockOutline.material.color.set(0x00ff00);
-  		else if (..)
+  		else if (isPerpToX > 0 && isPerpToY == 0) //plane is rotated along y axis, but is perp to z and y
+  			planeLockOutline.material.color.set(0xffff00);
+  		/*else if (..)
   			planeLockOutline.material.color.set(0x00ffff);
   		else if (camera.position.x < 0 && camera.position.z > 0)
 			planeLockOutline.material.color.set(0xff0000);
@@ -538,39 +570,44 @@
 			turn grid ray off, let user hover over line to draw off of
 		*/
 			if (level == "0"){ //beginner
-				snapPlane(0);
+				//maybe we keep the snap on always for beginner...
 				camera.position.x = 0;
 				camera.position.z = 5;
 				camera.position.y = .5;
-				//lastIntersectedPoint = new THREE.Vector3(0,0,1); 
+				
+				
 				plane = makePlanes(planemat,lastIntersectedPoint ,"guide", plane);
 				
-				snapPlane(1); //this will fix the camera position and keep the plane where it is
-				setDrawMode(true);
-				setSnapMode(true); //need this to properly pivot for rotation.
+				//snapPlane(1); //this will fix the camera position and keep the plane where it is
+				setDrawMode(defUserSettings.drawMode);
+				setSnapMode(defUserSettings.snapMode); //need this to properly pivot for rotation.
 				changeControls(false);
 				
-				if (!grid) setupGrid();
-				grid.visible = true;
+				setupGrid();
+				
 				
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","hidden");
+				
 			}else if (level =="1"){
+			
 				setDrawMode(false);//allow user to set camera orbit
 				setSnapMode(true);
-				SNAPPLANETOGRID = 1;
-				if (!grid) setupGrid();
-				grid.visible = true;
+				
+				setupGrid();
+				
 				
 			}else if (level ==2){ //advanced
 				setDrawMode(false);//allow user to set camera orbit
 				setSnapMode(false);
 				snapPlane(0);
 				
+				//show how to unsnap plane //unforce plane
+				
 				$(".hero-unit").css("visibility","visible");
-				if (!grid) setupGrid();
-				grid.visible = true;
+				setupGrid();
+				
 
 				tuteBegCount = 0;
 				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
@@ -603,12 +640,14 @@
 		return bShowInfo;
 	}
 	function setupGrid(){
-		grid = new THREE.GridHelper( 20, .5 );
-		grid.name="grid";
-		grid.setColors( 0x0000ff, 0x808080 );
-		grid.position.y = 0;
+		if (!grid){grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );
+		}
 		grid.visible = true;
-		objContainer.add( grid );
+		
 	}
 	function toggleGrid(){
 	
@@ -692,26 +731,28 @@
 
 	
 	function setSnapMode(onoroff){
-		SNAPMODE = onoroff;
-		$("#snapTo").prop("checked",SNAPMODE);
- 		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
-		return SNAPMODE;
+
+			SNAPMODE = onoroff;
+			$("#snapTo").prop("checked",SNAPMODE);
+			$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
+	
+		
 	}
 	
 	function snapTo(){
-	
-		if (SNAPMODE){
-			scene.remove(plane);
-			scene.remove(planeLockOutline);
-			$("#freehand").prop("checked",true);
-			rayPointIndSphere.visible = false;
-		}else{			
-			$('html,body').css('cursor','crosshair');
-		}
-		
- 		SNAPMODE = SNAPMODE?setSnapMode(0):setSnapMode(1);
- 		changeControls(true);
- 		
+		if (defUserSettings.userLevel){
+			if (SNAPMODE){
+				scene.remove(plane);
+				scene.remove(planeLockOutline);
+				$("#freehand").prop("checked",true);
+				rayPointIndSphere.visible = false;
+			}else{			
+				$('html,body').css('cursor','crosshair');
+			}
+			
+			SNAPMODE = SNAPMODE?setSnapMode(0):setSnapMode(1);
+			changeControls(true);
+		}	
  		return SNAPMODE;
 	}
 	
@@ -795,7 +836,7 @@
                    		}else if (evt.ctrlKey){
                    			//Draw at fixed y with x.rotation = 90 degrees
                    		
-                   			snapPlane(3);  
+                   			snapPlane(3,true);  
                    			plane.rotation.x = squareAngle;
                    			planeLockOutline.rotation.x = squareAngle;
                    			
@@ -1148,6 +1189,14 @@
 
 	}
 	
+	function lockPlanesParallelToYAxis(inner, outer){
+	
+			inner.rotation.x= 0;
+			outer.rotation.x = 0;
+			inner.rotation.z= 0;
+			outer.rotation.z = 0;
+	}
+	
 	/*create a plane with desired material and set to desired position) */
 	function makePlane(material, vecPlane, name, planeObj){
 	 	 planeObj = new THREE.Mesh( planegeo, material );
@@ -1170,7 +1219,9 @@
 		 if (!isDrawingPlaneLocked()){
 		 	planeLockOutline = makeDrawingPlane(planeObj.position, name);
 		 }	
-
+		//evalSettingsAndLockOrUnlock(); -- look at level and decide granular capabilities...
+		if (defUserSettings.lockPlane)
+			lockPlanesParallelToYAxis(planeObj, planeLockOutline);
 		return planeObj;
 	}
 	
@@ -1363,23 +1414,13 @@
 	   } 
 	   
 	function render() {
-	
-	
-
-		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);
-	
-		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
-		camera.updateProjectionMatrix();
-	
-  		renderer.render( scene, camera );
-  			//renderer.clearDepth();
-  			
+		
 
 		minicamera.position.set(5,5,5);
 		minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 			
 		renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
-	
+	renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
 		renderer.setScissor( 10, 10, 200, 200  );
 					//renderer.setScissorTest( true );
 					//renderer.setClearColor( view.background );
@@ -1387,7 +1428,12 @@
 		renderer.render( scene, minicamera );
   			
   				
-  	
+  		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
+		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
+		camera.updateProjectionMatrix();
+	
+  		renderer.render( scene, camera );
+  			//renderer.clearDepth();
 		}
 		
 	init();
