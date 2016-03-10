@@ -395,6 +395,51 @@
 	
 	
 	
+	function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+	}
+	
+	/* use this to pull in an object file */
+	function loadAnObject(){
+		var loader = new THREE.JSONLoader( manager );
+		var path = "assets/chairVert.json"; //callback needs real var I guess
+		var pos = new THREE.Vector3(0,0,10);
+		loader.load(path , function ( geo ) {
+
+		var material = new THREE.MeshLambertMaterial({
+			//map: THREE.ImageUtils.loadTexture(path+ currentConfig.objTex),  // specify and load the texture
+			color:0xff00ff,
+			side:THREE.DoubleSide
+		  });
+			
+		var object = new THREE.Mesh(geo, material);
+		object.position.x = pos.x;
+		object.position.y = pos.y;
+		object.position.z = pos.z;
+		//object.scale.set(5,5,5);
+		
+		object.userData.name = "chair";		
+		objContainer.add( object );
+		});
+	
+	}
+
+
+
+
+	function onDocumentMouseMove( evt ) {
+
+		evt.preventDefault();
+		var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
+		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
+	
+		
+	}
+	
+	
 
 	/*make it easier for user to draw on standard rotation*/
 	function rotateX(){
@@ -442,7 +487,16 @@
   		camera.position.x =  pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
   		camera.position.z = pivotPoint.z +  Math.sin(cameraAngle) * pivotRadius;
   		
-
+  		/* do something here to evaluate the rotation of the plane and color code it */
+  		/*if (..)
+  			planeLockOutline.material.color.set(0x00ff00);
+  		else if (..)
+  			planeLockOutline.material.color.set(0x00ffff);
+  		else if (camera.position.x < 0 && camera.position.z > 0)
+			planeLockOutline.material.color.set(0xff0000);
+		else
+			planeLockOutline.material.color.set(0x00eeee);
+		*/
   		controls.target =pivotPoint;
 		camera.target = pivotPoint;
 		camera.lookAt(pivotPoint);
@@ -610,6 +664,33 @@
 
 	}
 	
+	
+	function setDrawMode(onoroff){
+	 	DRAWMODE = onoroff;
+	 	$("#draw").prop("checked",DRAWMODE);
+	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
+		console.log("draw mode is " + DRAWMODE);
+	
+		if (DRAWMODE)
+        	$('html,body').css('cursor','pointer');
+        else 
+        	$('html,body').css('cursor','move');
+        	
+        return DRAWMODE;
+	}
+	
+	
+/* if draw, mouse draws (snapping or not). if false, mouse moves camera */
+	function toggleDrawMode(){
+       
+		DRAWMODE = DRAWMODE?setDrawMode(0):setDrawMode(1);       
+		changeControls(true);		
+    	return DRAWMODE;
+	}
+	
+
+
+	
 	function setSnapMode(onoroff){
 		SNAPMODE = onoroff;
 		$("#snapTo").prop("checked",SNAPMODE);
@@ -660,74 +741,7 @@
 		//planeLockOutline.rotation.z = 0;
 	}
 	
-	function setDrawMode(onoroff){
-	 	DRAWMODE = onoroff;
-	 	$("#draw").prop("checked",DRAWMODE);
-	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
-		console.log("draw mode is " + DRAWMODE);
 	
-		if (DRAWMODE)
-        	$('html,body').css('cursor','pointer');
-        else 
-        	$('html,body').css('cursor','move');
-        	
-        return DRAWMODE;
-	}
-	
-	
-/* if draw, mouse draws (snapping or not). if false, mouse moves camera */
-	function toggleDrawMode(){
-       
-		DRAWMODE = DRAWMODE?setDrawMode(0):setDrawMode(1);       
-		changeControls(true);		
-    	return DRAWMODE;
-	}
-	
-
-
-	function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-	}
-	
-	/* use this to pull in an object file */
-	function loadAnObject(){
-		var loader = new THREE.JSONLoader( manager );
-		var path = "assets/chairVert.json"; //callback needs real var I guess
-		var pos = new THREE.Vector3(0,0,10);
-		loader.load(path , function ( geo ) {
-
-		var material = new THREE.MeshLambertMaterial({
-			//map: THREE.ImageUtils.loadTexture(path+ currentConfig.objTex),  // specify and load the texture
-			color:0xff00ff,
-			side:THREE.DoubleSide
-		  });
-			
-		var object = new THREE.Mesh(geo, material);
-		object.position.x = pos.x;
-		object.position.y = pos.y;
-		object.position.z = pos.z;
-		//object.scale.set(5,5,5);
-		
-		object.userData.name = "chair";		
-		objContainer.add( object );
-		});
-	
-	}
-
-
-
-
-	function onDocumentMouseMove( evt ) {
-
-		evt.preventDefault();
-		var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
-		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
-	
-		
-	}
 	
 	function snapPlane(mode, keepOrientation){
 		SNAPPLANETOGRID = mode;  
@@ -1114,6 +1128,8 @@
 	
 	function makeDrawingPlane(planePos, name){
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
+
+			
 
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
 			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
