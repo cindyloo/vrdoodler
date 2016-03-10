@@ -124,7 +124,7 @@
  
  	var camera, scene, renderer,orbitcamera,light;
     var geometry, material, mesh;
-    var controls;
+    var controls, minicamera;
  	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
@@ -138,7 +138,7 @@
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
-	var raycaster, parentTransform, planeLockInd, rayPointInd, planeLockOutline, grid ;
+	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid ;
 	var mouse = new THREE.Vector2();
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var currentMouseRay;
@@ -216,6 +216,9 @@
 		camera.position.set(1, 1, 1);
 		camera.name="orig";
 
+		minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		minicamera.name="mini";
+		scene.add(minicamera);
 
 
 
@@ -237,9 +240,9 @@
 		
 		var geometry = new THREE.SphereGeometry( .05 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
-		rayPointInd = new THREE.Mesh( geometry, material );
-		rayPointInd.visible = false;
-		scene.add( rayPointInd );
+		rayPointIndSphere = new THREE.Mesh( geometry, material );
+		rayPointIndSphere.visible = false;
+		scene.add( rayPointIndSphere );
 		
 		geometry = new THREE.SphereGeometry( .1 );
 		material = new THREE.MeshBasicMaterial( { color: 0x003333 } );
@@ -604,7 +607,7 @@
 			scene.remove(plane);
 			scene.remove(planeLockOutline);
 			$("#freehand").prop("checked",true);
-			rayPointInd.visible = false;
+			rayPointIndSphere.visible = false;
 		}else{			
 			$('html,body').css('cursor','crosshair');
 		}
@@ -844,7 +847,7 @@
 			destpos.add(camPlaneDiff.multiplyScalar(desiredPOI.distanceTo(camPos)));	
 		
 			if (destpos == desiredPOI){
-			//	destpos = mv.clone();
+				return unprojectedMouse;
 			}
 		
 			return destpos;
@@ -879,16 +882,16 @@
             if(DRAWMODE){
             	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
             	
-            		if (plane.position !== undefined ){  //plane-of-interest better be valid!
+            		if (plane.position !== undefined  && rayPointIndSphere.position !== undefined){  //plane-of-interest better be valid!
           		
-            			var snapToThis = currentIntersectedPoint.clone();
-						if (!currentIntersectedPoint)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
-							snapToThis = lastIntersectedPoint.clone();
+            			var snapToThis = rayPointIndSphere.position;
+						//if (!rayPointIndSphere)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
+							//snapToThis = lastIntersectedPoint;
 						var projectedMouse = new THREE.Vector3();
 						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
 											
 						
-						unprojectedAndTransformedMouse = transformMouseToDesiredPlaneOfInterest(projectedMouse, snapToThis);
+						unprojectedAndTransformedMouse = rayPointIndSphere.position;
 						
 						if (SNAPPLANETOGRID ==4){//draws straight horizontal line parallel to x axis
             				unprojectedAndTransformedMouse.x = plane.position.x;
@@ -949,7 +952,8 @@
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
     	
-    		console.log("current line is " + CURRENTspline);
+    		console.log("currentIntersectedPoint reset");
+
     		}        
     }
    
@@ -989,6 +993,8 @@
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
 		currentDrawnLine().geometry.attributes.position.needsUpdate = true; 
 	
+	
+	console.log("init new Line");
 	}
 	
 /* update the line with the new vertices coming from onvrhmousemove*/
@@ -1056,10 +1062,18 @@
 				if (SNAPMODE ){ /*originate line according to intersected object. 	
 								  either grid or previously drawn line via plane-of-interest*/
 				
+					//ok, now raycast the plane.  it's here b/c this event happens before the animate event
 					
-						initNewLine(currentIntersectedPoint , false);
-						console.log("drawing at plane lock intersection " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
-
+					var intersects = raycaster.intersectObjects([planeLockOutline], true);
+					currentIntersectedPoint = handleRayIntersections(intersects);
+				
+					var snapTo = currentIntersectedPoint;
+					//if no currentIntersection, and is drawing, have to wait a round or two to get intersection
+					
+					if (snapTo){
+						initNewLine(snapTo , false);
+						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
+					}
 				}else { //freehand draw
 
 						initNewLine(mouseVec, true);
@@ -1134,7 +1148,7 @@
 	
 		/*if set, we need the plane to stay fixed in place according to framing
 		*/
-		if (SNAPPLANETOGRID && SNAPPLANETOGRID != 1){
+		if (SNAPPLANETOGRID ){
 			return true;	
 		}
 		return false;
@@ -1145,7 +1159,7 @@
 	
 		/*we don't want to disrupt drawing on the plane to the grid by raycasting to the grid
 		*/
-		if (SNAPMODE && SNAPPLANETOGRID && bIsDrawing ){
+		if (SNAPMODE && SNAPPLANETOGRID ) {//&& bIsDrawing ){
 			return true;	
 		}
 		return false;
@@ -1187,29 +1201,43 @@
 					currentIntersected = intersects[ 0 ].object;
 					
 					if(currentIntersected.name == 'grid' && ignoreGridRays()){
-						if (intersects[1])
+						intersects = intersects.reduce(function(obj) {
+  							if (obj && obj.object.name !="grid")
+  								return obj;
+  							
+						});
+					
+						if (intersects && intersects[1])
 							currentIntersected = intersects[ 1 ].object;
 						else{
-							currentIntersected = undefined;
-							currentIntersectedPoint = undefined;
-							rayPointInd.visible = false;
+							//currentIntersected = undefined;
+							//currentIntersectedPoint = undefined;
+							//rayPointIndSphere.visible = false;
 							return;
 						}
 					
 					}else if (currentIntersected.name == 'grid'){
-						rayPointInd.material.color.set(0xffffcc);
+						rayPointIndSphere.material.color.set(0xffffcc);
+						
 					}else if (currentIntersected.name == 'guide'){ //plane intersection
+					
 						//if there are other intersections, ignore plane intersection,hmmm
-						if (intersects[1])
+						if (intersects[1] && !bIsDrawing){
 							currentIntersected = intersects[ 1 ].object;
-						
-						
-						else
-							rayPointInd.material.color.set(0x00ff00);
-						
+							return;
+						}else{
+							currentIntersectedPoint = undefined;
+							currentIntersectedPoint= intersects[ 0 ].point;
+							
+							rayPointIndSphere.material.color.set(0x00ff00);
+							rayPointIndSphere.position.copy(currentIntersectedPoint);
+							console.log("raycasted plane");
+
+						}
+						 
 						
 					}else {
-						rayPointInd.material.color.set(0xff0000); //line intersection
+						rayPointIndSphere.material.color.set(0xff0000); //line intersection
 					}
 					
 
@@ -1218,24 +1246,23 @@
 					lastIntersected = currentIntersected;
 					lastIntersectedPoint = currentIntersectedPoint;
 					
+					rayPointIndSphere.position.copy(currentIntersectedPoint);
+					rayPointIndSphere.visible = true;
 					
 						
 					
 					//don't refresh the plane if we are snapping/locking/drawing to/on it
 				
-					if (!isDrawingPlaneLocked()){
+					if (!bIsDrawing && !SNAPPLANETOGRID){  //and maybe plane lock/snap...
 						scene.remove(plane); 
 						scene.remove(planeLockOutline);
 						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);		
-						console.log("plane pos " + plane.position.x + " " + plane.position.y + " "+ plane.position.z + " ");
-						console.log("currentIntersectedPoint " + currentIntersectedPoint.x + " " + currentIntersectedPoint.y + " "+ currentIntersectedPoint.z + " ");
-					}
+					}					
 	
 	
 	
 					
-					rayPointInd.position.copy(currentIntersectedPoint);
-					rayPointInd.visible = true;
+					
 					
 					/*for use with shaders
 					for( var i = 0; i < intersects.length; i++ ) {
@@ -1258,9 +1285,11 @@
 				
 				currentIntersected = undefined;
 				currentIntersectedPoint = undefined;
-				rayPointInd.visible = false;
+				rayPointIndSphere.visible = false;
 				
 		}
+		
+		return currentIntersectedPoint;
 	
 	}
 
@@ -1281,12 +1310,12 @@
 		
 		if (DRAWMODE && SNAPMODE &&!bIsDrawing){
 		
-			handleRayIntersections(intersects);
+			currentIntersectedPoint = handleRayIntersections(intersects);
 			
 		}else if (DRAWMODE && SNAPMODE && bIsDrawing){  //only look at plane intersections if we are drawing (on that plane!)
-		
 			var intersects = raycaster.intersectObjects([planeLockOutline], true);
-			handleRayIntersections(intersects);
+			currentIntersectedPoint = handleRayIntersections(intersects);
+			
 		}
 		//ability to draw while moving plane backwards or forwards
 		
@@ -1304,19 +1333,10 @@
 	function render() {
 	
 	
-		var minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-		minicamera.name="mini";
-	
-		scene.add(minicamera);
 
-
-	//renderer.clear();
-	
 		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);
 	
 		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
-					//renderer.setScissorTest( true );
-					//renderer.setClearColor( view.background );
 		camera.updateProjectionMatrix();
 	
   		renderer.render( scene, camera );
