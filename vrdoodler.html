@@ -151,7 +151,7 @@
 	var SNAPMODE = 0;		//snap to pre-existing line/objects	
 	var DRAWMODE = 0;//ORBITMODE;
 	var CURRENTLINEWIDTH = 2;
-	var PLANEROTATELOCK = 0;//not using..
+	var PLANEROTATIONCOLOR = 0xff000;
 	var CAMERAPLANELOCK = 0;//not using..
 	
 	var SNAPPLANETOGRID = 0;
@@ -513,15 +513,22 @@
   		var vert1 = planeLockOutline.geometry.vertices[1];
   		var vert2 = planeLockOutline.geometry.vertices[2];
   		
-  		var vecA = new THREE.Vector3(vert1.x - vert0.x, vert1.y - vert0.y, vert1.z - vert0.z);
-  		var vecB = new THREE.Vector3(vert2.x - vert0.x, vert2.y - vert0.y, vert2.z - vert0.z);
+  		var planeTopVec = new THREE.Vector3(vert1.x - vert0.x, vert1.y - vert0.y, vert1.z - vert0.z).normalize();
+  		//var vecB = new THREE.Vector3(vert2.x - vert0.x, vert2.y - vert0.y, vert2.z - vert0.z);
   		
-  		var isPerpToX = vZ.dot(vecA);
-  		var isPerpToY = vZ.dot(vecB);
-  		if (isPerpToX == 0 && isPerpToY == 0) //squared plane perp to z axis
-  			planeLockOutline.material.color.set(0x00ff00);
-  		else if (isPerpToX > 0 && isPerpToY == 0) //plane is rotated along y axis, but is perp to z and y
-  			planeLockOutline.material.color.set(0xffff00);
+  		var dotPlanePerpToX = vZ.dot(planeTopVec);
+  		var dotPlanePerpToZ = vX.dot(planeTopVec);
+  		//var isPerpToZ = vZ.dot(vecB);
+  		if (dotPlanePerpToX == 0 ) //squared plane perp to x axis and possibly parallel to z/y
+  			PLANEROTATIONCOLOR = 0x00ff00;
+  		else if (dotPlanePerpToY ==0) //plane perp to z axis and possibly parallel to x/y 
+  			PLANEROTATIONCOLOR = 0xff0000;
+  		else if (dotPlanePerpToZ > dotPlanePerpToX) //plane is rotated along y axis, but is perp to z and y
+  			PLANEROTATIONCOLOR =0xffff00;
+  		else
+  			PLANEROTATIONCOLOR = 0x00ffff;
+  			
+  		planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
   		/*else if (..)
   			planeLockOutline.material.color.set(0x00ffff);
   		else if (camera.position.x < 0 && camera.position.z > 0)
@@ -766,8 +773,9 @@
 			plane.rotation.x= 0;
 			plane.rotation.z= 0;
 	
-			planeLockOutline.rotation.x = 0;
-			planeLockOutline.rotation.z = 0;
+			planeLockOutline.lookAt(cameraclone.position);
+			//planeLockOutline.rotation.x = 0;
+			//planeLockOutline.rotation.z = 0;
 			
 			if (!keepOrientation){
 				plane.rotation.y= 0;
@@ -808,10 +816,7 @@
                         break;
                      */   
                         
-                     case 16: //shift to snap the plane to square alignment
-                    	SNAPPLANETOGRID =1;
-                   	  	snapPlane(1, true);  //keep orientation
-                   	break;
+                     
                     case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
                     
                       
@@ -827,16 +832,16 @@
                    		}else if (evt.altKey){
                    		
                    			snapPlane(6); 
-                   			planeLockOutline.rotation.z = squareAngle;
+                   			planeLockOutline.rotation.y = squareAngle;
                    		
                    		}else if (evt.shiftKey){
 							//draws at fixed 'squared' plane  No x, y z rotation	
                    			snapPlane(2);  
                    			
-                   		}else if (evt.ctrlKey){
+                   		}else if (evt.ctrlKey){  //draw horizontally
                    			//Draw at fixed y with x.rotation = 90 degrees
                    		
-                   			snapPlane(3,true);  
+                   			snapPlane(3);  
                    			plane.rotation.x = squareAngle;
                    			planeLockOutline.rotation.x = squareAngle;
                    			
@@ -883,17 +888,16 @@
             }
      function onVRDoodlerKeyUp(evt) {
       		switch (evt.keyCode) {
-      			case 71: //shift to erase last
-                   	
+      			case 71: //g to erase last             	
                    		//make plane 'snapped' to grid, so to speak
                    		SNAPPLANETOGRID = false;
                    	     $("#infoPanel").text("SNAPPLANETOGRID OFF");	
                    	break;
                    	
-                   	case 16: //shift 
-                   	  SNAPPLANETOGRID =false;
-                   	   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
-                   	break;
+				case 16: //shift 
+				  SNAPPLANETOGRID =false;
+				   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+				break;
             }
      }
      
@@ -1062,6 +1066,7 @@
 	    linematerial.linewidth = CURRENTLINEWIDTH;
 		
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
+		drawnline[CURRENTspline].name = "line" ;//+ CURRENTspline;
 		currentDrawnLine().geometry.attributes.position.needsUpdate = true; 
 	
 	
@@ -1116,7 +1121,9 @@
 
 
     /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
-    according to unprojected mouse vector */
+    according to unprojected mouse vector 
+    
+    ps - we wat to make darwing work with the mobile's accelerometer at some point*/
     
      function onSketchMouseDown(evt) {
      
@@ -1176,8 +1183,6 @@
 			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
-			//var dir = planePos.clone().sub( camera.position ).normalize(); //put this plane right behind inner plane
-			//planeLockOutline.position.add(dir.multiplyScalar(.005));					
 			
 			planeLockOutline.lookAt(camera.position);
 			planeLockOutline.visible = true;
@@ -1191,10 +1196,7 @@
 	
 	function lockPlanesParallelToYAxis(inner, outer){
 	
-			inner.rotation.x= 0;
-			outer.rotation.x = 0;
-			inner.rotation.z= 0;
-			outer.rotation.z = 0;
+			snapPlanesToLocal(true);
 	}
 	
 	/*create a plane with desired material and set to desired position) */
@@ -1319,7 +1321,8 @@
 						}
 						 
 						
-					}else {
+					}else if (currentIntersected.name == 'line'){
+						console.log("line vertex " + currentIntersected);
 						rayPointIndSphere.material.color.set(0xff0000); //line intersection
 					}
 					
