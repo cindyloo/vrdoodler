@@ -169,20 +169,24 @@
 		var clock = new THREE.Clock();
 	var edges, cameraHelp;
 	
-	var tuteBegPhrases = ["Begin drawing. When you are done drawing, press r to rotate to the side view of your drawing",
+	var tuteBegPhrases = ["Press the mouse to begin drawing. When you are done drawing, press r to rotate to the side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Now, when you are done drawing, press r to rotate to the back view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Now, when you are done drawing, press r to rotate to the other side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
-							"Press r to return to the front view of your 3D drawing!"];
+							"Press r to return to the front view of your 3D drawing!",
+							"Unclick Draw to move the camera around your drawing"];
+							
 	var tuteAdvPhrases = ["Rotate the camera to desired view and press the d key to enter draw mode",
 							"Press the s key to snap your new line to either the grid or to a previous line",
+							"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
 							"Start drawing!",
-							"Toggle the d key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
+							"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
 							"Hover over the previous drawn line to connect your new lines",
 							"Familiarize yourself with the Snapping keys on the menu"];
 	var tuteBegCount = 0;
+		var tuteAdvCount = 0;
 	
 	function init(){	
 		container = document.createElement( 'div' );
@@ -266,6 +270,7 @@
 		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 		
     	document.getElementById('level').onchange = setTutorialLevel;
+		document.getElementById('instructions').onclick = advanceInstructions;
 		
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
@@ -455,7 +460,18 @@
 		PLANEROTATELOCK =PLANEROTATELOCK?0:1;	
 		 return PLANEROTATELOCK;
 	}
-	
+	function advanceInstructions(){
+		if (document.getElementById("level").value == "0"){
+			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
+			if (tuteBegCount > tuteBegPhrases.length -1)
+				tuteBegCount = 0;
+			}
+		else{
+			document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
+			if (tuteAdvCount > tuteAdvPhrases.length -1)
+				tuteAdvCount = 0;
+			}
+	}
 	
 	function setTutorialLevel(e){
 	
@@ -503,7 +519,7 @@
 				grid.visible = true;
 
 				tuteBegCount = 0;
-				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteBegCount++];
+				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
 				//take off all restraints
 				//don't set draw mode, snap or grid, etc
 			}
