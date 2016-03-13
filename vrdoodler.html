@@ -6,7 +6,7 @@
 </head>
  <link rel="stylesheet" href="css/style.css">
      <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script>
+    <script src="../js/three.js"></script>
 <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <!--<script src="js/controls/OrbitControls.js"></script>-->
 <!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
@@ -142,7 +142,7 @@
 	var mouse = new THREE.Vector2();
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var currentMouseRay;
-	
+	var axisHelper;
 	var bIsDrawing = false;
 	var bShowInfo = true;
 	
@@ -228,7 +228,8 @@
 	
 		scene = new THREE.Scene();
 
-    	scene.add( new THREE.AxisHelper(500) );  
+    	axisHelper = new THREE.AxisHelper(500);
+    	scene.add(axisHelper  );  
     	
     	
     	light = new THREE.DirectionalLight( 0xffffff );
@@ -362,10 +363,34 @@
 		};
 	}());
 
-
+	function convertBuffGeoToGeo(){
+		var exportGeo = drawnline.map(function(eachline){
+		currentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
+			var geo = new THREE.Geometry();
+			var buffgeo = eachline.geometry;
+			return geo.fromBufferGeometry(buffgeo);
+		
+		});
+		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+	   
+		
+		temp = new THREE.Line( geometry,  linematerial );
+		temp.name="export";
+		scene.remove(grid);
+		scene.remove(plane);
+		scene.remove(planeLockOutline);
+		scene.add(temp);
+		return exportGeo;
+	
+	
+	}
 
 	function exportToObj ()
 			{
+			
+				
+			
 				var exporter = new THREE.OBJExporter();
 				var result = exporter.parse(scene);  /*not exporting right?? only exports as mesh and buffer geometry*/
 				
@@ -384,7 +409,7 @@
 	function importScene(){
 			/* something like this */
 			var loader = new THREE.OBJLoader( manager );
-				loader.load( '../test.obj', function ( object ) {
+				loader.load( '../mydrawing.obj', function ( object ) {
 
 					object.traverse( function ( child ) {
 						
@@ -672,6 +697,7 @@
 	
 		if (grid){
 			grid.visible = grid.visible?false:true;
+			axisHelper.visible = axisHelper.visible?false:true;
 		}else{
 			setupGrid();
 		}
@@ -722,6 +748,7 @@
 colorCameraOrientation();
 	}
 	
+
 	
 	function setDrawMode(onoroff){
 	 	DRAWMODE = onoroff;
@@ -786,8 +813,6 @@ colorCameraOrientation();
 			plane.rotation.z= 0;
 	
 			planeLockOutline.lookAt(cameraclone.position);
-			//planeLockOutline.rotation.x = 0;
-			//planeLockOutline.rotation.z = 0;
 			
 			if (!keepOrientation){
 				plane.rotation.y= 0;
@@ -857,7 +882,6 @@ colorCameraOrientation();
                    			//Draw at fixed y with x.rotation = 90 degrees
                    		
                    			snapPlane(3);  
-                   			plane.rotation.x = squareAngle;
                    			planeLockOutline.rotation.x = squareAngle;
                    			
                    		}else {
@@ -1038,7 +1062,10 @@ colorCameraOrientation();
 			
 			//now that we are done drawing, trim drawn array to number of master line's vertices 
     		var positions = currentDrawnLine().geometry.attributes.position.array;
-    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, (countVertices-1) *3);
+    		
+    		var hackCount = ((countVertices/ 3) - 1) * 3;
+			countVertices = hackCount;
+    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, hackCount *3);
     				
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
