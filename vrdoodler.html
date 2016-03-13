@@ -122,7 +122,7 @@
 <script>
  
  
- 	var camera, scene, renderer,orbitcamera,light;
+ 	var camera, scene, expScene, renderer,orbitcamera,light;
     var geometry, material, mesh;
     var controls, minicamera;
  	var context = null;
@@ -354,7 +354,7 @@
 		a.style = "display: none";
 		return function (data, fileName) {
 			var json = JSON.stringify(data),
-				blob = new Blob([json], {type: "octet/stream"}),
+				blob = new Blob([data], {type: "octet/stream"}),
 				url = window.URL.createObjectURL(blob);
 			a.href = url;
 			a.download = fileName;
@@ -374,13 +374,14 @@
 		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	   
+		expScene = new THREE.Scene();
+		for (var i = 0;i<exportGeo.length;i++){
+			temp = new THREE.Mesh( exportGeo[i],  linematerial );
+			temp.name="exported" + i;
+			expScene.add(temp);
+		}
 		
-		temp = new THREE.Line( geometry,  linematerial );
-		temp.name="export";
-		scene.remove(grid);
-		scene.remove(plane);
-		scene.remove(planeLockOutline);
-		scene.add(temp);
+		
 		return exportGeo;
 	
 	
@@ -388,11 +389,9 @@
 
 	function exportToObj ()
 			{
-			
-				
-			
+					
 				var exporter = new THREE.OBJExporter();
-				var result = exporter.parse(scene);  /*not exporting right?? only exports as mesh and buffer geometry*/
+				var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
 				
 				saveFileLocally(result, "myDrawing.obj");
 				
@@ -413,15 +412,15 @@
 
 					object.traverse( function ( child ) {
 						
-						if ( child.children instanceof Array ) { //THREE.Line
+						//if ( child.children instanceof Array ) { //THREE.Line
 						
-							child.children.every( function ( gchild ){
-								if ( gchild instanceof THREE.Mesh ) { //THREE.Line
-									initNewLine(null, null, gchild.geometry, gchild.geometry.attributes.position);
+						//	child.children.every( function ( gchild ){
+								if ( child instanceof THREE.Mesh ) { //THREE.Line
+									initNewLine(null, null, child.geometry, child.geometry.attributes.position);
 								}
-							});
+						//	});
 
-						}
+						//}
 
 					 });
 
@@ -1104,12 +1103,12 @@ colorCameraOrientation();
 		}
 	
 		
-		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    linematerial.linewidth = CURRENTLINEWIDTH;
 		
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
-		drawnline[CURRENTspline].name = "line" ;//+ CURRENTspline;
+		drawnline[CURRENTspline].name = geometry?"lineimported":"line" ;//+ CURRENTspline;
 		currentDrawnLine().geometry.attributes.position.needsUpdate = true; 
 	
 	
@@ -1367,7 +1366,7 @@ colorCameraOrientation();
 						}
 						 
 						
-					}else if (currentIntersected.name == 'line'){
+					}else if (currentIntersected.name == 'line' || currentIntersected.name == "lineimported"){
 						console.log("line vertex " + currentIntersected);
 						rayPointIndSphere.material.color.set(0xff0000); //line intersection
 					}
