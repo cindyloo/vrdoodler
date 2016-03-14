@@ -14,6 +14,7 @@ otherwise, pop over to vrdoodler.com to check it out. Also please follow at @vrd
 
 Currently in ALPHA!!! Lots of cool features to add, I just need time - and more hands!
 
+NOTE: ONLY supported in CHROME!!!
 (D)raw toggles drawing. When not drawing, you can rotate the camera, zoom in/out, and decide the angle at which to draw. Use (S)nap To to attach the new line to previous line or to draw along that same plane; when not drawing, the Snap To orbits the camera round the drawn object. press Shift to 'lock' the drawing plane.  (r)otate rotates at 90 degrees- helpful if you are drawing a house or some such.
 
 
