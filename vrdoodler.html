@@ -60,33 +60,25 @@
     
    <h1></h1>
 <div class="hero-unit">
-	<h2>Advanced Options</h2>
+	<h2>Options</h2>
 	<ul>
 	<li><input id="draw" type="checkbox" value="draw"/><span>d</span>raw</li>
 	<li><form><input id="snapTo" type="radio" name="mode" value="snapTo" /><span>s</span>nap To<input id="freehand" type="radio"  name="mode" value="freehand" checked/>freehand </form></li>
-	<li>Press <span>Shift</span> to Square Along Grid<select id="toggleCameraPlaneLock" value="0" enabled="false"/>
-		<option value="0">None</option>
-		<option value="1">vertical Lock</option>
-		<option value="2">horizontal Lock</option>
-		<option value="3">Both</option>
-		</select> 
-	
-	</li>
+
 	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/><span>r</span>otate 90  Shift-r to set</li>
 	
 	<li>Line Width
 		<select id="width" type="text" value="2" enabled="true"/></li>
 		<option value="2">2</option>
 		<option value="4">4</option>
-		<option value="4">6</option>
-		<option value="4">8</option>
-		<option value="4">10</option>
+		<option value="6">6</option>
+		<option value="8">8</option>
+		<option value="10">10</option>
+		<option value="20">20</option>
+		<option value="40">40</option>
 		</select> 
 		<br/>
-		<form id="file-form" action="handler.php" method="POST">
-  <input type="file" id="file-select" name="uploads[]" multiple/>
-  <button type="submit" id="upload-button">Upload</button>
-</form>
+	<input type="file" id="import">
 	<input id="exportLine" type="button" value="Export" enabled="false"/>
 	<br/>
 	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
@@ -307,9 +299,11 @@
 		document.getElementById('exportLine').onclick = exportToObj;
 		document.getElementById('width').onchange = setCurrentLineWidth;
 		document.getElementById('grid').onclick = toggleGrid;
-		document.getElementById('toggleCameraPlaneLock').onchange=toggleCameraPlaneLock;
 		document.getElementById('rotateX').onclick = horizontalRotation;
-;
+
+		document.getElementById("import").onchange = handleImport;
+
+
 		/*document.getElementById('show').onclick = printVerts;
 
 		
@@ -403,10 +397,24 @@
 				 xmlhttp.send(result);				
 	}
 	
-	function importScene(){
+	function handleImport() {
+  			var fileList = this.files; /* now you can work with the file list */
+  			
+  			for (var i = 0; i < fileList.length; i++) {
+  				f = fileList.item(i);
+  				if (f.name.indexOf("obj") > -1){
+  					importScene(f.name);
+  				}else if (f.name.indexOf("json") > -1){
+  				//importJSONObject
+  				}
+  			}
+		}
+	
+	
+	function importScene(objfile){
 			/* something like this */
 			var loader = new THREE.OBJLoader( manager );
-				loader.load( '../mydrawing.obj', function ( object ) {
+				loader.load( objfile, function ( object ) {
 
 					object.traverse( function ( child ) {						
 						//if ( child.children instanceof Array ) { //THREE.Line						
@@ -423,29 +431,11 @@
 				}, onProgress, onError );		
 	}
 
-
-	var onProgress = function ( xhr ) {
-					if ( xhr.lengthComputable ) {
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( Math.round(percentComplete, 2) + '% downloaded' );
-					}
-				};
-
-	var onError = function ( xhr ) {
-	};
 	
-	
-	
-	function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-	}
-	
-	/* use this to pull in an object file */
-	function loadAnObject(){
+	/* use this to pull in json file */
+	function importJSONObject(jsonfile){
 		var loader = new THREE.JSONLoader( manager );
-		var path = "assets/chairVert.json"; //callback needs real var I guess
+		var path = jsonfile; 
 		var pos = new THREE.Vector3(0,0,10);
 		loader.load(path , function ( geo ) {
 
@@ -467,6 +457,25 @@
 	
 	}
 
+
+
+	var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+	var onError = function ( xhr ) {
+	};
+	
+	
+	
+	function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+	}
 
 
 
@@ -619,7 +628,7 @@
 				
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
-				$(".hero-unit").css("visibility","hidden");
+				$(".hero-unit").css("visibility","visible");
 				
 			}else if (level =="1"){
 			
@@ -1084,7 +1093,7 @@
 		
 		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
-	    linematerial.linewidth = CURRENTLINEWIDTH;
+	    
 		
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
 		drawnline[CURRENTspline].name = geometry?"lineimported":"line" ;//+ CURRENTspline;
