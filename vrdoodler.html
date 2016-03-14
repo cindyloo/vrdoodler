@@ -6,7 +6,7 @@
 </head>
  <link rel="stylesheet" href="css/style.css">
      <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-    <script src="../js/three.js"></script>
+    <script src="../js/three.min.js"></script>
 <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <!--<script src="js/controls/OrbitControls.js"></script>-->
 <!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
@@ -83,6 +83,10 @@
 		<option value="4">10</option>
 		</select> 
 		<br/>
+		<form id="file-form" action="handler.php" method="POST">
+  <input type="file" id="file-select" name="uploads[]" multiple/>
+  <button type="submit" id="upload-button">Upload</button>
+</form>
 	<input id="exportLine" type="button" value="Export" enabled="false"/>
 	<br/>
 	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
@@ -347,7 +351,7 @@
 	}
 	
 	
-
+	/*local file download*/
 	var saveFileLocally = (function () {
 		var a = document.createElement("a");
 		document.body.appendChild(a);
@@ -380,16 +384,11 @@
 			temp.name="exported" + i;
 			expScene.add(temp);
 		}
-		
-		
 		return exportGeo;
-	
-	
 	}
 
 	function exportToObj ()
-			{
-					
+			{				
 				var exporter = new THREE.OBJExporter();
 				var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
 				
@@ -402,33 +401,27 @@
 					//Handle response
 				  }
 				};
-				 xmlhttp.send(result);
-				
+				 xmlhttp.send(result);				
 	}
+	
 	function importScene(){
 			/* something like this */
 			var loader = new THREE.OBJLoader( manager );
 				loader.load( '../mydrawing.obj', function ( object ) {
 
-					object.traverse( function ( child ) {
-						
-						//if ( child.children instanceof Array ) { //THREE.Line
-						
+					object.traverse( function ( child ) {						
+						//if ( child.children instanceof Array ) { //THREE.Line						
 						//	child.children.every( function ( gchild ){
 								if ( child instanceof THREE.Mesh ) { //THREE.Line
 									initNewLine(null, null, child.geometry, child.geometry.attributes.position);
 								}
 						//	});
-
 						//}
-
 					 });
-
 					object.position.y = - 80;//?
 					scene.add( object );
 
-				}, onProgress, onError );
-			
+				}, onProgress, onError );		
 	}
 
 
@@ -529,8 +522,6 @@
 		var vX = new THREE.Vector3(1,0,0);
   		var vZ = new THREE.Vector3(0,0,1);
   		
-  		
-  		
   		var orientation = camera.getWorldDirection().normalize();
   		
   		var offsetToX = orientation.clone().dot(vX);  //should be z, right?
@@ -550,6 +541,7 @@
   				PLANEROTATIONCOLOR = 0x00ffff;
   		}
 	}
+
 	
 	function horizontalRotation(angle){
 
@@ -624,8 +616,7 @@
 				setSnapMode(userSettings.snapMode); //need this to properly pivot for rotation.
 				changeControls(false);
 				
-				setupGrid();
-				
+				setupGrid();				
 				
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
@@ -657,10 +648,7 @@
 				//take off all restraints
 				//don't set draw mode, snap or grid, etc
 			}
-			
-		
-	
-	
+
 	}
 
 
@@ -744,7 +732,7 @@
 		camera.lookAt(lastIntersectedPoint);
 	
 		camera.updateProjectionMatrix();
-colorCameraOrientation();
+        colorCameraOrientation();
 	}
 	
 
@@ -823,7 +811,6 @@ colorCameraOrientation();
 				planeBounds.rotation.x = 0;
 			}
 		}
-		//planeLockOutline.rotation.z = 0;
 	}
 	
 	
@@ -841,8 +828,7 @@ colorCameraOrientation();
 
                    case 68: //d draw mode
                    		toggleDrawMode();
-                   		
-		 					  	
+                   			 					  	
                    break;
                     /*case 65: // a for axis 
                     
@@ -905,12 +891,9 @@ colorCameraOrientation();
                     			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
                     	
                     	}
-                     */ 
-    
+                     */   
                     break;
-                    
-                    
-                  
+                 
                      
                    case 90: //control-z to erase last
                    	if (evt.ctrlKey)
@@ -924,20 +907,22 @@ colorCameraOrientation();
                
                 }
             }
+            
+            
      function onVRDoodlerKeyUp(evt) {
-      		switch (evt.keyCode) {
-      			case 71: //g to erase last             	
-                   		//make plane 'snapped' to grid, so to speak
-                   		SNAPPLANETOGRID = false;
-                   	     $("#infoPanel").text("SNAPPLANETOGRID OFF");	
-                   	break;
+      	switch (evt.keyCode) {
+      		case 71: //g to erase last             	
+				//make plane 'snapped' to grid, so to speak
+				SNAPPLANETOGRID = false;
+				 $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+            break;
                    	
-				case 16: //shift 
-				  SNAPPLANETOGRID =false;
-				  PLANELOCK =false;
-				   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
-				break;
-            }
+			case 16: //shift 
+			  SNAPPLANETOGRID =false;
+			  PLANELOCK =false;
+			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+			break;
+        }
      }
      
      
@@ -965,8 +950,6 @@ colorCameraOrientation();
 			}
 		
 			return destpos;
-			
-				
 						
 			/* fyi
 			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
@@ -1090,11 +1073,8 @@ colorCameraOrientation();
 				positions[2] = mv.z;
 				countVertices = 1;
 			}
-			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-	
+			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
 			geometry.setDrawRange( 0, 0 );	
-			
-
 		
 		}else{ //loaded from OBJ file
 			
@@ -1195,16 +1175,11 @@ colorCameraOrientation();
 						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
 					}
 				}else { //freehand draw
-
-						initNewLine(mouseVec, true);
-									
-				} 
-			
+						initNewLine(mouseVec, true);									
+				} 			
 				//set up for drawing line
 				document.addEventListener("mousemove",onSketchMouseMove,false);
-				document.addEventListener("mouseup",onSketchMouseUp,false);
-				
-				
+				document.addEventListener("mouseup",onSketchMouseUp,false);				
 			}
         }
     }
@@ -1218,9 +1193,7 @@ colorCameraOrientation();
 	
 	function makeDrawingPlane(planePos, name){
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
-
 			
-
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
 			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
 			planeLockOutline.position.set( 0, 0, 0 );
@@ -1252,6 +1225,8 @@ colorCameraOrientation();
 		 return planeObj;
 	
 	}
+	
+	
 /* the little plane indicates location and direction
    the outline plane is the canvas/plane on which to draw... I guess it could be a vertical grid
 */
@@ -1315,19 +1290,13 @@ colorCameraOrientation();
 	//shader code currently commented out...
 	//maybe be able to select line and make thicker or thinner (nice to have...)
 
-	function handleRayIntersections(intersects){
-	
-	
-	
-	
+	function handleRayIntersections(intersects){	
 		if ( intersects.length > 0 ) {
 		
 				if ( currentIntersected !== undefined ) {
 					//currentIntersected.material.linewidth = CURRENTLINEWIDTH;
 					//currentIntersected.material.color.setRGB(200,200,200);
-				}
-				
-				
+				}				
 					currentIntersected = intersects[ 0 ].object;
 					
 					if(currentIntersected.name == 'grid' && ignoreGridRays() ){
@@ -1389,11 +1358,6 @@ colorCameraOrientation();
 						scene.remove(planeLockOutline);
 						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);		
 					}					
-	
-	
-					
-					
-					
 					
 					/*for use with shaders
 					for( var i = 0; i < intersects.length; i++ ) {
@@ -1403,8 +1367,6 @@ colorCameraOrientation();
 						//obj.material.color.setRGB( 100,10,10);//1.0 - i / intersects.length, 0, 0 );
 						//obj.material.uniforms.color.value = 1.0;
 					}*/
-				
-				
 		
 		} else {
 				//reset
