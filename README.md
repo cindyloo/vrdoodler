@@ -13,4 +13,6 @@ Currently in ALPHA!!!  Lots of cool features to add, I just need time - and more
 
 (D)raw toggles drawing.  When not drawing, you can rotate the camera, zoom in/out, and decide the angle at which to draw.   Use (S)nap To to attach the new line to previous line or to draw along that same plane; when not drawing, the Snap To orbits the camera round the drawn object.
 
+watch the tutorial here  https://www.youtube.com/watch?v=BbtJacsyk7E
+
 
