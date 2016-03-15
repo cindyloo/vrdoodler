@@ -79,6 +79,7 @@
 		</select> 
 		<br/>
 	<input type="file" id="import">
+	<div id="preview"></div>
 	<input id="exportLine" type="button" value="Export" enabled="false"/>
 	<br/>
 	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
@@ -374,7 +375,7 @@
 		expScene = new THREE.Scene();
 		for (var i = 0;i<exportGeo.length;i++){
 			temp = new THREE.Mesh( exportGeo[i],  linematerial );
-			temp.name="exported" + i;
+			temp.name="exportedLine" + i;
 			expScene.add(temp);
 		}
 		return exportGeo;
@@ -401,59 +402,119 @@
   			var fileList = this.files; /* now you can work with the file list */
   			
   			for (var i = 0; i < fileList.length; i++) {
-  				f = fileList.item(i);
-  				if (f.name.indexOf("obj") > -1){
-  					importScene(f.name);
-  				}else if (f.name.indexOf("json") > -1){
-  				//importJSONObject
-  				}
+  			
+  				f = fileList.item(i);		 
+				var reader  = new FileReader();
+				var extension = f.name.split( '.' ).pop().toLowerCase();
+
+				
+				switch(extension){
+					case 'json':
+					case '3geo':
+					case '3mat':
+					case '3obj':
+					case '3scn':
+	
+					reader.addEventListener( 'load', function ( event ) {
+						
+						var contents = event.target.result;
+						try {
+							data = JSON.parse( contents );
+						} catch ( error ) {
+							alert( error );
+							return;
+						}
+						importJSONObject( f.name, data );
+	
+					}, false );
+					reader.readAsText( f );	
+					break;
+	
+				case 'obj':
+	
+					reader.addEventListener( 'load', function ( event ) {
+						var contents = event.target.result;
+						var object = new THREE.OBJLoader().parse( contents );
+						object.name = f.name;
+						importScene(object);					
+					}, false );
+					reader.readAsText( f );
+						
+					
+					break;
+					
+				case 'jpg':
+				case 'png':
+					var photo;
+					var preview = document.querySelector('#preview');
+					
+				  reader.addEventListener("load", function () {
+					var image = new Image();
+					image.height = 100;
+					image.title = f.name;
+					image.src = this.result;
+					preview.appendChild( image );
+					var texture = new THREE.Texture( image );
+					texture.needsUpdate = true;
+					makePhotoSphere(texture,5, 32);
+				  }, false);
+			
+				  reader.readAsDataURL(f);
+				
+					
+					
+				
+				break;
+				}	
   			}
 		}
 	
 	
-	function importScene(objfile){
-			/* something like this */
-			var loader = new THREE.OBJLoader( manager );
-				loader.load( objfile, function ( object ) {
-
-					object.traverse( function ( child ) {						
-						//if ( child.children instanceof Array ) { //THREE.Line						
-						//	child.children.every( function ( gchild ){
-								if ( child instanceof THREE.Mesh ) { //THREE.Line
+	function importScene(object){
+				object.traverse( function ( child ) {						
+						if ( child instanceof THREE.Mesh ) { //THREE.Line
 									initNewLine(null, null, child.geometry, child.geometry.attributes.position);
-								}
-						//	});
-						//}
+						}
 					 });
-					object.position.y = - 80;//?
-					scene.add( object );
+				
 
-				}, onProgress, onError );		
 	}
 
 	
-	/* use this to pull in json file */
-	function importJSONObject(jsonfile){
-		var loader = new THREE.JSONLoader( manager );
-		var path = jsonfile; 
-		var pos = new THREE.Vector3(0,0,10);
-		loader.load(path , function ( geo ) {
+	/* right outta the three.js editor. thanks @mrdoob! */
+	function importJSONObject(fn,data){
+		var material;
+				
+	    var loader = new THREE.JSONLoader();
+		var result = loader.parse( data );
+		if ( result.materials !== undefined ) {
 
-		var material = new THREE.MeshLambertMaterial({
-			//map: THREE.ImageUtils.loadTexture(path+ currentConfig.objTex),  // specify and load the texture
-			color:0xff00ff,
-			side:THREE.DoubleSide
-		  });
+				if ( result.materials.length > 1 ) {
+					material = new THREE.MultiMaterial( result.materials );
+				} else {
+					material = result.materials[ 0 ];
+				}
+		} else {
+			material = new THREE.MeshStandardMaterial();
+		}
+
+		var geo = result.geometry;
+		geo.sourceType = "ascii";
+		geo.sourceFile = fn;
+
+		var mesh;
+
+		if ( geo.animation && geo.animation.hierarchy ) {
+			mesh = new THREE.SkinnedMesh( geo, material );
+		} else {
+			mesh = new THREE.Mesh( geo, material );
+		}
 			
-		var object = new THREE.Mesh(geo, material);
-		object.position.x = pos.x;
-		object.position.y = pos.y;
-		object.position.z = pos.z;
-		//object.scale.set(5,5,5);
-		
-		object.userData.name = "chair";		
-		objContainer.add( object );
-		});
+		var pos = new THREE.Vector3(0,0,10);
+		mesh.position.set(pos);
+	
+		mesh.userData.name = "fromjson";		
+		objContainer.add( mesh );
 	
 	}
 
@@ -1276,8 +1337,13 @@
 	
 	}
 		
-	function makePhotoSphere( photo, w, d){
+	function makePhotoSphere( tex, w, h){
 	
+	
+			var mesh;
+			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
+			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
+			objContainer.add(mesh);
 	}
 	
 	
