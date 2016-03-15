@@ -79,7 +79,7 @@
 		</select> 
 		<br/>
 	<input type="file" id="import">
-	<div id="preview"></div>
+	<div id="preview"> <a class="imgclose" id="imgclose"></a></div>
 	<input id="exportLine" type="button" value="Export" enabled="false"/>
 	<br/>
 	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
@@ -455,8 +455,18 @@
 					image.src = this.result;
 					preview.appendChild( image );
 					var texture = new THREE.Texture( image );
+					texture.name=f.name;
 					texture.needsUpdate = true;
-					makePhotoSphere(texture,5, 32);
+					var psphere = makePhotoSphere(texture,5, 32);
+					
+					$("a.imgclose").css("visibility","visible");
+					$("a.imgclose").click(function(e,preview, image){
+						$(this).parent().find("img").remove()
+						objContainer.remove(psphere);
+						objContainer.remove(scene.getObjectByName(f.name));
+						$("a.imgclose").css("visibility","hidden");
+					});
+				
 				  }, false);
 			
 				  reader.readAsDataURL(f);
@@ -1344,6 +1354,8 @@
 			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
 			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
 			objContainer.add(mesh);
+			
+			return mesh;
 	}
 	
 	
