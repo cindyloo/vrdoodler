@@ -450,14 +450,14 @@
 					
 				  reader.addEventListener("load", function () {
 					var image = new Image();
-					image.height = 100;
+					image.height = 1000;
 					image.title = f.name;
 					image.src = this.result;
 					preview.appendChild( image );
 					var texture = new THREE.Texture( image );
 					texture.name=f.name;
 					texture.needsUpdate = true;
-					var psphere = makePhotoSphere(texture,5, 32);
+					var psphere = makePhotoSphere(texture,25, 100);
 					
 					$("a.imgclose").css("visibility","visible");
 					$("a.imgclose").click(function(e,preview, image){
@@ -917,9 +917,10 @@
                         break;
                      */   
                    case 16: //shift 
-				  PLANELOCK =true;
-				   $("#infoPanel").text("PLANE LOCKED TO P-O-I");	
-				break;     
+                   
+				  	PLANELOCK =true;
+				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
+					break;     
                      
                     case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
                     
@@ -1281,7 +1282,8 @@
 			planeLockOutline.lookAt(camera.position);
 			planeLockOutline.visible = true;
 			planeLockOutline.name = name;
-			
+			planeLockOutline.material.wireframe = true;
+			planeLockOutline.material.wireframeLinewidth = 10;
 			scene.add(planeLockOutline); //note- can adding this to raycasting objects
 			
 			return planeLockOutline;
@@ -1383,13 +1385,14 @@
 					//currentIntersected.material.linewidth = CURRENTLINEWIDTH;
 					//currentIntersected.material.color.setRGB(200,200,200);
 				}				
-					currentIntersected = intersects[ 0 ].object;
-					
-					if(currentIntersected.name == 'grid' && ignoreGridRays() ){
+				currentIntersected = intersects[ 0 ].object;
+				
+				if(currentIntersected.name == 'grid'){ //TODO use reg expressions instead
+					if(ignoreGridRays() ){
 						intersects = intersects.reduce(function(obj) {
-  							if (obj && obj.object.name !="grid")
-  								return obj;
-  							
+							if (obj && obj.object.name !="grid")
+								return obj;
+							
 						});
 					
 						if (intersects && intersects[1])
@@ -1400,31 +1403,39 @@
 							//rayPointIndSphere.visible = false;
 							return;
 						}
-					
-					}else if (currentIntersected.name == 'grid'){
+				
+					}else {
 						rayPointIndSphere.material.color.set(0xffffcc);
-						
-					}else if (currentIntersected.name == 'guide'){ //plane intersection
+					}	
 					
-						//if there are other intersections, ignore plane intersection,hmmm
-						if (intersects[1] && !bIsDrawing){
-							currentIntersected = intersects[ 1 ].object;
-							return;
-						}else{
-							currentIntersectedPoint = undefined;
-							currentIntersectedPoint= intersects[ 0 ].point;
-							
-							rayPointIndSphere.material.color.set(0x00ff00);
-							rayPointIndSphere.position.copy(currentIntersectedPoint);
-							console.log("raycasted plane");
-
-						}
-						 
+					//I think we want to be able to turn this off to draw at a certain plane from far away
+				}else if (currentIntersected.name == 'line' || currentIntersected.name == "lineimported"){
+					console.log("line vertex " + currentIntersected);
+					rayPointIndSphere.material.color.set(0xff0000); //line intersection
+				/*(else if (currentIntersected.name == 'sphere' ){
+					console.log("line vertex " + currentIntersected);
+					rayPointIndSphere.material.color.set(0xff0000); //line intersection
+				}*/
+				
+				
+				}else if (currentIntersected.name == 'guide'){ //plane intersection - this is generally always enabled
+				
+					//if there are other intersections, ignore plane intersection,hmmm
+					if (intersects[1] && !bIsDrawing){
+						currentIntersected = intersects[ 1 ].object;
+						return;
+					}else{
+						currentIntersectedPoint = undefined;
+						currentIntersectedPoint= intersects[ 0 ].point;
 						
-					}else if (currentIntersected.name == 'line' || currentIntersected.name == "lineimported"){
-						console.log("line vertex " + currentIntersected);
-						rayPointIndSphere.material.color.set(0xff0000); //line intersection
+						rayPointIndSphere.material.color.set(0x00ff00);
+						rayPointIndSphere.position.copy(currentIntersectedPoint);
+						console.log("raycasted plane");
+
 					}
+					 
+				}	
+					
 					
 
 					currentIntersectedPoint= intersects[ 0 ].point;  //sorted in desc. order, not really accurate for mouse hover FYI 
@@ -1439,7 +1450,7 @@
 					
 					//don't refresh the plane if we are snapping/locking/drawing to/on it
 				
-					if (!bIsDrawing && !SNAPPLANETOGRID){  //and maybe plane lock/snap...
+					if (!bIsDrawing && !SNAPPLANETOGRID && !PLANELOCK){  //and maybe plane lock/snap...
 						scene.remove(plane); 
 						scene.remove(planeLockOutline);
 						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);		
@@ -1453,7 +1464,7 @@
 						//obj.material.color.setRGB( 100,10,10);//1.0 - i / intersects.length, 0, 0 );
 						//obj.material.uniforms.color.value = 1.0;
 					}*/
-		
+				
 		} else {
 				//reset
 				if ( currentIntersected !== undefined ) {
