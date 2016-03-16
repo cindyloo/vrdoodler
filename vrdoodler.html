@@ -144,6 +144,8 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	var bIsDrawing = false;
 	var bShowInfo = true;
 	
+	var copiedLine = null;
+	
 	var ORBITMODE = 0;  //when not drawing
 	var FREEHANDMODE = 1;  //when drawing
 	var SNAPMODE = 0;		//snap to pre-existing line/objects	
@@ -364,7 +366,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 
 	function convertBuffGeoToGeo(){
 		var exportGeo = drawnline.map(function(eachline){
-		currentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
+		mostRecentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
 			var geo = new THREE.Geometry();
 			var buffgeo = eachline.geometry;
 			return geo.fromBufferGeometry(buffgeo);
@@ -976,19 +978,57 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                     break;
                  
                      
-                   case 90: //control-z to erase last
-                   	if (evt.ctrlKey)
-                   		if (currentDrawnLine()){
+     
+                   	
+                   case 67: //ctrl-c  copy! 
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   			var id = currentIntersected.uuid;                			
                    			
-                   			currentDrawnLine().geometry.attributes.position.array = [];
+                   			function findUUID(line) { 
+								return line.uuid == id;
+							}
+							
+                   		    lineToCopyIndex = drawnline.findIndex(findUUID);
+                   		    copiedLine = drawnline[lineToCopyIndex].clone();
+                   			
+                   		}	
+                   		
+                   		
+                   	}
+                   	break;
+                   	
+                   case 86: //ctrl-v  paste! 
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (currentIntersected && copiedLine){
+                   			if ( CURRENTspline != drawnline.length) CURRENTspline = drawnline.length;
+                   			drawnline.push(copiedLine);
+                   			copiedLine.position.copy(currentIntersectedPoint);
+                   			objContainer.add(copiedLine);
+                   			CURRENTspline++;
+                   		}	
+                   		
+                   		
+                   	}
+                   	break;
+                   	
+                   	
+                   	
+                   	
+                   	case 90: //control-z to erase last
+                   	if (evt.ctrlKey){
+                   		if (mostRecentDrawnLine()){
+                   			
+                   			mostRecentDrawnLine().geometry.attributes.position.array = [];
                    			drawnline.pop(CURRENTspline);
                    			--CURRENTspline;
                    		}
+                   	}
+                 
                    	break;
-                   	
-                   	case 8: //backspace
-                   		if (currentIntersected){
-                   		 evt.preventDefault();
+                   	case 8: //backspace  
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   		 	evt.preventDefault();
                    			var id = currentIntersected.uuid;                			
                    			
                    			function findUUID(line) { 
@@ -1126,7 +1166,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
     
         
     
-	function currentDrawnLine(){
+	function mostRecentDrawnLine(){
 		return drawnline[CURRENTspline];
 	}
 
@@ -1142,13 +1182,13 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 			bIsDrawing=false;
 			
 			//now that we are done drawing, trim drawn array to number of master line's vertices 
-    		var positions = currentDrawnLine().geometry.attributes.position.array;
+    		var positions = mostRecentDrawnLine().geometry.attributes.position.array;
     		
     		
-    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3);
+    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3);
     			
     			
-    		currentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
+    		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
     	
@@ -1189,7 +1229,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		
 		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
 		drawnline[CURRENTspline].name = geometry?"lineimported":"line" ;//+ CURRENTspline;
-		currentDrawnLine().geometry.attributes.position.needsUpdate = true; 
+		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
 	
 	
 	console.log("init new Line");
@@ -1197,10 +1237,10 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	
 /* update the line with the new vertices coming from onvrhmousemove*/
  function updateLineBuffer(newvec) {
-		if (currentDrawnLine()){
+		if (mostRecentDrawnLine()){
 		
 			//get array and update it with the new line vertices
-			var positions = currentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
+			var positions = mostRecentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
 			
 			var index = countVertices *3 ;
 			
@@ -1210,7 +1250,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 				positions[index ++] =newvec.z;
 			}
 			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
-			currentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
+			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
 			
 			countVertices++;
 		}
@@ -1236,7 +1276,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		}else //from import
 		 	initDrawnLine(geo, positions);
 		
-		objContainer.add( currentDrawnLine() );  
+		objContainer.add( mostRecentDrawnLine() );  
 	
 	}
 
@@ -1512,8 +1552,8 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		requestAnimationFrame(animate);
 
 	
-		if (currentDrawnLine()) {//make sure initialized
-			currentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );				
+		if (mostRecentDrawnLine()) {//make sure initialized
+			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );				
 		}
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
