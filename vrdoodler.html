@@ -6,7 +6,8 @@
 </head>
  <link rel="stylesheet" href="css/style.css">
      <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-    <script src="js/three.js"></script>
+    <script src="
+https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <!--<script src="js/controls/OrbitControls.js"></script>-->
 <!--<script src="js/shaders/LineDisplacementShader.js"></script>-->
@@ -984,6 +985,24 @@
                    			--CURRENTspline;
                    		}
                    	break;
+                   	
+                   	case 8: //backspace
+                   		if (currentIntersected){
+                   		 evt.preventDefault();
+                   			var id = currentIntersected.uuid;                			
+                   			
+                   			function findUUID(line) { 
+								return line.uuid == id;
+							}
+							
+                   			var lineToEraseIndex = drawnline.findIndex(findUUID);
+                   			drawnline[lineToEraseIndex].geometry.attributes.position.array = [];
+                   			drawnline.splice(lineToEraseIndex,1);
+                   			--CURRENTspline;
+                   			//get it out of drawnline
+                   			
+                   		}
+                   	break;
                
                 }
             }
@@ -1275,7 +1294,7 @@
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
 			
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
-			planeLockOutline.scale.multiplyScalar(10); //should calc viewport size...
+			planeLockOutline.scale.multiplyScalar(20); //should pay adjust accord to distance of intersection...
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
 			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
@@ -1355,6 +1374,7 @@
 			var mesh;
 			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
 			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
+			mesh.name="sphere";
 			objContainer.add(mesh);
 			
 			return mesh;
@@ -1410,13 +1430,16 @@
 					
 					//I think we want to be able to turn this off to draw at a certain plane from far away
 				}else if (currentIntersected.name == 'line' || currentIntersected.name == "lineimported"){
-					console.log("line vertex " + currentIntersected);
-					rayPointIndSphere.material.color.set(0xff0000); //line intersection
-				/*(else if (currentIntersected.name == 'sphere' ){
-					console.log("line vertex " + currentIntersected);
-					rayPointIndSphere.material.color.set(0xff0000); //line intersection
-				}*/
 				
+					console.log("line vertex " + currentIntersected);
+					rayPointIndSphere.material.color.set(0xff0000); //line intersection
+					
+				}else if (currentIntersected.name == 'sphere' ){
+					console.log("sphere vertex " + currentIntersected);
+					if (intersects && intersects[1])
+							currentIntersected = intersects[ 1 ].object;
+					//ignoreintersections for now
+					//rayPointIndSphere.material.color.set(0xff0000); //line intersection
 				
 				}else if (currentIntersected.name == 'guide'){ //plane intersection - this is generally always enabled
 				
