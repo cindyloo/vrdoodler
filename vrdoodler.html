@@ -263,7 +263,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	
   		
   		raycaster = new THREE.Raycaster();
-		raycaster.linePrecision = .05;
+		raycaster.linePrecision = .055;
 		
 		var geometry = new THREE.SphereGeometry( .05 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
@@ -1144,10 +1144,11 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 			//now that we are done drawing, trim drawn array to number of master line's vertices 
     		var positions = currentDrawnLine().geometry.attributes.position.array;
     		
-    		var hackCount = ((countVertices/ 3) - 1) * 3;
-			countVertices = hackCount;
-    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, hackCount *3);
-    				
+    		
+    		currentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3);
+    			
+    			
+    		currentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
     	
@@ -1517,22 +1518,29 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 
-			
-		raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
-		var intersects = raycaster.intersectObjects( objContainer.children, true);
+			var shotgunCast;
+		if (mouse)
+			 shotgunCast = mouse.clone();
 		
-		if (DRAWMODE && SNAPMODE &&!bIsDrawing){
+		/* use shotgun approach to raycasting since it misses */
 		
-			currentIntersectedPoint = handleRayIntersections(intersects);
 			
-		}else if (DRAWMODE && SNAPMODE && bIsDrawing){  //only look at plane intersections if we are drawing (on that plane!)
-
-			var intersects = raycaster.intersectObjects([planeLockOutline], true);
-			currentIntersectedPoint = handleRayIntersections(intersects);
+			raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
 			
-		}
-		//ability to draw while moving plane backwards or forwards
-		
+			var intersects = raycaster.intersectObjects( objContainer.children, true);
+			
+			if (DRAWMODE && SNAPMODE &&!bIsDrawing){
+			
+				currentIntersectedPoint = handleRayIntersections(intersects);
+				
+			}else if (DRAWMODE && SNAPMODE && bIsDrawing){  //only look at plane intersections if we are drawing (on that plane!)
+	
+				var intersects = raycaster.intersectObjects([planeLockOutline], true);
+				currentIntersectedPoint = handleRayIntersections(intersects);
+				
+			}
+			//ability to draw while moving plane backwards or forwards
+			
 		
 		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
 		render();	 
