@@ -83,6 +83,8 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	<div id="preview"> <a class="imgclose" id="imgclose"></a></div>
 	<input id="exportLine" type="button" value="Export" enabled="false"/>
 	<br/>
+	<input id="playback" type="button" value="PlayBack" enabled="false"/>
+	
 	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
 	<p>"draw at" orientation keys:<br/>
 	shift to draw level<br/>
@@ -133,6 +135,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 
 
 	var MAX_POINTS = 800;
+	var CURRENT_LONGEST_LINE_LENGTH = 0; //change this once we get our first line...
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
@@ -165,9 +168,14 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	var PLANEROTATE = 0;
 	var COLOR = 0;
 	var linematerial = null;
-	var start = Date.now();
-		var clock = new THREE.Clock();
+
 	var edges, cameraHelp;
+	
+	var start = Date.now();
+	var clock = new THREE.Clock();
+	var PLAYBACK = 0;
+	var playBackCount = 0;
+	
 	var userSettings = {};
 	
 	var defUserSettings = {
@@ -306,6 +314,9 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		document.getElementById('rotateX').onclick = horizontalRotation;
 
 		document.getElementById("import").onchange = handleImport;
+		
+		
+		document.getElementById("playback").onclick = togglePlayBackMode;
 
 
 		/*document.getElementById('show').onclick = printVerts;
@@ -991,6 +1002,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 							
                    		    lineToCopyIndex = drawnline.findIndex(findUUID);
                    		    copiedLine = drawnline[lineToCopyIndex].clone();
+                   		    copiedLine.position.set( 0, 0, 0 );
                    			
                    		}	
                    		
@@ -1001,10 +1013,18 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    case 86: //ctrl-v  paste! 
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (currentIntersected && copiedLine){
+                   		 	copiedLine = copiedLine.clone();
                    			if ( CURRENTspline != drawnline.length) CURRENTspline = drawnline.length;
                    			drawnline.push(copiedLine);
-                   			copiedLine.position.copy(currentIntersectedPoint);
+                   			copiedLine.position.set( 0, 0, 0 );
+                   			var vNow = new THREE.Vector3();
+                   			vNow.set(mouse.x,mouse.y,0.5 );
+                   			
+                   			
+                   			copiedLine.position.copy(currentIntersectedPoint.clone().add(copiedLine.position));
                    			objContainer.add(copiedLine);
+                   			
+                   			console.log("drawn lines " + drawnline.length + " currentindex " + CURRENTspline);
                    			CURRENTspline++;
                    		}	
                    		
@@ -1022,6 +1042,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    			mostRecentDrawnLine().geometry.attributes.position.array = [];
                    			drawnline.pop(CURRENTspline);
                    			--CURRENTspline;
+                   			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    		}
                    	}
                  
@@ -1034,7 +1055,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    			function findUUID(line) { 
 								return line.uuid == id;
 							}
-							
+							console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    			var lineToEraseIndex = drawnline.findIndex(findUUID);
                    			drawnline[lineToEraseIndex].geometry.attributes.position.array = [];
                    			drawnline.splice(lineToEraseIndex,1);
@@ -1546,6 +1567,52 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		return currentIntersectedPoint;
 	
 	}
+	
+	
+	function togglePlayBackMode(){
+	
+		PLAYBACK = PLAYBACK?0:1;
+		if (PLAYBACK) {
+			clock.start();
+			
+		}else
+			clock.stop();
+		return PLAYBACK;
+	
+	}
+	
+	function runPlayBack(){
+	
+		if (PLAYBACK){
+			for (var i=0;i< drawnline.length;i++){
+				if (drawnline[i].geometry.attributes.position.length > CURRENT_LONGEST_LINE_LENGTH) 
+					CURRENT_LONGEST_LINE_LENGTH = drawnline[i].geometry.attributes.position.length/3;
+				var count = playBackCount;
+				//determine what should be drawn
+				//count from 0 to length vertices of line..
+				//right now we are just going to animate each line at the same time....
+				if (playBackCount > drawnline[i].geometry.attributes.position.count)
+					count =	drawnline[i].geometry.attributes.position.count;
+				drawnline[i].geometry.setDrawRange( 0, count-1);
+				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
+			}
+
+			if (clock.getDelta() > .0005){
+				playBackCount++;
+				start = Date.now();
+				console.log("playbackcount "+ playBackCount);
+			}
+			if (playBackCount > CURRENT_LONGEST_LINE_LENGTH)	
+				playBackCount = 0;
+			}	
+	
+		return PLAYBACK;
+		
+	}
+	
+	
+	
+	
 
 	function animate() {
 
@@ -1553,18 +1620,18 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 
 	
 		if (mostRecentDrawnLine()) {//make sure initialized
+			//maybe here we just increment to replay...
 			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );				
 		}
+		
+		
+		
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 
-			var shotgunCast;
-		if (mouse)
-			 shotgunCast = mouse.clone();
 		
-		/* use shotgun approach to raycasting since it misses */
 		
-			
+		if (!runPlayBack()){
 			raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
 			
 			var intersects = raycaster.intersectObjects( objContainer.children, true);
@@ -1579,16 +1646,14 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 				currentIntersectedPoint = handleRayIntersections(intersects);
 				
 			}
-			//ability to draw while moving plane backwards or forwards
-			
+			//TODO add ability to draw while moving plane backwards or forwards
+		
+		}
 		
 		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
 		render();	 
 		  
-		if (!DRAWMODE){
-			//controls.update(clock.getDelta());
-		}
-		
+	
 	
 	   } 
 	   
@@ -1599,7 +1664,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 			
 		renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
-	renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
+		renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
 		renderer.setScissor( 10, 10, 200, 200  );
 					//renderer.setScissorTest( true );
 					//renderer.setClearColor( view.background );
