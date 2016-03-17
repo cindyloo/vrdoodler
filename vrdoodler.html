@@ -1014,7 +1014,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (currentIntersected && copiedLine){
                    		 	copiedLine = copiedLine.clone();
-                   			if ( CURRENTspline != drawnline.length) CURRENTspline = drawnline.length;
+                   			
                    			drawnline.push(copiedLine);
                    			copiedLine.position.set( 0, 0, 0 );
                    			var vNow = new THREE.Vector3();
@@ -1025,7 +1025,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    			objContainer.add(copiedLine);
                    			
                    			console.log("drawn lines " + drawnline.length + " currentindex " + CURRENTspline);
-                   			CURRENTspline++;
+                   			
                    		}	
                    		
                    		
@@ -1040,8 +1040,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    		if (mostRecentDrawnLine()){
                    			
                    			mostRecentDrawnLine().geometry.attributes.position.array = [];
-                   			drawnline.pop(CURRENTspline);
-                   			--CURRENTspline;
+                   			drawnline.pop();
                    			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    		}
                    	}
@@ -1059,7 +1058,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
                    			var lineToEraseIndex = drawnline.findIndex(findUUID);
                    			drawnline[lineToEraseIndex].geometry.attributes.position.array = [];
                    			drawnline.splice(lineToEraseIndex,1);
-                   			--CURRENTspline;
+                   	
                    			//get it out of drawnline
                    			
                    		}
@@ -1188,6 +1187,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
         
     
 	function mostRecentDrawnLine(){
+		CURRENTspline = drawnline.length -1;
 		return drawnline[CURRENTspline];
 	}
 
@@ -1248,8 +1248,9 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    
 		
-		drawnline[CURRENTspline] = new THREE.Line( geometry,  linematerial ); //to store line	
-		drawnline[CURRENTspline].name = geometry?"lineimported":"line" ;//+ CURRENTspline;
+		drawnline.push(new THREE.Line( geometry,  linematerial )); //to store line	
+
+		mostRecentDrawnLine().name = geometry?"lineimported":"line" ;//+ CURRENTspline;
 		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
 	
 	
@@ -1284,8 +1285,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	//called from mouseDown
 	//works for importing from file or if using mouse to start line
 	function initNewLine(mouseVec, bUnproject, geo,positions){
-	
-		CURRENTspline++;
+
 		
 		if (!geo){
 			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
@@ -1575,8 +1575,12 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		if (PLAYBACK) {
 			clock.start();
 			
-		}else
+		}else{
 			clock.stop();
+			for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.length-1);
+			}
+		}
 		return PLAYBACK;
 	
 	}
@@ -1585,8 +1589,12 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	
 		if (PLAYBACK){
 			for (var i=0;i< drawnline.length;i++){
-				if (drawnline[i].geometry.attributes.position.length > CURRENT_LONGEST_LINE_LENGTH) 
-					CURRENT_LONGEST_LINE_LENGTH = drawnline[i].geometry.attributes.position.length/3;
+				if (drawnline[i] === undefined){  //if any weirdness, clean it up
+					drawnline.splice(i,1);
+					continue;
+				}
+				if (drawnline[i].geometry.attributes.position.count/3 > CURRENT_LONGEST_LINE_LENGTH) 
+					CURRENT_LONGEST_LINE_LENGTH = drawnline[i].geometry.attributes.position.count/3;
 				var count = playBackCount;
 				//determine what should be drawn
 				//count from 0 to length vertices of line..
@@ -1602,10 +1610,12 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 				start = Date.now();
 				console.log("playbackcount "+ playBackCount);
 			}
+			
 			if (playBackCount > CURRENT_LONGEST_LINE_LENGTH)	
 				playBackCount = 0;
-			}	
-	
+		}	
+		
+		
 		return PLAYBACK;
 		
 	}
@@ -1618,18 +1628,13 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 
 		requestAnimationFrame(animate);
 
-	
 		if (mostRecentDrawnLine()) {//make sure initialized
 			//maybe here we just increment to replay...
 			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );				
 		}
 		
-		
-		
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
-
-		
 		
 		if (!runPlayBack()){
 			raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
