@@ -7,7 +7,12 @@ html,
             background-color: #ffffff;
             margin: 0;
             overflow: hidden;
-            font-family: calibri;
+            font-family: Oswald;
+	font-size: 18px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 100;
+	line-height: 20px;
         }
         #canvas {
   
@@ -24,48 +29,59 @@ html,
    		
    }
    
+   
+   #tabs span.selected {
+    color: #111;
+    background-color: #e2a336;
+}
+#tabs span {
+    color: #555;
+    border-right: 1px solid #222;
+    padding: 10px;
+}
    div.hero-unit{
-   float:right;
-   position:relative;
+   float:left;
+   position:absolute;
    width:250px;
-   top:100px;
+   top:10px;
    z-index:10;
-   background-color:gray;
-   color:white;
+   background-color:white;
+   color:black;
    opacity:.8;
    visibility:hidden;
+   font-family: Oswald;
+   padding:10px;
    }
    h2{
    margin-top:0;
    padding-top:0;
    }
+   
    ul {
    padding:5px;
    margin:10px;
    	list-style:none;
    	
    }
-#tutorial, #infoPanel{
-	text-decoration:none;
-	
-	float:left;
-    width:250px;
-    height:200px;
-    position:absolute;
-    opacity:.8;
-    z-index:10;
-	padding:5px;	
-	background-color:gray;
-	color:white;
-	overflow:hidden;
-}
-, #tutorial{
 
-	float:left;
-	
-	}
+
 	#infoPanel{ visibility:hidden;}
 li span {text-decoration: underline; }
+
+input[type='button'], div#preview input, div#preview{
+	padding:5px;
+	margin:5px;
+	width:100px;
+	height:35px;
+	border:1px groove gray;
+	background-color:white;
+	font-size:16px;
+	opacity:1;
+}
+div#preview input{
+opacity:0;
+}
+
 
 
 a.imgclose{
@@ -88,3 +104,57 @@ a.imgclose{
 .imgclose:before {
     content: "×";
 }
+
+input.cmn-toggle-round + label {
+  padding: 2px;
+  width: 120px;
+  height: 60px;
+  background-color: #dddddd;
+  border-radius: 60px;
+}
+input.cmn-toggle-round + label:before,
+input.cmn-toggle-round + label:after {
+  display: block;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  bottom: 1px;
+  content: "";
+}
+input.cmn-toggle-round + label:before {
+  right: 1px;
+  background-color: #f1f1f1;
+  border-radius: 60px;
+  transition: background 0.4s;
+}
+input.cmn-toggle-round + label:after {
+  width: 58px;
+  background-color: #fff;
+  border-radius: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: margin 0.4s;
+}
+input.cmn-toggle-round:checked + label:before {
+  background-color: #8ce196;
+}
+input.cmn-toggle-round:checked + label:after {
+  margin-left: 60px;
+}
+
+#tuteInstructions{padding:10px;}
+#tabs span{
+    cursor: default;
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px groove white;
+    text-decoration: none;
+    padding: 10px 35px;
+ }
+#tabs span:first-child{
+	margin-left:-30px;}
+	#tabs span:last-child{
+	margin-right:-30px;}
+	
+	
+	
+	
