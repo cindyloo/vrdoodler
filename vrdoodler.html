@@ -308,14 +308,12 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById('freehand').onclick = snapTo;
-		document.getElementById('exportLine').onclick = exportToObj;
+
 		document.getElementById('width').onchange = setCurrentLineWidth;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
-
-		document.getElementById("import").onchange = handleImport;
-		
-		
+		document.getElementById('exportLine').onclick = exportToObj;
+		document.getElementById("import").onchange = handleImport;		
 		document.getElementById("playback").onclick = togglePlayBackMode;
 
 
@@ -620,7 +618,9 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
   		var offsetToX = orientation.clone().dot(vX);  //should be z, right?
   		var offsetToZ = orientation.clone().dot(vZ);
   		//which offset is closer to one?
-  		if (Math.abs(offsetToX) > Math.abs(offsetToZ)){  //closer to x
+  		
+  		PLANEROTATIONCOLOR = 0x00ffff;
+  		/*if (Math.abs(offsetToX) > Math.abs(offsetToZ)){  //closer to x
   			
   			if (offsetToX < 0) //x is negative
   				PLANEROTATIONCOLOR =0xff0000;
@@ -632,7 +632,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
   				PLANEROTATIONCOLOR = 0x0033ff;
   			else
   				PLANEROTATIONCOLOR = 0x00ffff;
-  		}
+  		}*/
 	}
 
 	
