@@ -4,7 +4,7 @@
     <title>VRDoodler!!!</title>
  
 </head>
-	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
 	      <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
@@ -69,28 +69,23 @@ js/three.js"></script>
     
     <script src="js/shaders/LineDisplacementShader.js"></script>
     
-   <h1></h1>
 <div class="hero-unit">
-	<h2></h2>
+	<img class="logo" src="assets/images/vrdoodler_icon.png">
+	<!--<h2></h2>-->
 	
-	<div id="tabs"><span id="begTab" class="selected">BEGINNER</span><span id="advTab">ADVANCED</span></div>
+	<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
 	<section>
 	<ul>
 	
-	<li><form><input id="draw" type="radio" name="drawmode" value="draw" /><span>d</span>raw<input id="orbit" type="radio"  name="drawmode" value="orbit"/>orbit </form></li>
-	<li><form><input id="snapTo" type="radio" name="mode" value="snapTo" /><span>s</span>nap To<input id="freehand" type="radio"  name="mode" value="freehand" checked/>freehand </form></li>
+	<li><form class="draw_mode"><input id="draw" type="radio" name="drawmode" value="draw" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span><input id="orbit" type="radio"  name="drawmode" value="orbit"/><span class="input_label">orbit</span> </form></li>
+	<li><form><input id="snapTo" type="checkbox" name="mode" value="snapTo" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
 
-<li>Line Width
-		<select id="width" type="text" value="2" enabled="true"/></li>
-		<option value="2">2</option>
-		<option value="4">4</option>
-		<option value="6">6</option>
-		<option value="8">8</option>
-		<option value="10">10</option>
-		<option value="20">20</option>
-		<option value="40">40</option>
-		</select> 
-		</li>
+<li><p class="input_label">Line Width</p>
+
+	<div id="lineWidthSlider"></div>
+
+
+</li>
 
 	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/></li>
 
@@ -322,9 +317,7 @@ js/three.js"></script>
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('orbit').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
-		document.getElementById('freehand').onclick = snapTo;
 		document.getElementById('exportLine').onclick = prepAndExport;
-		document.getElementById('width').onchange = setCurrentLineWidth;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
 
@@ -343,6 +336,13 @@ js/three.js"></script>
 			}
 		});
 
+		$( "#lineWidthSlider" ).slider({
+			min:2,
+			max:40,
+			change: function( event, ui ) {
+				CURRENTLINEWIDTH = ui.value;
+			}
+		});
 
 		/*document.getElementById('show').onclick = printVerts;
 
@@ -870,12 +870,14 @@ js/three.js"></script>
 	}
 
 
+	/*
 	function setCurrentLineWidth(){
 
 	//controls.stop();
 		CURRENTLINEWIDTH = document.getElementById("width").value;			
 		return CURRENTLINEWIDTH;
 	}
+	*/
 	
 	//maybe plus/minus 2?
 	function toggleCurrentLineWidth(){

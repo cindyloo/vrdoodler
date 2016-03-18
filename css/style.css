@@ -22,59 +22,20 @@ html,
     left: 0;
 	}
    
-   h1{
-   	display:block;
-   	background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;
-   	background-size:200px 50px;
-    height:60px;
-    width:150px;
-    float:left;
-    position:absolute;
-    z-index:20;
-    padding-left:90px;
-   		
-   }
-   
-   
-   #tabs span.selected {
-    color: #111;
-    background-color: #e2a336;
-	}
-	#tabs span {
-    color: #555;
-    border-right: 1px solid #222;
-    padding: 10px;
-}
-   div.hero-unit{
-   float:left;
-   position:absolute;
-   width:250px;
-   top:10px;
-   z-index:10;
-   background-color:white;
-   color:black;
-   background-color:rgba(255,255,255,.8);
-   visibility:hidden;
-   font-family: Oswald;
-   padding:10px;
-   }
-   
-   h2{
-   margin-top:0;
-   padding-top:0;
-   }
-   
-   ul {
-   padding:5px;
-   margin:10px;
-   list-style:none;
-   margin-top:40px;
-   	
-   }
-
+   /*h1{*/
+   	/*display:block;*/
+   	/*background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;*/
+   	/*background-size:200px 50px;*/
+    /*height:60px;*/
+    /*width:150px;*/
+    /*float:left;*/
+    /*position:absolute;*/
+    /*z-index:20;*/
+    /*padding-left:90px;*/
+   		/**/
+   /*}*/
 
 #infoPanel{ visibility:hidden;}
-li span {text-decoration: underline; }
 
 input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio']{
 
@@ -113,10 +74,6 @@ div#preview input{
 	z-index: -1;
 }
 
-form {
-	border:1px groove rgba(255,255,255,1);
-}
-
 a.imgclose{
     float:right;
     margin-top:-30px;
@@ -138,33 +95,119 @@ a.imgclose{
     content: "×";
 }
 
-
 #tuteInstructions{
 float:left;
 position:relative;
 margin-top:20px;
-padding:10px;}
+padding:10px;
+}
 
-#tabs{
-margin-top:65px;}
-#tabs span{
+/*
+
+**********************
+Left-hand control bar.
+**********************
+
+*/
+
+.hero-unit {
+    float:left;
+    position:absolute;
+    width:250px;
+    top:10px;
+    z-index:10;
+    background-color:white;
+    color:black;
+    background-color:rgba(255,255,255,.8);
+    visibility:hidden;
+    font-family: Oswald;
+    /*padding:10px;*/
+}
+
+.hero-unit img.logo {
+    /*margin-left: auto;*/
+    /*margin-right: auto;*/
+    /* FIXME: err, I couldn't center this! */
+    margin-left: 20px ;
+    margin-top: 20px ;
+
+}
+
+.hero-unit #tabs{
+    margin-top:20px;
+    /*width: 100% ;*/
+
+}
+
+.hero-unit #tabs a {
+    font-size: 0.8em ;
+    text-transform: uppercase;
+    color: white;
+    /*background-color: #e2a336;*/
+    color: #555;
+    /*border-right: 1px solid #222;*/
+    padding: 10px;
     cursor: default;
-    display: inline-block;
+    /*display: inline-block;*/
     vertical-align: middle;
-    border: 1px groove white;
+    border-top: 1px groove white;
+    border-bottom: 1px groove white;
     text-decoration: none;
     padding: 10px 35px;
- }
-#tabs span:first-child{
-	margin-left:-30px;}
-	#tabs span:last-child{
-	margin-right:-30px;}
-	
-	
-#playBackSpeedSlider{
+}
+.hero-unit #tabs a.selected {
+    color: #fff ;
+    background-color: #e2a336;
+    text-shadow: -1px -1px 1px #666 ;
+}
+
+
+/*#tabs span:first-child {*/
+	/*margin-left:-30px;*/
+/*}*/
+
+/*#tabs span:last-child {*/
+	/*margin-right:-30px;*/
+    /*}*/
+
+.hero-unit section ul {
+    padding:5px;
+    margin:10px;
+    margin-top:20px;
+    list-style:none;
+    /*margin-top:40px;*/
+
+}
+
+
+.hero-unit section ul li form {
+    /*border:1px groove rgba(255,255,255,1);*/
+}
+
+.hero-unit section ul li form.draw_mode {
+    margin-bottom: 5px ;
+}
+
+.hero-unit section ul li form span.input_label span.keyboard_shortcut {
+    /*li span {text-decoration: underline; }*/
+}
+
+.hero-unit section ul li .input_label {
+    font-size: 0.6em ;
+    text-transform: uppercase ;
+    font-weight: 700 ;
+}
+
+.hero-unit section ul li #lineWidthSlider {
+/*
+FIXME: adjust size here? how?
+*/
+}
+
+
+#playBackSpeedSlider {
 	width:100px;
 	top:-36px;
 	left:120px;
 }
-	
-	
+
