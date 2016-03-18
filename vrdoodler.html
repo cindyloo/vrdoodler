@@ -59,16 +59,16 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
     
    <h1></h1>
 <div class="hero-unit">
-	<h2>VRDoodler</h2>
+	<h2></h2>
+	
+	<div id="tabs"><span id="begTab" class="selected">BEGINNER</span><span id="advTab">ADVANCED</span></div>
+	<section>
 	<ul>
-	<li><div id="tabs"><span id="begTab" class="selected">BEGINNER</span><span id="advTab">ADVANCED</span></div></li>
-	<li><div id="tuteInstructions"></div</li>
-	<li><input id="draw" type="checkbox" value="draw"/><span>d</span>raw</li>
+	
+	<li><form><input id="draw" type="radio" name="drawmode" value="draw" /><span>d</span>raw<input id="orbit" type="radio"  name="drawmode" value="orbit"/>orbit </form></li>
 	<li><form><input id="snapTo" type="radio" name="mode" value="snapTo" /><span>s</span>nap To<input id="freehand" type="radio"  name="mode" value="freehand" checked/>freehand </form></li>
 
-	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/><span>r</span>otate 90  Shift-r to set</li>
-	
-	<li>Line Width
+<li>Line Width
 		<select id="width" type="text" value="2" enabled="true"/></li>
 		<option value="2">2</option>
 		<option value="4">4</option>
@@ -79,23 +79,32 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		<option value="40">40</option>
 		</select> 
 		</li>
+
+	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/><span>r</span>otate 90</li>
+	
+	
 		<br/>
-	<form action="" method="post" enctype="multipart/form-data">
+	<li><form action="" method="post" enctype="multipart/form-data">
 	<div id="preview"> Import
 	<input type="file" id="import"><a class="imgclose" id="imgclose"></a></div>
-	</form>
-	<input id="exportLine" type="button" value="Export" enabled="false"/>
+	</form></li>
+	<li><input id="exportLine" type="button" value="Export" enabled="false"/></li>
 	<br/>
-	<input id="playback" type="button" value="PlayBack" enabled="false"/>
+	<li><input id="playback" type="button" value="PlayBack" enabled="false"/></li>
 	
-	<input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid
+	<li><input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid</li>
+	</ul>
+	</section>
+	<section>
+	<div id="tuteInstructions"></div
 	<p>"draw at" orientation keys:<br/>
 	shift to draw level<br/>
 	shift-g to draw along a fixed vertical<br/>
 	ctrl-g to draw at a fixed horizon <br/>
 	ctrl-shift to draw straight vertical line<br/>
 	alt-g to draw straight horizontal line<br/></p>
-	</ul>
+	
+	</section>
 	<label id="mousecoords" value="">
 	<!--
 	<input id="width" type="checkbox" value="lineWidth" enabled="false"/>Line Width
@@ -298,6 +307,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		//document.getElementById('instructions').onclick = advanceInstructions;
 		
 		document.getElementById('draw').onclick = toggleDrawMode;
+		document.getElementById('orbit').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById('freehand').onclick = snapTo;
 		document.getElementById('exportLine').onclick = exportToObj;
@@ -838,6 +848,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	function setDrawMode(onoroff){
 	 	DRAWMODE = onoroff;
 	 	$("#draw").prop("checked",DRAWMODE);
+	 	$("#orbit").prop("checked",!DRAWMODE);
 	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
 		console.log("draw mode is " + DRAWMODE);
 	
