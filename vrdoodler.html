@@ -13,7 +13,16 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	<script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
+  ga('create', 'UA-75274623-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
 
  <script id="vertexShader" type="x-shader/x-vertex">  
       
@@ -446,16 +455,19 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
 						dir = "assets/doodleverse/";
 						var images = [dir + "flowers.obj"];// + dir +"house.jpg",dir +"sun.jpg" ];
-						 loadImages(images);
+						 //loadImages(images);
 					}
 					else{
-				  		 loadImages(xhrImg.responseText);
+						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
+						object.name = "linedoodleverse";
+						importScene(object);					
+				  		
 				  	}
 				}else{
 					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
 						dir = "assets/doodleverse/";
 						var images = [dir + "flowers.obj"];				
-						 loadImages(images);
+						 //loadImages(images);
 					}
 				}
 			} 
