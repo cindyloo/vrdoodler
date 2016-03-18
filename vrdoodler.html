@@ -143,7 +143,7 @@ js/three.js"></script>
 	var manager;
 
 
-	var MAX_POINTS = 1000;
+	var MAX_POINTS = 2000;
 	var CURRENT_LONGEST_LINE_LENGTH = 0; //change this once we get our first line...
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
@@ -429,9 +429,10 @@ js/three.js"></script>
 	}
 	function convertBuffGeoToGeo(){
 		var exportGeo = drawnline.map(function(eachline){
-		mostRecentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
+		//mostRecentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
 			var geo = new THREE.Geometry();
 			var buffgeo = eachline.geometry;
+			geo.userData = eachline.position;
 			return geo.fromBufferGeometry(buffgeo);
 		
 		});
@@ -441,6 +442,7 @@ js/three.js"></script>
 		expScene = new THREE.Scene();
 		for (var i = 0;i<exportGeo.length;i++){
 			temp = new THREE.Mesh( exportGeo[i],  linematerial );
+			temp.position.copy(exportGeo[i].userData);
 			temp.name="exportedLine" + i;
 			expScene.add(temp);
 		}
@@ -1091,7 +1093,7 @@ js/three.js"></script>
 							
                    		    lineToCopyIndex = drawnline.findIndex(findUUID);
                    		    copiedLine = drawnline[lineToCopyIndex].clone();
-                   		    copiedLine.position.set( 0, 0, 0 );
+                   		    //copiedLine.position.set( 0, 0, 0 );
                    			
                    		}	
                    		
@@ -1101,19 +1103,21 @@ js/three.js"></script>
                    	
                    case 86: //ctrl-v  paste! 
                    	if (evt.ctrlKey || evt.metaKey){
-                   		if (currentIntersected && copiedLine){
+                   		if (currentIntersectedPoint && copiedLine){
                    		 	copiedLine = copiedLine.clone();
-                   			
-                   			drawnline.push(copiedLine);
-                   			copiedLine.position.set( 0, 0, 0 );
                    			var vNow = new THREE.Vector3();
                    			vNow.set(mouse.x,mouse.y,0.5 );
+                   			destpos = transformSrcToDestination(copiedLine.position, currentIntersectedPoint);
+                   			//recalc copied line - back to cam position, then reproject to current pos
+                   			drawnline.push(copiedLine);
                    			
                    			
-                   			copiedLine.position.copy(currentIntersectedPoint.clone().add(copiedLine.position));
+                   			
+                   			
+                   			copiedLine.position.copy(destpos);
                    			objContainer.add(copiedLine);
                    			
-                   			console.log("drawn lines " + drawnline.length + " currentindex " + CURRENTspline);
+                   			console.log("drawn lines " + drawnline.length);
                    			
                    		}	
                    		
@@ -1175,29 +1179,26 @@ js/three.js"></script>
      
      
      
-     /* with camera position and the object with which we want to align our next line, transform
+     /* with camera position and the object with which we want to align a line, transform
      where the projection thinks the mouse is to where we want it to be */
      
-	function transformMouseToDesiredPlaneOfInterest(mv, desiredPOI){
-			var whichCamera;
-	
+	function transformSrcToDestination(source, destination){  //destination as a grid, plane, etc
+			
 			var cameraclone = camera.clone();
-			var unprojectedMouse = mv.clone().unproject( cameraclone );
-			var destpos= cameraclone.position.clone(); 
+			var unprojectedSrc = source.clone().unproject( cameraclone );
+			var destpos= cameraclone.position.clone(); //going to add diff to this
 			var camPos = cameraclone.position.clone(); 
 			
-			var planeclone = plane.clone();
-			var camPlaneDiff = desiredPOI.clone().sub(camPos).normalize();  //if raycasting at plane, this should get correct distance
 			
-			var dir = unprojectedMouse.sub( camPos ).normalize();
+			//var camDestinationDiff = destination.clone().sub(camPos).normalize();  
 			
-			destpos.add(camPlaneDiff.multiplyScalar(desiredPOI.distanceTo(camPos)));	
+			var dir = destination.clone().sub( camPos ).normalize(); //dest to cam
+			
+			camPos.sub(dir.multiplyScalar(destination.distanceTo(camPos)));	 //cam to destination
 		
-			if (destpos == desiredPOI){
-				return unprojectedMouse;
-			}
+			
 		
-			return destpos;
+			return destination;
 						
 			/* fyi
 			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
@@ -1721,7 +1722,7 @@ js/three.js"></script>
 
 		if (mostRecentDrawnLine()) {//make sure initialized
 			//maybe here we just increment to replay...
-			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices-1 );				
+			mostRecentDrawnLine().geometry.setDrawRange( 0, mostRecentDrawnLine().geometry.attributes.position.count -1);				
 		}
 		
 		camera.updateMatrixWorld();
