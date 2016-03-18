@@ -5,10 +5,13 @@
  
 </head>
 	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300' rel='stylesheet' type='text/css'>
+	      <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
     <script src="
-https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
+js/three.js"></script>
 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
@@ -99,7 +102,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	</li>
 	<li><input id="exportLine" type="button" value="Export" enabled="false"/></li>
 	<br/>
-	<li><input id="playback" type="button" value="PlayBack" enabled="false"/></li>
+	<li><div><input id="playback" type="button" value="PlayBack" enabled="false"/><div id="playBackSpeedSlider"></div></div></li>
 	
 	<li><input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><label for="grid">Grid</label></li>
 	</ul>
@@ -186,6 +189,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 	var clock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
+	var PLAYBACKSPEED = .0005;
 	
 	var userSettings = {};
 	
@@ -319,7 +323,7 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		document.getElementById('orbit').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById('freehand').onclick = snapTo;
-		document.getElementById('exportLine').onclick = exportToObj;
+		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('width').onchange = setCurrentLineWidth;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
@@ -328,6 +332,16 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		document.getElementById("tabs").onclick = onTabClick;
 		
 		document.getElementById("playback").onclick = togglePlayBackMode;
+
+
+
+		$( "#playBackSpeedSlider" ).slider({
+		  min:10,
+		  max:20,
+		  change: function( event, ui ) {
+			PLAYBACKSPEED = (ui.value)/1000;
+			}
+		});
 
 
 		/*document.getElementById('show').onclick = printVerts;
@@ -407,6 +421,12 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		};
 	}());
 
+
+	function prepAndExport(){
+		convertBuffGeoToGeo();
+		exportToObj();//expscene
+	
+	}
 	function convertBuffGeoToGeo(){
 		var exportGeo = drawnline.map(function(eachline){
 		mostRecentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
@@ -1659,19 +1679,21 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 					drawnline.splice(i,1);
 					continue;
 				}
-				if (drawnline[i].geometry.attributes.position.count/3 > CURRENT_LONGEST_LINE_LENGTH) 
-					CURRENT_LONGEST_LINE_LENGTH = drawnline[i].geometry.attributes.position.count/3;
+				if ((drawnline[i].geometry.attributes.position.count/3) > CURRENT_LONGEST_LINE_LENGTH) 
+					CURRENT_LONGEST_LINE_LENGTH = (drawnline[i].geometry.attributes.position.count/3);
 				var count = playBackCount;
 				//determine what should be drawn
 				//count from 0 to length vertices of line..
 				//right now we are just going to animate each line at the same time....
-				if (playBackCount > drawnline[i].geometry.attributes.position.count)
+				
+				//truncate the count b/c playBackCount is the long pole
+				if (playBackCount > drawnline[i].geometry.attributes.position.count)  //what?
 					count =	drawnline[i].geometry.attributes.position.count;
-				drawnline[i].geometry.setDrawRange( 0, count-1);
+				drawnline[i].geometry.setDrawRange( 0, (count-1) * 3);
 				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
 			}
 
-			if (clock.getDelta() > .0005){
+			if (clock.getDelta() > PLAYBACKSPEED){
 				playBackCount++;
 				start = Date.now();
 				console.log("playbackcount "+ playBackCount);
