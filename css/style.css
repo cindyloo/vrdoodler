@@ -76,35 +76,46 @@ html,
 #infoPanel{ visibility:hidden;}
 li span {text-decoration: underline; }
 
-input[type='button'], div#preview input, div#preview{
+input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio']{
+
 	padding:5px;
-	margin:5px;
+	margin:10px;
+	
+
+	border:none;
+	}
+input[type='button'], div#preview input, div#preview	{
 	width:100px;
 	height:35px;
-	border:none;
 	background-color:rgba(240,240,240,1);
 	font-family: Oswald;
-		font-size: 18px;
-		font-style: normal;
-		font-variant: normal;
-		font-weight: 100;
-		line-height: 20px;
+	font-size: 18px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 100;
+	line-height: 20px;
 	cursor:pointer;
 	text-align:center;
 	box-shadow: 2px 2px #aaa;
 }
 div#preview{
-vertical-align:middle;
-width:90px;
+	vertical-align:middle;
+	width:90px;
 }
 div#preview input{
-
-text-align:center;
-
-opacity:0;
+	opacity: 0;
+	text-align:center;
+		width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
 }
 
-
+form {
+	border:1px groove rgba(255,255,255,1);
+}
 
 a.imgclose{
     float:right;

@@ -80,19 +80,19 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 		</select> 
 		</li>
 
-	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/><span>r</span>otate 90</li>
-	
-	
-		<br/>
-	<li><form action="" method="post" enctype="multipart/form-data">
-	<div id="preview"> Import
-	<input type="file" id="import"><a class="imgclose" id="imgclose"></a></div>
-	</form></li>
+	<li><input id="rotateX" type="button" value="rotate90" enabled="false"/></li>
+
+	<li>
+	<div id="preview">
+	<input type="file" name="file" id="import" class="inputfile" />
+	<label for="import">Import</label>
+	<a class="imgclose" id="imgclose"></a></div>
+	</li>
 	<li><input id="exportLine" type="button" value="Export" enabled="false"/></li>
 	<br/>
 	<li><input id="playback" type="button" value="PlayBack" enabled="false"/></li>
 	
-	<li><input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><span>g</span>rid</li>
+	<li><input id="grid" type="checkbox" value="toggleGrid" enabled="false"/><label for="grid">Grid</label></li>
 	</ul>
 	</section>
 	<section>
@@ -435,6 +435,42 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 				 xmlhttp.send(result);				
 	}
 	
+	
+	/*if URL params say load the doodleverse */
+	function loadInitialImages(dir){
+		    var xhrImg = new XMLHttpRequest();
+ 
+       		xhrImg.onreadystatechange=function() {
+				if (xhrImg.readyState==4 && xhrImg.status==200) {	
+				
+					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
+						dir = "assets/doodleverse/";
+						var images = [dir + "flowers.obj"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						 loadImages(images);
+					}
+					else{
+				  		 loadImages(xhrImg.responseText);
+				  	}
+				}else{
+					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
+						dir = "assets/doodleverse/";
+						var images = [dir + "flowers.obj"];				
+						 loadImages(images);
+					}
+				}
+			} 
+			xhrImg.open("GET", "vrdoodler.html?loaddoodleverse=1");
+	 
+			xhrImg.send();  
+
+    	}
+	function loadImages(imgArray){
+	
+			loadedImages = imgArray;
+			//create filelist or something to hand to handleImport
+			
+		}
+	
 	function handleImport() {
   			var fileList = this.files; /* now you can work with the file list */
   			
@@ -490,7 +526,8 @@ https://cdnjs.cloudflare.com/ajax/libs/three.js/r75/three.js"></script>
 					image.height = 1000;
 					image.title = f.name;
 					image.src = this.result;
-					preview.appendChild( image );
+					preview.appendChild( image )//.style("height",100);
+					$("#preview").css("width",100).css("height",100);
 					var texture = new THREE.Texture( image );
 					texture.name=f.name;
 					texture.needsUpdate = true;
