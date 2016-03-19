@@ -1104,18 +1104,42 @@ js/three.js"></script>
                    case 86: //ctrl-v  paste! 
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (currentIntersectedPoint && copiedLine){
-                   		 	copiedLine = copiedLine.clone();
+                   		
+                   		 	var copiedLine2 = copiedLine.clone();
+                   		 	//copiedLine2.position.copy(copiedLine.position);
+                   		 	copiedLine2.geometry = copiedLine.geometry.clone();
                    			var vNow = new THREE.Vector3();
                    			vNow.set(mouse.x,mouse.y,0.5 );
-                   			destpos = transformSrcToDestination(copiedLine.position, currentIntersectedPoint);
+                   			
                    			//recalc copied line - back to cam position, then reproject to current pos
-                   			drawnline.push(copiedLine);
+                   			//copiedLine2.position.copy(currentIntersectedPoint);
+                   			
+                   			copiedLine2.position.copy(transformSrcToDestination(copiedLine2.position, currentIntersectedPoint));
+                  			//copiedLine2.position.add(currentIntersectedPoint);
+                   			copiedLine2.updateMatrix();
+                   			var attribute = copiedLine2.geometry.attributes.position; // we want the position data
+							var index = 0; // index is zero-based, so this the the 2nd vertex
+							
+							
+							
+							
+							for (var e = 0;e<attribute.count;e++){
+							    var vec = new THREE.Vector3();
+								vec.fromAttribute( attribute, e ); // extract the x,y,z coordinates						
+								vec.applyMatrix4( copiedLine2.matrix ); // apply the mesh's matrix transform
+								
+								attribute.setXYZ (e, vec.x, vec.y, vec.z );
+							}
+                   			
+                   			
+                   			copiedLine2.geometry.attributes.position.needsUpdate = true;
+                   			drawnline.push(copiedLine2);
+                   			//at west langely's suggestion
+							
                    			
                    			
                    			
-                   			
-                   			copiedLine.position.copy(destpos);
-                   			objContainer.add(copiedLine);
+                   			objContainer.add(copiedLine2);
                    			
                    			console.log("drawn lines " + drawnline.length);
                    			
@@ -1185,20 +1209,16 @@ js/three.js"></script>
 	function transformSrcToDestination(source, destination){  //destination as a grid, plane, etc
 			
 			var cameraclone = camera.clone();
-			var unprojectedSrc = source.clone().unproject( cameraclone );
-			var destpos= cameraclone.position.clone(); //going to add diff to this
+			
+			var destpos= cameraclone.position.clone(); 
 			var camPos = cameraclone.position.clone(); 
 			
 			
-			//var camDestinationDiff = destination.clone().sub(camPos).normalize();  
+			var srcDestDiff = destination.clone().sub(source).normalize();
+			source.sub(srcDestDiff.multiplyScalar(destination.distanceTo(source)));
 			
-			var dir = destination.clone().sub( camPos ).normalize(); //dest to cam
 			
-			camPos.sub(dir.multiplyScalar(destination.distanceTo(camPos)));	 //cam to destination
-		
-			
-		
-			return destination;
+			return source;
 						
 			/* fyi
 			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
@@ -1330,11 +1350,11 @@ js/three.js"></script>
 		}else{ //loaded from OBJ file
 			
 			geometry.addAttribute( 'position', positions )
-			geometry.setDrawRange( 0, geometry.attributes.position.length-1 );
+			geometry.setDrawRange( 0, geometry.attributes.position.count-1 );
 		}
 	
 		
-		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
+		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    
 		
@@ -1668,7 +1688,7 @@ js/three.js"></script>
 		}else{
 			clock.stop();
 			for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.length-1);
+				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
 			}
 		}
 		return PLAYBACK;
