@@ -392,11 +392,11 @@ js/three.js"></script>
 		$("#advTab").attr("class","");
 	
 		switch (section){
-			case "BEGINNER":
+			case "beginner":
 				$("#begTab").attr("class","selected");
 				setTutorialLevel(0);
 				break;
-			case "ADVANCED":
+			case "advanced":
 				$("#advTab").attr("class","selected");
 				setTutorialLevel(2);
 				break;
@@ -812,10 +812,10 @@ js/three.js"></script>
 				
 			}else if (level ==2){ //advanced
 			
-			 		$.extend(userSettings, advUserSettings );
+			 	$.extend(userSettings, advUserSettings );
 				setDrawMode(userSettings.drawMode);//allow user to set camera orbit
 				setSnapMode(userSettings.snapMode);
-				
+				changeControls(false);
 				
 				//show how to unsnap plane //unforce plane
 				
@@ -1106,33 +1106,27 @@ js/three.js"></script>
                    		if (currentIntersectedPoint && copiedLine){
                    		
                    		 	var copiedLine2 = copiedLine.clone();
-                   		 	//copiedLine2.position.copy(copiedLine.position);
+                   		
                    		 	copiedLine2.geometry = copiedLine.geometry.clone();
                    			var vNow = new THREE.Vector3();
                    			vNow.set(mouse.x,mouse.y,0.5 );
-                   			
-                   			//recalc copied line - back to cam position, then reproject to current pos
-                   			//copiedLine2.position.copy(currentIntersectedPoint);
-                   			
-                   			copiedLine2.position.copy(transformSrcToDestination(copiedLine2.position, currentIntersectedPoint));
-                  			//copiedLine2.position.add(currentIntersectedPoint);
-                   			copiedLine2.updateMatrix();
+
+                   			copiedLine.position.set( 0, 0, 0 );
+                   			//copiedLine2.updateMatrix();
                    			var attribute = copiedLine2.geometry.attributes.position; // we want the position data
 							var index = 0; // index is zero-based, so this the the 2nd vertex
-							
-							
-							
-							
+	copiedLine2.position.add(currentIntersectedPoint); //adjust positionnow after vertices are updated
+	copiedLine2.updateMatrix()
 							for (var e = 0;e<attribute.count;e++){
 							    var vec = new THREE.Vector3();
 								vec.fromAttribute( attribute, e ); // extract the x,y,z coordinates						
-								vec.applyMatrix4( copiedLine2.matrix ); // apply the mesh's matrix transform
-								
+								vec.applyMatrix4( copiedLine2.matrix ); // apply the mesh's matrix transform								
 								attribute.setXYZ (e, vec.x, vec.y, vec.z );
 							}
                    			
                    			
                    			copiedLine2.geometry.attributes.position.needsUpdate = true;
+                   			
                    			drawnline.push(copiedLine2);
                    			//at west langely's suggestion
 							
@@ -1316,7 +1310,7 @@ js/three.js"></script>
     		var positions = mostRecentDrawnLine().geometry.attributes.position.array;
     		
     		
-    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3);
+    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3 );
     			
     			
     		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
@@ -1328,46 +1322,7 @@ js/three.js"></script>
     		}        
     }
    
-	
-
-	/* setup buffer geometry to store drawn vertices*/
-	function initDrawnLine(geometry, positions,mv){
-		
-
-		if (!geometry){  //freehand or snap, doesn't matter, init the line
-			geometry = new THREE.BufferGeometry();
-			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-			countVertices = 0;
-			if (mv){
-				positions[0] = mv.x;
-				positions[1] = mv.y;
-				positions[2] = mv.z;
-				countVertices = 1;
-			}
-			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
-			geometry.setDrawRange( 0, 0 );	
-		
-		}else{ //loaded from OBJ file
-			
-			geometry.addAttribute( 'position', positions )
-			geometry.setDrawRange( 0, geometry.attributes.position.count-1 );
-		}
-	
-		
-		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
-	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
-	    
-		
-		drawnline.push(new THREE.Line( geometry,  linematerial )); //to store line	
-
-		mostRecentDrawnLine().name = geometry?"lineimported":"line" ;//+ CURRENTspline;
-		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
-	
-	
-	console.log("init new Line");
-	}
-	
-/* update the line with the new vertices coming from onvrhmousemove*/
+	/* update the line with the new vertices coming from onvrhmousemove*/
  function updateLineBuffer(newvec) {
 		if (mostRecentDrawnLine()){
 		
@@ -1385,9 +1340,51 @@ js/three.js"></script>
 			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
 			
 			countVertices++;
+			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices);
+			
 		}
 	}
 	
+	
+
+
+	/* setup buffer geometry to store drawn vertices*/
+	function initDrawnLine(geometry, positions,mv){
+		
+
+		if (!geometry){  //freehand or snap, doesn't matter, init the line
+			geometry = new THREE.BufferGeometry();
+			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+			countVertices = 0;
+			if (mv){
+				positions[0] = mv.x;
+				positions[1] = mv.y;
+				positions[2] = mv.z;
+				countVertices = 1;
+			}
+			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
+			geometry.setDrawRange( 0, 1 );	
+		
+		}else{ //loaded from OBJ file
+			
+			geometry.addAttribute( 'position', positions )
+			geometry.setDrawRange( 0, geometry.attributes.position.count-1 );
+		}
+	
+		
+		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
+	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+	    
+		
+		drawnline.push(new THREE.Line( geometry,  linematerial )); //to store line	
+
+		mostRecentDrawnLine().name = geometry?"lineimported":"line" ;//+ CURRENTspline;
+		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
+		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
+	
+	
+	console.log("init new Line");
+	}
 	
 
 	
@@ -1713,7 +1710,7 @@ js/three.js"></script>
 				//truncate the count b/c playBackCount is the long pole
 				if (playBackCount > drawnline[i].geometry.attributes.position.count)  //what?
 					count =	drawnline[i].geometry.attributes.position.count;
-				drawnline[i].geometry.setDrawRange( 0, (count-1) * 3);
+				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
 				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
 			}
 
@@ -1740,10 +1737,6 @@ js/three.js"></script>
 
 		requestAnimationFrame(animate);
 
-		if (mostRecentDrawnLine()) {//make sure initialized
-			//maybe here we just increment to replay...
-			mostRecentDrawnLine().geometry.setDrawRange( 0, mostRecentDrawnLine().geometry.attributes.position.count -1);				
-		}
 		
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
