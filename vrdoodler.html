@@ -102,7 +102,7 @@ js/three.js"></script>
 	<ul>
 	
 	<li><form class="draw_mode"><input id="draw" class="tt" type="radio" name="drawmode" value="draw" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span><input id="orbit" type="radio"  name="drawmode" value="orbit"/><span class="input_label">orbit</span> </form></li>
-	<li><form><input id="snapTo" type="checkbox" class="tt" name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
+	<li><form><input id="snapTo" type="checkbox" class="tt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
 
 <li><p class="input_label">Line Width</p>
 
@@ -823,6 +823,7 @@ js/three.js"></script>
 				//snapPlane(1); //this will fix the camera position and keep the plane where it is
 				setDrawMode(userSettings.drawMode);
 				setSnapMode(userSettings.snapMode); //need this to properly pivot for rotation.
+				$("#snapTo").prop("disabled", userSettings.snapMode);
 				changeControls(false);
 				
 				setupGrid();				
@@ -844,6 +845,7 @@ js/three.js"></script>
 			 	$.extend(userSettings, advUserSettings );
 				setDrawMode(userSettings.drawMode);//allow user to set camera orbit
 				setSnapMode(userSettings.snapMode);
+				$("#snapTo").prop("disabled", userSettings.snapMode);
 				changeControls(false);
 				
 				//show how to unsnap plane //unforce plane
