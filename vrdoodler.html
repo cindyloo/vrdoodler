@@ -150,6 +150,8 @@ js/three.js"></script>
 	var CURRENTspline = -1; //incremented at initNewLine
 	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid ;
 	var mouse = new THREE.Vector2();
+	var mouseXOFFSET = 1.01;
+	var mouseYOFFSET = .975;
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var currentMouseRay;
 	var axisHelper;
@@ -285,7 +287,7 @@ js/three.js"></script>
   		raycaster = new THREE.Raycaster();
 		raycaster.linePrecision = .055;
 		
-		var geometry = new THREE.SphereGeometry( .05 );
+		var geometry = new THREE.SphereGeometry( .02,2,1 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
 		rayPointIndSphere = new THREE.Mesh( geometry, material );
 		rayPointIndSphere.visible = false;
@@ -662,8 +664,8 @@ js/three.js"></script>
 
 		evt.preventDefault();
 		var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
-		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
+		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
 	
 		
 	}
@@ -1230,8 +1232,8 @@ js/three.js"></script>
     	//var whatZ = .5;
         if(renderer) {
           
-           	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
-  			mouse.y =  - ( (evt.clientY- container.offsetTop) / window.innerHeight ) * 2 + 1;
+           	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+  			mouse.y =  - ( (evt.clientY- container.offsetTop) / window.innerHeight ) * 2 + mouseYOFFSET;
                 
             var vNow = new THREE.Vector3();
             vNow.set(
@@ -1420,8 +1422,8 @@ js/three.js"></script>
    		if(evt.which == 3) return;      	
     	if (evt.target.nodeName == 'CANVAS'){
           	
-          	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - 1;
-  			mouse.y =  - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + 1;
+          	mouse.x = ( evt.clientX / window.innerWidth ) * 2 -mouseXOFFSET;
+  			mouse.y =  - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
        		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
 			if (DRAWMODE > ORBITMODE){
 			
