@@ -53,6 +53,15 @@ html,
 	input[type='button']{
 		box-shadow: 2px 2px #aaa;
 	}
+	input#rotateX
+	{width:45px;}
+	
+	li i.glyphicon{
+		margin-left:-40px;
+		top:-3px;
+		pointer-events: none;
+    }
+    
 	div#preview{
 		vertical-align:middle;
 		width:90px;
@@ -60,7 +69,7 @@ html,
 	div#preview input{
 		opacity: 0;
 		text-align:center;
-			width: 0.1px;
+		width: 0.1px;
 		height: 0.1px;
 		opacity: 0;
 		overflow: hidden;
@@ -140,7 +149,7 @@ Left-hand control bar.
 	}
 	
 	.hero-unit #tabs a {
-		font-size: 1.1em ;
+		font-size: .9em ;
 		text-transform: uppercase;
 		color: white;
 		/*background-color: #e2a336;*/
@@ -153,7 +162,7 @@ Left-hand control bar.
 		border-top: 1px groove white;
 		border-bottom: 1px groove white;
 		text-decoration: none;
-		padding: 10px 35px;
+		padding: 10px 25px;
 	}
 	.hero-unit #tabs a.selected {
 		color: #fff ;
@@ -170,7 +179,9 @@ Left-hand control bar.
     /*margin-top:40px;*/
 
 }
-
+.hero-unit section ul li{
+   margin: 15px 5px;
+}
 
 .hero-unit section ul li form {
     /*border:1px groove rgba(255,255,255,1);*/
@@ -185,10 +196,10 @@ Left-hand control bar.
 }
 
 .hero-unit section ul li .input_label {
-    font-size: 1.2em;
+    font-size: 1.0em;
     text-transform: uppercase;
     font-weight: 300;
-    padding:10px;
+        padding: 5px 5px 5px 0;
 }
 
 .hero-unit section ul li #lineWidthSlider {
@@ -197,6 +208,11 @@ FIXME: adjust size here? how?
 */
 }
 
+#lineWidthSlider{
+	width: 100px;
+    float: right;
+    margin-top: -36px;
+}
 
 #playBackSpeedSlider {
 	width:100px;
@@ -208,6 +224,6 @@ FIXME: adjust size here? how?
 input.tt + .tooltip {
   
     padding: 15px;
-    font-size: 10px;
+    font-size: 8px;
 }
 

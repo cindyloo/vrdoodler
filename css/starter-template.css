@@ -29,8 +29,8 @@ body {
    
  a.navbar-brand{
    	display:block;
-   	background: url("../assets/images/vrdoodler_icon.jpg") no-repeat top left;
-   	background-size:240px 52px;
+   	background: url("../assets/images/vrdoodler_icon.jpg") no-repeat center left;
+   	background-size:210px 40px;
     height:60px;
     width:240px;
     float:left;
@@ -45,10 +45,10 @@ body {
 }
 
 
-   div.container, h2, .h2, h4, .h4{
+   div.container, h2, .h2, h4, .h4, h3, .h3{
 
 		font-family: Oswald;
-		font-size: 26px;
+
 		font-style: normal;
 		font-variant: normal;
 		font-weight: 100;
@@ -57,20 +57,22 @@ body {
    }
    
    h2{	margin-top:100px;}
-  h4, .h4{ font-size:18px;}  
+   
+ 
    
 div#donations{
 	float: right;
     padding: 20px;
+    margin-right:100px;
     border: 1px groove #333;
 }
 
  a#startSketch{
        display: block;
     padding-left: 80px;
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 40px;
+    padding-bottom: 40px;
     padding-right: 29px;
-    background: url("../assets/images/paint.png") no-repeat bottom left;	
+    background: url("../assets/images/paint.png") no-repeat center left;	
    	
    	}
