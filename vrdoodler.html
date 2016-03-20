@@ -34,12 +34,42 @@
 		} else { 
 		  alert("VRDoodler requires Chrome or FF");
 		 } 
+		 
+		 
+		 
+		 function detectmob() { 
+			 if( navigator.userAgent.match(/Android/i)
+			 || navigator.userAgent.match(/webOS/i)
+			 || navigator.userAgent.match(/iPhone/i)
+			 || navigator.userAgent.match(/iPad/i)
+			 || navigator.userAgent.match(/iPod/i)
+			 || navigator.userAgent.match(/BlackBerry/i)
+			 || navigator.userAgent.match(/Windows Phone/i)
+			 ){
+				return true;
+			  }
+			 else {
+				return false;
+			  }
+			}
+		 
 	</script>
     <script src="js/three.js"></script><!--b/c I have a hack/fix for exporting -->
 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="http://threejs.org/examples/js/controls/VRControls.js"></script>	
+	<script src="js/controls/DeviceOrientationControls.js"></script>
+  	<script src="js/effects/StereoEffect.js"></script>
+  
+
+<!--
+  Helps enter and exit VR mode, provides best practices while in VR.
+
+   <script src="js/src/webvr-polyfill.js"></script>
+  <script src="js/src/device-info-test.js"></script>
+<script src="js/src/webvr-manager.js"></script>
+  -->
 	<script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
-
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -98,11 +128,15 @@
     
   <body>  
   	<p id="browserError"></p>   
-	<div class="hero-unit">
+	<div class="top-unit">
 	<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
+	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="Stereo" title="Toggle stereoscopic view"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
 	<!--<h2></h2>-->
-	
+	</div>
+	<div class="hero-unit">
 	<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
+	
+	<i id="help" class="glyphicon glyphicon-info-sign"></i>
 	<section>
 	<ul>
 	
@@ -114,6 +148,7 @@
 	
 		<li><input id="rotateX" class="tt" type="button" data-toggle="tooltip" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input></li>
 	
+		
 		<li>
 			<div>
 				<div id="preview">
@@ -158,6 +193,8 @@
  	var camera, scene, expScene, renderer,orbitcamera,light;
     var geometry, material, mesh;
     var controls, minicamera;
+    var effects, vrmanager;
+    var vrControls;
  	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
@@ -191,6 +228,7 @@
 	var CURRENTLINEWIDTH = 2;
 	var PLANEROTATIONCOLOR = 0xff000;
 	var PLANELOCK = 0;  //lock currentIntersection
+	var STEREOSCOPIC = 0;
 	
 	var SNAPPLANETOGRID = 0;
 	
@@ -253,7 +291,19 @@
 							"Hover over the previous drawn line to connect your new lines",
 							"Familiarize yourself with the Snapping keys on the menu"];
 	var tuteBegCount = 0;
-		var tuteAdvCount = 0;
+	var tuteAdvCount = 0;
+	
+		WebVRConfig = {
+	  // Forces cardboard distortion in VR mode.
+	  FORCE_DISTORTION: true, // Default: false.
+	  // Prevents cardboard distortion in VR mode
+	PREVENT_DISTORTION: true, // Default: false.
+	  // Override the cardboard distortion background color.
+	DISTORTION_BGCOLOR: {x: 1, y: 0, z: 0, w: 1}, // Default: (0,0,0,1).
+	  // Show eye centers (for debugging).
+	  SHOW_EYE_CENTERS: true, // Default: false.
+	};
+	
 	
 	function init(){	
 		container = document.createElement( 'div' );
@@ -305,8 +355,14 @@
   		scene.add(sketchContainer);
 		controls = new THREE.OrbitControls( camera, renderer.domElement );
 		//controls.addEventListener( 'change', render ); not needed b/c I have an animate loop
+		//vrControls = new THREE.VRControls(camera);
 		
-	
+	 	 effect = new THREE.StereoEffect(renderer);
+	 	/* var params = {
+		  hideButton: false, // Default: false.
+		  isUndistorted: false // Default: false.
+		};
+		vrmanager = new WebVRManager(renderer, effect, params);*/
   		
   		raycaster = new THREE.Raycaster();
 		raycaster.linePrecision = .055;
@@ -352,7 +408,7 @@
 		
 		document.getElementById("playback").onclick = togglePlayBackMode;
 
-
+		document.getElementById("stereoView").onclick = toggleStereoscopic;
 
 		/*
 		document.getElementById('colorToggle').onclick = colorToggle;*/
@@ -412,14 +468,16 @@
 				$(this).css("visibility","hidden");
 			});
 				
+			$("i#help").click(function(e,preview, image){
+				
+			});
 			
+			if (detectmob()) toggleStereoscopic();
  
 	  });
 	
 	  
-	   //scene.add(camera);
- 
-	//loadAnObject();
+
 	}
 	
 	function onTabClick( event ) {
@@ -687,6 +745,8 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            effect.setSize(window.innerWidth, window.innerHeight)
 	}
 
 
@@ -703,7 +763,7 @@
 	
 	
 
-	/*make it easier for user to draw on standard rotation*/
+	/*not used ...make it easier for user to draw on standard rotation*/
 	function rotateX(){
  		
 		//camera.lookAt(lastIntersectedPoint);
@@ -871,6 +931,19 @@
 		return CURRENTLINEWIDTH;
 	}
 	
+	
+	
+	function toggleStereoscopic(){
+		STEREOSCOPIC = STEREOSCOPIC?0:1;
+	 	
+	 	if (STEREOSCOPIC)
+	 		$(".hero-unit").css("visibility","hidden");
+	 	else
+	 		$(".hero-unit").css("visibility","visible");
+	
+		effect.setSize(window.innerWidth ,window.innerHeight);
+	
+	}
 	
 	/*will eventually offer black on white or white on black (default) */
 	function colorToggle(){
@@ -1805,7 +1878,19 @@
 	function render() {
 		
 
-		minicamera.position.set(5,5,5);
+		
+	
+	//orbitControls.update();
+ // vrControls.update();
+// vrmanager.render(scene, camera);
+  //vrEffect.render(scene, camera);
+		if (STEREOSCOPIC){
+		//effect.setSize(window.height, window.width);
+			effect.render(scene, camera);
+  		}else{
+  		
+  		
+  		minicamera.position.set(5,5,5);
 		minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 			
 		renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
@@ -1820,10 +1905,16 @@
   		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
 		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
 		camera.updateProjectionMatrix();
-	
-  		renderer.render( scene, camera );
+  		
+  		
+  		
+  		
+  		
+  		
+  			renderer.render( scene, camera );
+  		}
   			//renderer.clearDepth();
-		}
+	}
 		
 	init();
 	//cameraHelp = new THREE.CameraHelper(camera);

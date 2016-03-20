@@ -113,7 +113,7 @@ Left-hand control bar.
 
 */
 
-	.hero-unit {
+	.top-unit, .hero-unit {
 		float:left;
 		position:absolute;
 		width:250px;
@@ -122,16 +122,22 @@ Left-hand control bar.
 		background-color:white;
 		color:black;
 		background-color:rgba(255,255,255,.8);
-		visibility:hidden;
+		
 		font-family: Oswald;
 		/*padding:10px;*/
 	}
-	.hero-unit h1{
+.top-unit {background-color:white;}
+	.hero-unit {
+		
+		top:130px;
+		
+	}
+	.hero-unit h1, .top-unit h1{
 		padding: 10px;
 		background-color: white;
 		margin-top: 0;
 	}
-	.hero-unit img.logo {
+	.hero-unit img.logo, .top-unit img.logo {
 		/*margin-left: auto;*/
 		/*margin-right: auto;*/
 		/* FIXME: err, I couldn't center this! */
@@ -142,13 +148,13 @@ Left-hand control bar.
 	
 	}
 	
-	.hero-unit #tabs{
+	.hero-unit #tabs, .top-unit #tabs{
 		margin-top:20px;
 		/*width: 100% ;*/
 	
 	}
 	
-	.hero-unit #tabs a {
+	.hero-unit #tabs a, .top-unit #tabs a {
 		font-size: .9em ;
 		text-transform: uppercase;
 		color: white;
@@ -164,7 +170,7 @@ Left-hand control bar.
 		text-decoration: none;
 		padding: 10px 25px;
 	}
-	.hero-unit #tabs a.selected {
+	.hero-unit #tabs a.selected, .top-unit #tabs a.selected {
 		color: #fff ;
 		background-color: #e2a336;
 		text-shadow: -1px -1px 1px #666 ;
