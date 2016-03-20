@@ -1,0 +1,73 @@
+
+html,
+	body {
+		width: 100%;
+		height: 100%;
+	}
+	body {
+		background-color: #ffffff;
+	
+
+		font-family: Oswald;
+		font-size: 18px;
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 20px;
+        }
+    
+body {
+  padding-top: 50px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+.nav {
+    padding-left: 200px;
+    }
+   
+   a.navbar-brand{
+   	display:block;
+   	background: url("../assets/images/vrdoodler_icon.jpg") no-repeat bottom left;
+   	background-size:200px 50px;
+    height:60px;
+    width:300px;
+    float:left;
+    position:absolute;
+    z-index:20;
+    padding-left:90px;
+   	
+   }
+   .h1,.h2,.h3,p{
+
+   }
+   div.container, h2, .h2, h4, .h4{
+
+		font-family: Oswald;
+		font-size: 26px;
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 30px;
+   
+   }
+   
+   h2{	margin-top:100px;}
+  h4, .h4{ font-size:18px;}  
+   
+div#donations{
+	float: right;
+    padding: 20px;
+    border: 1px groove #333;
+}
+
+ a#startSketch{
+       display: block;
+    padding-left: 80px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-right: 29px;
+    background: url("../assets/images/paint.png") no-repeat bottom left;	
+   	
+   	}

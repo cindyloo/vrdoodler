@@ -731,8 +731,8 @@ js/three.js"></script>
 	}
 
 	
-	function horizontalRotation(angle){
-
+	function horizontalRotation(){
+		var angle = null; //for later when user could specify...
 		setPivotPoint(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 		cameraInitRotPos();
 			

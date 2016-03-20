@@ -15,25 +15,30 @@ html,
 		line-height: 20px;
         }
     
-    
+
+
     #canvas {  
     position: static; /* fixed or static */
     top: 0;
     left: 0;
 	}
    
-   /*h1{*/
-   	/*display:block;*/
-   	/*background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;*/
-   	/*background-size:200px 50px;*/
-    /*height:60px;*/
-    /*width:150px;*/
-    /*float:left;*/
-    /*position:absolute;*/
-    /*z-index:20;*/
-    /*padding-left:90px;*/
-   		/**/
-   /*}*/
+   #doodlehome h1{
+   	display:block;
+   	background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;
+   	background-size:200px 50px;
+    height:60px;
+    width:300px;
+    float:left;
+    position:absolute;
+    z-index:20;
+    padding-left:90px;
+   	
+   }
+   
+   div.container{
+   
+   }
 
 #infoPanel{ visibility:hidden;}
 
