@@ -27,21 +27,24 @@ body {
     padding-left: 200px;
     }
    
-   a.navbar-brand{
+ a.navbar-brand{
    	display:block;
-   	background: url("../assets/images/vrdoodler_icon.jpg") no-repeat bottom left;
-   	background-size:200px 50px;
+   	background: url("../assets/images/vrdoodler_icon.jpg") no-repeat top left;
+   	background-size:240px 52px;
     height:60px;
-    width:300px;
+    width:240px;
     float:left;
     position:absolute;
     z-index:20;
     padding-left:90px;
+    margin-left: -65px;
    	
    }
-   .h1,.h2,.h3,p{
+.navbar>.container .navbar-brand{
+	margin-left: -65px;
+}
 
-   }
+
    div.container, h2, .h2, h4, .h4{
 
 		font-family: Oswald;

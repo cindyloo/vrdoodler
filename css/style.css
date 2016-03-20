@@ -17,29 +17,14 @@ html,
     
 
 
-		#canvas {  
+	#canvas {  
 		position: static; /* fixed or static */
 		top: 0;
 		left: 0;
 		}
-	   
-	   #doodlehome h1{
-		display:block;
-		background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;
-		background-size:200px 50px;
-		height:60px;
-		width:300px;
-		float:left;
-		position:absolute;
-		z-index:20;
-		padding-left:90px;
-		
-	   }
-	   
-	   div.container{
-	   
-	   }
 
+	}
+	  
 	#infoPanel{ visibility:hidden;}
 	
 	input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio'] {
@@ -49,9 +34,6 @@ html,
 		border:none;
 		}
 	input[type='button'], div#preview input, div#preview, div label	{
-		width:100px;
-		height:35px;
-		background-color:rgba(240,240,240,1);
 		font-family: Oswald;
 		font-size: 18px;
 		font-style: normal;
@@ -60,6 +42,13 @@ html,
 		line-height: 20px;
 		cursor:pointer;
 		text-align:center;
+		width:80px;
+		height:35px;
+	}
+	input[type='button'], div#preview input, div#preview{
+		
+		background-color:rgba(240,240,240,1);
+
 	}
 	input[type='button']{
 		box-shadow: 2px 2px #aaa;
@@ -128,13 +117,19 @@ Left-hand control bar.
 		font-family: Oswald;
 		/*padding:10px;*/
 	}
-	
+	.hero-unit h1{
+		padding: 10px;
+		background-color: white;
+		margin-top: 0;
+	}
 	.hero-unit img.logo {
 		/*margin-left: auto;*/
 		/*margin-right: auto;*/
 		/* FIXME: err, I couldn't center this! */
 		margin-left: 20px ;
-		margin-top: 20px ;
+		/*margin-top: 20px ;*/
+		width:200px;
+		height:51px;
 	
 	}
 	

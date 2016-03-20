@@ -8,14 +8,35 @@
     <meta name="description" content="VRDoodler">
     <meta name="author" content="Cindy Bishop">
     <link rel="icon" href="../../favicon.ico">
-
-    <title>Starter Template for Bootstrap</title>
+	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+    <title>VRDoodler!!!</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+	<script>
+	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Firefox 1.0+
+	isFirefox = typeof InstallTrigger !== 'undefined';
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least IE6
+	isIE = /*@cc_on!@*/false || !!document.documentMode;
+	// Edge 20+
+	isEdge = !isIE && !!window.StyleMedia;
+	// Chrome 1+
+	isChrome = !!window.chrome && !!window.chrome.webstore;
+	// Blink engine detection
+	isBlink = (isChrome || isOpera) && !!window.CSS;
+	
+	if(isChrome || isFirefox){
+	   // is Google Chrome on IOS
+	} else { 
+	  alert("VRDoodler requires Chrome or FF");
+	 } 
+	  
+	</script>
 
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <link href="assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="css/starter-template.css" rel="stylesheet">
@@ -27,6 +48,7 @@
   <body>
 
     <nav class="navbar navbar-inverse navbar-fixed-top">
+   
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -46,22 +68,58 @@
         </div><!--/.nav-collapse -->
       </div>
     </nav>
-      <div class="container">
-	<h1></h1>
-	<h4>Sketch your imagination!  Please refer to the doodle poll (coming soon) after you play with VRDoodler and help us make VRDoodler even better!  <a href="vrdoodler.html">Start Sketching</a>
-	</h4>
-<h4> <a href="http://github/cindyloo/vrdoodler">Github repo</a></h4
-  <h4>Videos to get you started</h4>
-  <section>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/5xUf1QdPr10" frameborder="0" allowfullscreen></iframe>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/BbtJacsyk7E" frameborder="0" allowfullscreen></iframe>
-</section>
+    
+    
+    
+      <div class="container" id="home">
+	 <p id="browserError"></p>
+	<h2>Sketch your imagination!  Please hit the poll (coming soon) to help us make VRDoodler even better!  <br/>
+	<a id="startSketch" href="vrdoodler.html" alt ="Icon made by Freepik from www.flaticon.com ">Start Sketching</a>
+	</h2>
+	<h4> <a href="http://github/cindyloo/vrdoodler">Source/Issue log: Github repo</a></h4>
+	<h4> <a href="http://www.twitter.com">Tweet about it!</a></h4>
+	<div id="donations">
+	<h4>Donate towards 2.0</h4>
+	<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+	<input type="hidden" name="cmd" value="_s-xclick">
+	<input type="hidden" name="hosted_button_id" value="DSQ7M246QTXUJ">
+	<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+	<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+	</form>
+	</div>
+	
+	  <h4>Videos to get you started</h4>
+	  <section>
+	<iframe width="560" height="315" src="https://www.youtube.com/embed/5xUf1QdPr10" frameborder="0" allowfullscreen></iframe>
+	<iframe width="560" height="315" src="https://www.youtube.com/embed/BbtJacsyk7E" frameborder="0" allowfullscreen></iframe>
+	</section>
 
 
   
 
     </div><!-- /.container -->
 
+	
+	 <div class="container" id="about">
+	 <h2>About</h2>
+	 <p>the skinny on the doodler, the doodleverse and all that is good<p>
+	 <h4>VRDoodler is a browser-based 3D drawing platform that can render in virtual reality, <br/>
+	 and into 3D printable objects. Haven is a crowd-sourced audio-visual storytelling VR platform  <br/>
+	 to be built on top of VRDoodler.  The net result is a 3D "Harold And The Purple Crayon meets Humans of New York" <br/>
+	 content-creation platform that is mobile, easy to use, and free. </h4>
+	 
+	 </div>
+	 
+	 
+	  <div class="container" id="contact">
+	   <h2>Team</h2>
+	
+	<h4>Cindy Bishop, Founder, Coder, Artist <a href="http://www.cindyshermanbishop.com">www.cindyshermanbishop.com</a></h4>
+	
+	<h4>Wouldn't have happened without: designer Saul Baizman, prof Sacha Constanza-Chock, ODL director Sarah Wolozin and all of the MIT ODL crew!</h4>
+	<img src="assets/images/odlmitlogo_copped.png">
+	 
+	 </div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

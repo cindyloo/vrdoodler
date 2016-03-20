@@ -11,8 +11,28 @@
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     
       <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-
-
+	<script>
+	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Firefox 1.0+
+	isFirefox = typeof InstallTrigger !== 'undefined';
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least IE6
+	isIE = /*@cc_on!@*/false || !!document.documentMode;
+	// Edge 20+
+	isEdge = !isIE && !!window.StyleMedia;
+	// Chrome 1+
+	isChrome = !!window.chrome && !!window.chrome.webstore;
+	// Blink engine detection
+	isBlink = (isChrome || isOpera) && !!window.CSS;
+	
+	if(isChrome || isFirefox){
+	   // is Google Chrome on IOS
+	} else { 
+	  alert("VRDoodler requires Chrome or FF");
+	 } 
+</script>
     <script src="
 js/three.js"></script>
 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
@@ -71,9 +91,10 @@ js/three.js"></script>
     </script>
     
     <script src="js/shaders/LineDisplacementShader.js"></script>
-    
+  <body>  
+  <p id="browserError"></p>   
 <div class="hero-unit">
-	<img class="logo" src="assets/images/vrdoodler_icon.png">
+	<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
 	<!--<h2></h2>-->
 	
 	<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
@@ -90,7 +111,7 @@ js/three.js"></script>
 
 </li>
 
-	<li><input id="rotateX" class="tt" type="button" value="rotate90" data-toggle="tooltip" title="Rotate around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"/></li>
+	<li><input id="rotateX" class="tt" type="button" value="r90" data-toggle="tooltip" title="Rotate view around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"/></li>
 
 	<li>
 	<div id="preview">
@@ -99,7 +120,6 @@ js/three.js"></script>
 	<a class="imgclose" id="imgclose"></a></div>
 	</li>
 	<li><input id="exportLine" type="button" class="tt" value="Export" data-toggle="tooltip" title="Export drawing as an OBJ file"/></li>
-	<br/>
 	<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
 	
 	<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Grid</label></li>
@@ -122,7 +142,7 @@ js/three.js"></script>
 	
 	<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
 </div>
-
+</body>
 
 <div id="infoPanel">
  <h3>Log:</h3>
