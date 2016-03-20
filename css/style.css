@@ -17,95 +17,95 @@ html,
     
 
 
-    #canvas {  
-    position: static; /* fixed or static */
-    top: 0;
-    left: 0;
-	}
-   
-   #doodlehome h1{
-   	display:block;
-   	background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;
-   	background-size:200px 50px;
-    height:60px;
-    width:300px;
-    float:left;
-    position:absolute;
-    z-index:20;
-    padding-left:90px;
-   	
-   }
-   
-   div.container{
-   
-   }
+		#canvas {  
+		position: static; /* fixed or static */
+		top: 0;
+		left: 0;
+		}
+	   
+	   #doodlehome h1{
+		display:block;
+		background: url("../assets/images/vrdoodler_icon.png") no-repeat top center;
+		background-size:200px 50px;
+		height:60px;
+		width:300px;
+		float:left;
+		position:absolute;
+		z-index:20;
+		padding-left:90px;
+		
+	   }
+	   
+	   div.container{
+	   
+	   }
 
-#infoPanel{ visibility:hidden;}
-
-input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio']{
-
-	padding:5px;
-	margin:10px;
+	#infoPanel{ visibility:hidden;}
 	
-
-	border:none;
+	input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio'] {
+	
+		padding:5px;
+		margin:10px;
+		border:none;
+		}
+	input[type='button'], div#preview input, div#preview, div label	{
+		width:100px;
+		height:35px;
+		background-color:rgba(240,240,240,1);
+		font-family: Oswald;
+		font-size: 18px;
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 20px;
+		cursor:pointer;
+		text-align:center;
 	}
-input[type='button'], div#preview input, div#preview	{
-	width:100px;
-	height:35px;
-	background-color:rgba(240,240,240,1);
-	font-family: Oswald;
-	font-size: 18px;
-	font-style: normal;
-	font-variant: normal;
-	font-weight: 100;
-	line-height: 20px;
-	cursor:pointer;
-	text-align:center;
-	box-shadow: 2px 2px #aaa;
-}
-div#preview{
-	vertical-align:middle;
-	width:90px;
-}
-div#preview input{
-	opacity: 0;
-	text-align:center;
-		width: 0.1px;
-	height: 0.1px;
-	opacity: 0;
-	overflow: hidden;
-	position: absolute;
-	z-index: -1;
-}
-
-a.imgclose{
-    float:right;
-    margin-top:-30px;
-    margin-right:-10px;
-    cursor:pointer;
-    color: #fff;
-    border: 1px solid #AEAEAE;
-    border-radius: 30px;
-    background: #605F61;
-    font-size: 31px;
-    font-weight: bold;
-    display: inline-block;
-    line-height: 0px;
-    padding: 11px 3px;  
-    visibility:hidden;
-}
-
-.imgclose:before {
-    content: "×";
-}
-
-#tuteInstructions{
-float:left;
-position:relative;
-margin-top:20px;
-padding:10px;
-}
+	input[type='button']{
+		box-shadow: 2px 2px #aaa;
+	}
+	div#preview{
+		vertical-align:middle;
+		width:90px;
+	}
+	div#preview input{
+		opacity: 0;
+		text-align:center;
+			width: 0.1px;
+		height: 0.1px;
+		opacity: 0;
+		overflow: hidden;
+		position: absolute;
+		z-index: -1;
+	}
+	
+	a.imgclose{
+		float:right;
+		margin-top:-30px;
+		margin-right:-10px;
+		cursor:pointer;
+		color: #fff;
+		border: 1px solid #AEAEAE;
+		border-radius: 30px;
+		background: #605F61;
+		font-size: 31px;
+		font-weight: bold;
+		display: inline-block;
+		line-height: 0px;
+		padding: 11px 3px;  
+		visibility:hidden;
+	}
+	
+	.imgclose:before {
+		content: "×";
+	}
+	
+	#tuteInstructions{
+	float:left;
+	position:relative;
+	margin-top:20px;
+	padding:10px;
+	}
 
 /*
 
@@ -115,65 +115,57 @@ Left-hand control bar.
 
 */
 
-.hero-unit {
-    float:left;
-    position:absolute;
-    width:250px;
-    top:10px;
-    z-index:10;
-    background-color:white;
-    color:black;
-    background-color:rgba(255,255,255,.8);
-    visibility:hidden;
-    font-family: Oswald;
-    /*padding:10px;*/
-}
+	.hero-unit {
+		float:left;
+		position:absolute;
+		width:250px;
+		top:10px;
+		z-index:10;
+		background-color:white;
+		color:black;
+		background-color:rgba(255,255,255,.8);
+		visibility:hidden;
+		font-family: Oswald;
+		/*padding:10px;*/
+	}
+	
+	.hero-unit img.logo {
+		/*margin-left: auto;*/
+		/*margin-right: auto;*/
+		/* FIXME: err, I couldn't center this! */
+		margin-left: 20px ;
+		margin-top: 20px ;
+	
+	}
+	
+	.hero-unit #tabs{
+		margin-top:20px;
+		/*width: 100% ;*/
+	
+	}
+	
+	.hero-unit #tabs a {
+		font-size: 1.1em ;
+		text-transform: uppercase;
+		color: white;
+		/*background-color: #e2a336;*/
+		color: #555;
+		/*border-right: 1px solid #222;*/
+		padding: 10px;
+		cursor: default;
+		/*display: inline-block;*/
+		vertical-align: middle;
+		border-top: 1px groove white;
+		border-bottom: 1px groove white;
+		text-decoration: none;
+		padding: 10px 35px;
+	}
+	.hero-unit #tabs a.selected {
+		color: #fff ;
+		background-color: #e2a336;
+		text-shadow: -1px -1px 1px #666 ;
+	}
 
-.hero-unit img.logo {
-    /*margin-left: auto;*/
-    /*margin-right: auto;*/
-    /* FIXME: err, I couldn't center this! */
-    margin-left: 20px ;
-    margin-top: 20px ;
-
-}
-
-.hero-unit #tabs{
-    margin-top:20px;
-    /*width: 100% ;*/
-
-}
-
-.hero-unit #tabs a {
-    font-size: 0.8em ;
-    text-transform: uppercase;
-    color: white;
-    /*background-color: #e2a336;*/
-    color: #555;
-    /*border-right: 1px solid #222;*/
-    padding: 10px;
-    cursor: default;
-    /*display: inline-block;*/
-    vertical-align: middle;
-    border-top: 1px groove white;
-    border-bottom: 1px groove white;
-    text-decoration: none;
-    padding: 10px 35px;
-}
-.hero-unit #tabs a.selected {
-    color: #fff ;
-    background-color: #e2a336;
-    text-shadow: -1px -1px 1px #666 ;
-}
-
-
-/*#tabs span:first-child {*/
-	/*margin-left:-30px;*/
-/*}*/
-
-/*#tabs span:last-child {*/
-	/*margin-right:-30px;*/
-    /*}*/
 
 .hero-unit section ul {
     padding:5px;
@@ -198,9 +190,10 @@ Left-hand control bar.
 }
 
 .hero-unit section ul li .input_label {
-    font-size: 0.6em ;
-    text-transform: uppercase ;
-    font-weight: 700 ;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: 300;
+    padding:10px;
 }
 
 .hero-unit section ul li #lineWidthSlider {
@@ -214,5 +207,12 @@ FIXME: adjust size here? how?
 	width:100px;
 	top:-36px;
 	left:120px;
+}
+
+
+input.tt + .tooltip {
+  
+    padding: 15px;
+    font-size: 10px;
 }
 
