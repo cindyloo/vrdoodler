@@ -130,7 +130,7 @@
   	<p id="browserError"></p>   
 	<div class="top-unit">
 	<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="Stereo" title="Toggle stereoscopic view"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="Stereo" title="Toggle stereoscopic view :NOT YET FULLY IMPLEMENTED"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
 	<!--<h2></h2>-->
 	</div>
 	<div class="hero-unit">
@@ -194,7 +194,7 @@
     var geometry, material, mesh;
     var controls, minicamera;
     var effects, vrmanager;
-    var vrControls;
+    var orientControls;
  	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
@@ -353,7 +353,11 @@
 
   		scene.add(objContainer);
   		scene.add(sketchContainer);
+  		
+  		
 		controls = new THREE.OrbitControls( camera, renderer.domElement );
+		
+		orientControls = new THREE.DeviceOrientationControls( camera );
 		//controls.addEventListener( 'change', render ); not needed b/c I have an animate loop
 		//vrControls = new THREE.VRControls(camera);
 		
@@ -419,7 +423,9 @@
         var light = new THREE.DirectionalLight( 0xcccccc, 1 );
 				light.position.set( 1, 1, 1 ).normalize();
 				scene.add( light );
-			
+		
+		
+		window.addEventListener('deviceorientation', setOrientationControls, true);
             
          document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
 		 document.addEventListener( 'keyup', onVRDoodlerKeyUp, false );
@@ -476,7 +482,7 @@
  
 	  });
 	
-	  
+	   
 
 	}
 	
@@ -739,6 +745,8 @@
 	var onError = function ( xhr ) {
 	};
 	
+
+
 	
 	
 	function onWindowResize() {
@@ -746,7 +754,7 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             
-            effect.setSize(window.innerWidth, window.innerHeight)
+            effect.setSize(window.innerWidth, window.innerHeight);
 	}
 
 
@@ -936,12 +944,20 @@
 	function toggleStereoscopic(){
 		STEREOSCOPIC = STEREOSCOPIC?0:1;
 	 	
-	 	if (STEREOSCOPIC)
+	 	if (STEREOSCOPIC){
 	 		$(".hero-unit").css("visibility","hidden");
-	 	else
+	 		setOrientationControls();
+	 	}
+	 	else{
 	 		$(".hero-unit").css("visibility","visible");
+	 		
+	 		 controls.enabled = true;
+       		orientControls.enabled=false;
+	 		 
+	 		
+	 	}
 	
-		effect.setSize(window.innerWidth ,window.innerHeight);
+		
 	
 	}
 	
@@ -980,21 +996,33 @@
 	}
 
 
-	/*
-	function setCurrentLineWidth(){
-
-	//controls.stop();
-		CURRENTLINEWIDTH = document.getElementById("width").value;			
-		return CURRENTLINEWIDTH;
-	}
-	*/
-	
 	//maybe plus/minus 2?
 	function toggleCurrentLineWidth(){
 		//controls.stop();
 		CURRENTLINEWIDTH = CURRENTLINEWIDTH--;			
 		return CURRENTLINEWIDTH;
 	}
+	
+	
+		
+      function setOrientationControls(e) {
+        if (e && !e.alpha) {
+          return;
+        }
+		controls.enabled =false;
+        orientcontrols = new THREE.DeviceOrientationControls(camera, true);
+        orientcontrols.connect();
+        orientcontrols.update();
+
+        element.addEventListener('click', fullscreen, false);
+
+        window.removeEventListener('deviceorientation', setOrientationControls, true);
+      }
+      
+
+    
+	
+	
 	
 	function changeControls(resetCam){
 	 	var prevCamera = camera;
@@ -1886,7 +1914,13 @@
   //vrEffect.render(scene, camera);
 		if (STEREOSCOPIC){
 		//effect.setSize(window.height, window.width);
-			effect.render(scene, camera);
+		orientControls.enabled = true;
+		effect.render(scene, camera);
+				orientControls.object = camera;
+			
+		orientControls.update();
+
+			//renderer.render( scene, camera );
   		}else{
   		
   		
@@ -1905,12 +1939,7 @@
   		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
 		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
 		camera.updateProjectionMatrix();
-  		
-  		
-  		
-  		
-  		
-  		
+ 
   			renderer.render( scene, camera );
   		}
   			//renderer.clearDepth();
