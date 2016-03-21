@@ -52,13 +52,33 @@ html,
 	input[type='button']{
 		box-shadow: 2px 2px #aaa;
 	}
-	input#rotateX
-	{width:45px;}
+	input#rotateX, #copy,#paste,input#stereoView{
+		
+		margin-right:14px;
+		width:30px;
+	}
+	input#stereoView{
+		margin-left:16px;
+		margin-bottom:10px;
+	}
+	
+	.top-unit i.glyphicon{
+		left:-38px;
+		top:-2px;
+		pointer-events: none;
+    }
 	
 	li i.glyphicon{
-		margin-left:-40px;
+		left:-38px;
 		top:-3px;
 		pointer-events: none;
+    }
+    i#help{
+    	margin:10px;
+    }
+    
+    input#rotateX,li i.glyphicon:first{
+		margin-left:0px;
     }
     
 	div#preview{
@@ -235,7 +255,7 @@ Left-hand control bar.
 	
 	#playBackSpeedSlider {
 		width:100px;
-		top:-36px;
-		left:120px;
+		top:-27px;
+		left:111px;
 	}
 

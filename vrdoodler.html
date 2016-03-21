@@ -130,13 +130,13 @@
   	<p id="browserError"></p>   
 	<div class="top-unit">
 	<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="Stereo" title="Toggle stereoscopic view :NOT YET FULLY IMPLEMENTED"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview mobile view: under construction"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
 	<!--<h2></h2>-->
 	</div>
 	<div class="hero-unit">
 	<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
 	
-	<i id="help" class="glyphicon glyphicon-info-sign"></i>
+	
 	<section>
 	<ul>
 	
@@ -146,7 +146,10 @@
 	
 		<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
 	
-		<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input></li>
+		<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input>
+		<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: much easier to use ctrl-c to copy currently selected line"><i class="glyphicon glyphicon-copy"></i></input>
+		<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: much easier to use ctrl-v to paste currently copied line"><i class="glyphicon glyphicon-paste"></i></input>
+		</li>
 	
 		
 		<li>
@@ -167,8 +170,9 @@
 	</ul>
 	</section>
 	<section>
+	<i id="help" class="glyphicon glyphicon-info-sign"></i>
 		<div id="tuteInstructions"></div
-		<p>"draw at" orientation keys:<br/>
+		<p>Help and Quick Keys<br/>
 		<ul>
 			<li>{ctrl-g} to draw flat along horizon</li>
 			<li>{ctrl-shift-g} to draw straight vertical line </li>
@@ -273,14 +277,11 @@
 	};
 	
 	var tuteBegPhrases = ["Press the mouse to begin drawing.",
-							"When you are done drawing, press r to rotate to the side view of your drawing",
-							"Hover over the previous drawn line to connect your new lines",
-							"You can also Toggle the D key to stop drawing and rotate the view to a specific perspective",
-							"Now, when you are done drawing, press r to rotate to the back view of your drawing",
-							"Hover over the previous drawn line to connect your new lines",
-							"Now, when you are done drawing, press r to rotate to the other side view of your drawing",
-							"Hover over the previous drawn line to connect your new lines",
-							"Press r to return to the front view of your 3D drawing!",
+							"When you are done drawing, let go of the mouse",
+							"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
+							"When you see the red dot, you can connect a new line to the selected line",
+							"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
+							"You can also press r to rotate. It is best if you toggle drawing off while rotating",
 							"Unclick Draw to move the camera around your drawing"];
 							
 	var tuteAdvPhrases = ["Rotate the camera to desired view and press the d key to enter draw mode",
@@ -476,9 +477,7 @@
 			});
 				
 			$("#help").hover(function() {
-					$( this ).append( $( "<span class='help'>" +tuteBegPhrases[tuteBegCount]+ "</span>" ) );
-				  }, function() {
-					$( this ).find( "span:last" ).remove();
+					advanceInstructions()
 				  });
 				  
 			  
@@ -872,7 +871,7 @@
 		 return PLANEROTATELOCK;
 	}
 	function advanceInstructions(){
-		if (document.getElementById("level").value == "0"){
+		if (userSettings.userLevel == "0"){
 			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 			if (tuteBegCount > tuteBegPhrases.length -1)
 				tuteBegCount = 0;
@@ -951,6 +950,8 @@
 	 	
 	 	if (STEREOSCOPIC){
 	 		$(".hero-unit").css("visibility","hidden");
+	 		setDrawMode(0);
+	 		//setSnapMode(0);
 	 		setOrientationControls();
 	 	}
 	 	else{
