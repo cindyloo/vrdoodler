@@ -1,7 +1,7 @@
  <!DOCTYPE html>
 <head>
     <meta charset="utf-8">
-    <title>VRDoodler!!!</title>
+    <title>VRDoodler!!!-beta</title>
  
 </head>
 	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
@@ -130,7 +130,7 @@
   	<p id="browserError"></p>   
 	<div class="top-unit">
 	<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview mobile view: under construction"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view: not fully implemented"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
 	<!--<h2></h2>-->
 	</div>
 	<div class="hero-unit">
@@ -146,9 +146,9 @@
 	
 		<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
 	
-		<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input>
-		<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: much easier to use ctrl-c to copy currently selected line"><i class="glyphicon glyphicon-copy"></i></input>
-		<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: much easier to use ctrl-v to paste currently copied line"><i class="glyphicon glyphicon-paste"></i></input>
+		<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."><i class="glyphicon glyphicon-repeat"></i></input>
+		<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: use ctrl-c"><i class="glyphicon glyphicon-copy"></i></input>
+		<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: use ctrl-v"><i class="glyphicon glyphicon-paste"></i></input>
 		</li>
 	
 		
@@ -600,7 +600,8 @@
 					}
 				}
 			} 
-			xhrImg.open("GET", "vrdoodler.html?loaddoodleverse=1");
+			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
+			xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
 			xhrImg.send();  
 
@@ -841,6 +842,11 @@
 		setPivotPoint(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 		cameraInitRotPos();
 			
+			
+		if (userSettings.userLevel=="0"){
+			currentIntersectedPoint = new THREE.Vector3(0,0,0);
+			setPivotPoint(currentIntersectedPoint);//help orient user
+			}
 		cameraAngle-=angle?angle:squareAngle; //later when a user can specify degree of rotation
 	
 		
@@ -1024,8 +1030,9 @@
         else
         	camera.lookAt(0,0,0);
 
-        element.addEventListener('click', fullscreen, false);
-
+        loadInitialImages();
+        
+        
         window.removeEventListener('deviceorientation', setOrientationControls, true);
       }
       
