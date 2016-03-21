@@ -140,13 +140,13 @@
 	<section>
 	<ul>
 	
-		<li><form class="draw_mode"><input id="draw" class="tt" type="radio" name="drawmode" value="draw" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span><input id="orbit" type="radio"  name="drawmode" value="orbit"/><span class="input_label">orbit</span> </form></li>
+		<li><form class="draw_mode"><input id="draw" class="mytt" type="radio" name="drawmode" value="draw" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span><input id="orbit" type="radio"  name="drawmode" value="orbit"/><span class="input_label">orbit</span> </form></li>
 
-		<li><form><input id="snapTo" type="checkbox" class="tt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
+		<li><form><input id="snapTo" type="checkbox" class="mytt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
 	
 		<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
 	
-		<li><input id="rotateX" class="tt" type="button" data-toggle="tooltip" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input></li>
+		<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Toggle drawing off then click or press 'r' to rotate view 90 degrees around currently selected vertex. Hint: toggle drawing off with 'd' to stick selector"><i class="glyphicon glyphicon-repeat"></i></input></li>
 	
 		
 		<li>
@@ -437,7 +437,8 @@
 	
 		
 		$(document).ready(function(){
-			$('[data-toggle="tooltip"]').tooltip(); 
+		
+			$('input').tooltip(); 
 				
 			$('#infoPanelTag').click(function() {
 			  $("#infoPanel").toggle( "slow" );		  
@@ -474,10 +475,14 @@
 				$(this).css("visibility","hidden");
 			});
 				
-			$("i#help").click(function(e,preview, image){
-				
-			});
-			
+			$("#help").hover(function() {
+					$( this ).append( $( "<span class='help'>" +tuteBegPhrases[tuteBegCount]+ "</span>" ) );
+				  }, function() {
+					$( this ).find( "span:last" ).remove();
+				  });
+				  
+			  
+		
 			if (detectmob()) toggleStereoscopic();
  
 	  });
@@ -888,7 +893,7 @@
 				camera.position.y = .5;
 				
 				 
-				plane = makePlanes(planemat,lastIntersectedPoint ,"guide", plane);
+				//plane = makePlanes(planemat,lastIntersectedPoint ,"guide", plane);
 				
 					$.extend(userSettings, defUserSettings );
 				
@@ -1013,6 +1018,10 @@
         orientcontrols = new THREE.DeviceOrientationControls(camera, true);
         orientcontrols.connect();
         orientcontrols.update();
+        if (lastIntersectedPoint)
+        	camera.lookAt(lastIntersectedPoint);
+        else
+        	camera.lookAt(0,0,0);
 
         element.addEventListener('click', fullscreen, false);
 
@@ -1907,40 +1916,35 @@
 		
 
 		
-	
-	//orbitControls.update();
- // vrControls.update();
-// vrmanager.render(scene, camera);
-  //vrEffect.render(scene, camera);
+
 		if (STEREOSCOPIC){
-		//effect.setSize(window.height, window.width);
-		orientControls.enabled = true;
-		effect.render(scene, camera);
-				orientControls.object = camera;
+			orientControls.update();
+			effect.render(scene, camera);
+				//orientControls.object = camera;
 			
-		orientControls.update();
+			
 
 			//renderer.render( scene, camera );
   		}else{
   		
   		
-  		minicamera.position.set(5,5,5);
-		minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
-			
-		renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
-		renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
-		renderer.setScissor( 10, 10, 200, 200  );
-					//renderer.setScissorTest( true );
-					//renderer.setClearColor( view.background );
-		minicamera.updateProjectionMatrix();
-		renderer.render( scene, minicamera );
-  			
-  				
-  		renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
-		renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
-		camera.updateProjectionMatrix();
- 
-  			renderer.render( scene, camera );
+			minicamera.position.set(5,5,5);
+			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+				
+			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
+			renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
+			renderer.setScissor( 10, 10, 200, 200  );
+						//renderer.setScissorTest( true );
+						//renderer.setClearColor( view.background );
+			minicamera.updateProjectionMatrix();
+			renderer.render( scene, minicamera );
+				
+					
+			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
+			renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
+			camera.updateProjectionMatrix();
+	 
+			renderer.render( scene, camera );
   		}
   			//renderer.clearDepth();
 	}

@@ -6,7 +6,7 @@ html,
 	body {
 		background-color: #ffffff;
 		margin: 0;
-		overflow: hidden;
+		
 		font-family: Oswald;
 		font-size: 18px;
 		font-style: normal;
@@ -30,7 +30,6 @@ html,
 	input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio'] {
 	
 		padding:5px;
-		margin:10px;
 		border:none;
 		}
 	input[type='button'], div#preview input, div#preview, div label	{
@@ -64,7 +63,8 @@ html,
     
 	div#preview{
 		vertical-align:middle;
-		width:90px;
+		width:80px;
+		box-shadow: 2px 2px #aaa;
 	}
 	div#preview input{
 		opacity: 0;
@@ -75,6 +75,7 @@ html,
 		overflow: hidden;
 		position: absolute;
 		z-index: -1;
+		
 	}
 	
 	a.imgclose{
@@ -104,6 +105,21 @@ html,
 	margin-top:20px;
 	padding:10px;
 	}
+
+
+	.mytt + .tooltip > .tooltip-inner {
+		font-family: Oswald;
+		
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 14px;
+
+	
+	}
+
+
+
 
 /*
 
@@ -176,60 +192,50 @@ Left-hand control bar.
 		text-shadow: -1px -1px 1px #666 ;
 	}
 
+	
+	.hero-unit section ul {
+		padding:5px;
+		margin:10px;
+		margin-top:10px;
+		list-style:none;
+		/*margin-top:40px;*/
+	
+	}
+	.hero-unit section ul li{
+	   margin: 10px 5px;
+	}
+	
+	.hero-unit section ul li form {
+		/*border:1px groove rgba(255,255,255,1);*/
+	}
+	
+	.hero-unit section ul li form.draw_mode {
+		margin-bottom: 5px ;
+	}
+	
+	.hero-unit section ul li form span.input_label span.keyboard_shortcut {
+		/*li span {text-decoration: underline; }*/
+	}
+	
+	.hero-unit section ul li .input_label {
+		font-size: 1.0em;
+		text-transform: uppercase;
+		font-weight: 300;
+		padding: 5px 5px 5px 0;
+		margin: 10px;
+	}
+	
 
-.hero-unit section ul {
-    padding:5px;
-    margin:10px;
-    margin-top:20px;
-    list-style:none;
-    /*margin-top:40px;*/
-
-}
-.hero-unit section ul li{
-   margin: 15px 5px;
-}
-
-.hero-unit section ul li form {
-    /*border:1px groove rgba(255,255,255,1);*/
-}
-
-.hero-unit section ul li form.draw_mode {
-    margin-bottom: 5px ;
-}
-
-.hero-unit section ul li form span.input_label span.keyboard_shortcut {
-    /*li span {text-decoration: underline; }*/
-}
-
-.hero-unit section ul li .input_label {
-    font-size: 1.0em;
-    text-transform: uppercase;
-    font-weight: 300;
-        padding: 5px 5px 5px 0;
-}
-
-.hero-unit section ul li #lineWidthSlider {
-/*
-FIXME: adjust size here? how?
-*/
-}
-
-#lineWidthSlider{
-	width: 100px;
-    float: right;
-    margin-top: -36px;
-}
-
-#playBackSpeedSlider {
-	width:100px;
-	top:-36px;
-	left:120px;
-}
-
-
-input.tt + .tooltip {
-  
-    padding: 15px;
-    font-size: 8px;
-}
+	
+	#lineWidthSlider{
+		width: 100px;
+		float: right;
+		margin-top: -36px;
+	}
+	
+	#playBackSpeedSlider {
+		width:100px;
+		top:-36px;
+		left:120px;
+	}
 
