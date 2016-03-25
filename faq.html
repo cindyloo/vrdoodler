@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="VRDoodler">
+    <meta name="author" content="Cindy Bishop">
+    <link rel="icon" href="../../favicon.ico">
+	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+    <title>FAQ for VRDoodler-beta !!!</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+	<script>
+	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Firefox 1.0+
+	isFirefox = typeof InstallTrigger !== 'undefined';
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least IE6
+	isIE = /*@cc_on!@*/false || !!document.documentMode;
+	// Edge 20+
+	isEdge = !isIE && !!window.StyleMedia;
+	// Chrome 1+
+	isChrome = !!window.chrome && !!window.chrome.webstore;
+	// Blink engine detection
+	isBlink = (isChrome || isOpera) && !!window.CSS;
+	
+	if(isChrome || isFirefox){
+	   // is Google Chrome on IOS
+	} else { 
+	  alert("VRDoodler requires Chrome or FF");
+	 } 
+	  
+	</script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-75274623-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+  
+    <link href="css/starter-template.css" rel="stylesheet">
+
+
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+   
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html"></a>
+        </div>
+        
+      </div>
+    </nav>
+    
+    
+    
+      <div class="container" id="faq">
+		<div class="rightbar">
+			<h3 >Youtube instructional videos</h3>
+				<div><iframe width="300" height="200" src="https://www.youtube.com/embed/5xUf1QdPr10?list=PLmydcPic21jSqr1UC_RXazEQJgasYPfZW" frameborder="0" allowfullscreen></iframe></div>
+				<div><iframe width="300" height="200" src="https://www.youtube.com/embed/BbtJacsyk7E?list=PLmydcPic21jSqr1UC_RXazEQJgasYPfZW" frameborder="0" allowfullscreen></iframe></div>
+				<div><iframe width="300" height="200" src="https://www.youtube.com/embed/5v9r7_uu0WE?list=PLmydcPic21jSqr1UC_RXazEQJgasYPfZW" frameborder="0" allowfullscreen></iframe></div>
+			</div>
+		<h2>Drawing</h2>	
+		<section>
+		<h4>Key principle: use SHIFT to draw on the same plane as a previous line. Use the mouse to target a particular line. <br/>
+				Hold SHIFT, press the mouse down to start drawing.  Otherwise your new line will draw at the current grid coordinate.</h4>
+				<h4>By drawing AT the intersection of another line, you 'group' those lines together. This is useful for copy and pasting.</h4>
+				<ul>
+				<li>{CTRL-c} to copy</li>
+				<li>{CTRL-v} to paste </li>
+				<li>{CTRL-z} to erase previous line </li>
+				<li>{BACKSPACE/DELETE} to erase currently selected line </li>
+			</ul>	
+			<h4>Snapping<br/>
+			Note how the intersection point color changes depending on object intersected.
+			<ul>
+				<li>a yellow dot when intersecting with the grid</li>
+				<li>a red dot when intersecting with another line</li>
+				<li>a green dot when drawing at the plane specified by the previous intersection </li>
+				<li>use SHIFT to draw on the same plane as a previous line: use the mouse to target(hover over) a particular line. <br/>
+				Hold SHIFT, press the mouse down to start drawing.  Otherwise your new line will draw at the current grid coordinate.</li>
+				<li>You can turn snapping off in advanced mode. </li>
+			</ul>	
+				</h4>
+			
+			<h4>use the CTRL(or cmd), SHIFT and ALT keys to draw along specific axes, or to draw <strong>straight lines</strong>.
+			</h4>
+			<ul>
+				<li>{CTRL-g} to draw flat along horizon</li>
+				<li>{CTRL-SHIFT-g} to draw a straight vertical line </li>
+				<li>{CTRL-ALT-g} to draw a straight horizontal line </li>
+				<li>{ALT-g} to draw flat along world z axis</li>
+			</ul>
+			
+			<h4>Rotation</h4>	
+			<h4>Toggle drawing off. Use the mouse to rotate the camera view. IF you have targeted a point with Snap Mode on, you will be able to rotate<br/>
+			AROUND that targeted intersection instead of around the oring</h4>
+
+			
+		</section>
+		<div class="rightbar">
+			<div><iframe width="300" height="200" src="https://www.youtube.com/embed/5v9r7_uu0WE?list=PLmydcPic21jSqr1UC_RXazEQJgasYPfZW" frameborder="0" allowfullscreen></iframe></div>
+		</div>
+		<h2>Virtual Reality with Google Cardboard</h2>	
+		<section>
+		<h4>Not yet fully supported, but you can preview your drawing in stereoscopic vision by clicking the sunglasses icon at the top of the menu bar</h4>
+		 </section>	
+		
+		<h2>Photosphere</h2>	
+		<section>
+		<h4>Import a JPG or PNG file. It will automatically load it into a giant sphere and set your view in the middle of it.<br/>
+		 Be sure to target the area on grid in which you want to draw. Use the SHIFT key to draw on that same plane.</h4>
+		 </section>
+		 		
+		<h2>Export as OBJ</h2>	
+		<section>
+		<h4>With IDEs other than Blender, exported OBJs are not working perfectly right this minute. Stay tuned, it should be fixed within the week</h4>
+		 </section>
+		 
+		 	<h2>Uploading to the Doodleverse</h2>	
+		<section>
+		<h4>Coming Soon!</h4>
+		 </section>
+		 
+		 <h2>Attaching audio narration to your doodle</h2>	
+		<section>
+		<h4>Coming Soon!</h4>
+		 </section>
+		 		
+	</div>	
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+</html>

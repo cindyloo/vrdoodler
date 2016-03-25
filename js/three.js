@@ -10142,7 +10142,7 @@ THREE.Geometry.prototype = {
 
 			for ( var i = 0; i < positions.length / 3; i += 3 ) {
 
-				if (scope.vertices[i] &&scope.vertices[i+1] &&scope.vertices[i+2])
+				//if (scope.vertices[i] &&scope.vertices[i+1] &&scope.vertices[i+2])
 					addFace( i, i + 1, i + 2 );
 
 			}

@@ -4,7 +4,7 @@ html,
 		height: 100%;
 	}
 	body {
-		background-color: #ffffff;
+		background-color: #000000;
 		margin: 0;
 		
 		font-family: Oswald;
@@ -21,6 +21,7 @@ html,
 		position: static; /* fixed or static */
 		top: 0;
 		left: 0;
+		background-color:#000000;
 		}
 
 	}
@@ -162,7 +163,7 @@ Left-hand control bar.
 		font-family: Oswald;
 		/*padding:10px;*/
 	}
-.top-unit {background-color:white;}
+	.top-unit {background-color:white;}
 	.hero-unit {
 		
 		top:130px;

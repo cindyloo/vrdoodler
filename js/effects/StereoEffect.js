@@ -26,9 +26,11 @@ THREE.StereoEffect = function ( renderer ) {
 
 		var size = renderer.getSize();
 
+		
+
 		renderer.setScissorTest( true );
 		renderer.clear();
-
+renderer.setClearColor(0x000000);
 		renderer.setScissor( 0, 0, size.width / 2, size.height );
 		renderer.setViewport( 0, 0, size.width / 2, size.height );
 		renderer.render( scene, _stereo.cameraL );
