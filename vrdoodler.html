@@ -1311,6 +1311,9 @@
 								for (l = 0;l<copiedObj.children.length;l++){
 									var newLine = copiedObj.children[l].clone();
 									newLine.geometry= newLine.geometry.clone();
+									var box = new THREE.Box3().setFromObject(copiedObj);
+									newLine.geometry.computeBoundingBox();
+									var offset = box.min.clone();
 									var attribute = newLine.geometry.attributes.position;
 									for (var e = 0;e<attribute.count;e++){
 										var vec = new THREE.Vector3();
@@ -1324,11 +1327,15 @@
 										//var distance = originOffset.distanceTo(origin);
 									
 										var newPos = currentIntersectedPoint.clone();
-										//origin.add(newPos.sub(origin));//.add(origin);
+										var zeroMatrix = new THREE.Object3D();
+										zeroMatrix.position.set(0,0,0);
+										origin.sub(offset);  //origin.sub(offset)  causes issues if we do x and y for grouped lines...
 										
 										//vec.sub(vecoffset);
 										//vec.add(plane.position);
-										origin.applyMatrix4( matrixMod.matrixWorld ); // apply the mesh's matrix transform	
+										origin.applyMatrix4( matrixMod.matrixWorld ); // apply the mesh's matrix transform
+										//origin.applyMatrix3(zeroMatrix.matrixWorld);//.this works in terms of location but wacks the y
+									
 										attribute.setXYZ (e, origin.x, origin.y, origin.z);	
 									}
 									//newLine.geometry.attributes.position = attribute;
@@ -1595,6 +1602,7 @@
 	    
 		
 		drawnline.push(new THREE.Line( geometry,  linematerial )); //to store line	
+		mostRecentDrawnLine().position = mv; //for later...
 		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
 		mostRecentDrawnLine().name = linename;
 		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
