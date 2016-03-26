@@ -721,7 +721,7 @@
 	
 	function importScene(object){
 				object.traverse( function ( child ) {						
-						if ( child instanceof THREE.Mesh ) { //THREE.Line
+						if ( child instanceof THREE.Line ) { //THREE.Line
 									initNewLine(null, null, child.geometry, child.geometry.attributes.position);
 						}
 					 });
