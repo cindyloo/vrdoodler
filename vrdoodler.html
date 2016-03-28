@@ -1299,6 +1299,8 @@
                    		if (currentIntersectedPoint && copiedObj){
                    		
                    		 	console.log(" intersected point" + JSON.stringify(currentIntersected.matrixWorld));
+							
+							//if userSettings.userLevel == 'advanced'), use plane?
 							var matrixMod =plane.clone();
 		
 							var copiedObj2;
@@ -1371,8 +1373,9 @@
                  
                    	break;
                    	case 8: //backspace  
+                   	evt.preventDefault();  //otherwise loses drawing by going to past page!
                    		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
-                   		 	evt.preventDefault();
+                   		 	
                    			var id = currentIntersected.uuid;                			
                    			
                    			function findUUID(line) { 
