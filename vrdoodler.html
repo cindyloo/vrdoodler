@@ -197,10 +197,11 @@
 			<div id="tuteInstructions"></div
 			<p>Help and Quick Keys</p><br/>
 			<ul>
-				<li>{ctrl-g} to draw flat along horizon</li>
-				<li>{ctrl-shift-g} to draw straight vertical line </li>
-				<li>{ctrl-alt-g} to draw straight horizontal line </li>
-				<li>{alt-g} to draw flat along world z axis</li>
+				<li>To lock plane to selection while drawing: {HOLD shift}</li>
+				<li>To draw along ground: <br/>{HOLD ctrl-g}</li>
+				<li>To draw straight vertical line: <br/>{HOLD ctrl-shift-g} </li>
+				<li>To draw straight horizontal line: <br/>{HOLD ctrl-alt-g} </li>
+				<li>To draw flat along world z axis: <br/>{HOLD alt-g}</li>
 			</ul>
 		</section>
 		<div id="infoPanel" >
@@ -1031,12 +1032,13 @@
 		
 	}
 	function toggleGrid(){
-	
-		if (grid){
-			grid.visible = grid.visible?false:true;
-			axisHelper.visible = axisHelper.visible?false:true;
-		}else{
-			setupGrid();
+		if (userSettings.userLevel >0){
+			if (grid){
+				grid.visible = grid.visible?false:true;
+				axisHelper.visible = axisHelper.visible?false:true;
+			}else{
+				setupGrid();
+			}
 		}
 		$("#grid").prop("checked",grid.visible);
 	}
@@ -1170,7 +1172,7 @@
 			plane.rotation.z= 0;
 			planeLockOutline.rotation.x= 0;
 			planeLockOutline.rotation.z= 0;
-			//planeLockOutline.lookAt(cameraclone.position);
+			planeLockOutline.lookAt(cameraclone.position);
 			
 			if (!keepOrientation){
 				plane.rotation.y= 0;
@@ -1209,19 +1211,19 @@
                         break;
                      */   
                    case 16: //shift 
-                   
+                   planeLockOutline.material.wireframe = false;
 				  	PLANELOCK =true;
 				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
 					break;     
                      
                     case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
-                    
+                    planeLockOutline.material.wireframe = false;
                       
-                       if (evt.shiftKey && evt.ctrlKey){  //d
+                       if (evt.shiftKey && (evt.ctrlKey || evt.metaKey)){  //d
                    			//will draw straight vertical line parallel to x axis
                    			snapPlane(4);
               
-                   		}else if (evt.ctrlKey && evt.altKey){
+                   		}else if ((evt.ctrlKey || evt.metaKey) && evt.altKey){
                    			//will draw straight horizontal line parallel to x axis
                    			snapPlane(5); 
                    			planeLockOutline.rotation.z = squareAngle;
@@ -1233,9 +1235,10 @@
                    		
                    		}else if (evt.shiftKey){
 							//draws at fixed 'squared' plane  No x, y z rotation	
+							
                    			snapPlane(2);  
                    			
-                   		}else if (evt.ctrlKey){  //draw on horizontal plane
+                   		}else if (evt.ctrlKey || evt.metaKey){  //draw on horizontal plane
                    			//Draw at fixed y with x.rotation = 90 degrees
                    		
                    			snapPlane(3);  
@@ -1362,7 +1365,7 @@
                    	
                    	
                    	case 90: //control-z to erase last
-                   	if (evt.ctrlKey){
+                   	if (evt.ctrlKey || evt.metaKey){
                    		if (mostRecentDrawnLine()){
                    			
                    			mostRecentDrawnLine().geometry.attributes.position.array = [];
@@ -1406,6 +1409,7 @@
 			case 16: //shift 
 			  SNAPPLANETOGRID =false;
 			  PLANELOCK =false;
+			  planeLockOutline.material.wireframe = true;
 			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
 			break;
         }
@@ -1708,7 +1712,7 @@
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
 			
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
-			planeLockOutline.scale.multiplyScalar(20); //should pay adjust accord to distance of intersection...
+			planeLockOutline.scale.multiplyScalar(10); //should pay adjust accord to distance of intersection...
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
 			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
