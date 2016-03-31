@@ -790,8 +790,10 @@
 		} else {
 			mesh = new THREE.Mesh( geo, material );
 		}
-			
-		var pos = new THREE.Vector3(0,0,10);
+		
+		var pos = new THREE.Vector3(0,0,0);	
+		if (currentIntersected)
+			pos = currentIntersected.position.copy();
 		mesh.position.set(pos);
 	
 		mesh.userData.name = "fromjson";		
@@ -1658,6 +1660,8 @@
 			
 			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
 			newOrImportedLine = new THREE.Line( geometry,  linematerial );
+			drawnline.push(newOrImportedLine); //to store line	
+		mostRecentDrawnLine().position = mv; //for later...
 		
 		}else{ //loaded from OBJ file
 			
@@ -1665,6 +1669,10 @@
 			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
 			linename = "lineimported";
 			newOrImportedLine = lineImported;//.clone();
+			drawnline.push(newOrImportedLine); //to store line	
+			//if (currentIntersected)
+			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
+			//this doesn't work so well if the line is then copied and pasted...
 		}
 	
 		
@@ -1672,8 +1680,7 @@
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    
 		
-		drawnline.push(newOrImportedLine); //to store line	
-		mostRecentDrawnLine().position = mv; //for later...
+		
 		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
 		mostRecentDrawnLine().name = linename;
 		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
