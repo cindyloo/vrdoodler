@@ -9,7 +9,7 @@ html,
 	
 
 		font-family: Oswald;
-		font-size: 18px;
+		font-size: 20px;
 		font-style: normal;
 		font-variant: normal;
 		font-weight: 100;
@@ -53,13 +53,18 @@ body {
 		font-variant: normal;
 		font-weight: 100;
 		line-height: 30px;
-   margin:20px;
+ 
    }
    
    h2{	margin-top:50px;}
    
- div#previewVR{ float:right;margin-right:50px; }
-   
+ div#info { background-color:lightyellow}
+  div#previewVR{ float:right;margin-right:50px; background-color:lightyellow}
+ 
+div#home{
+	margin:0;
+	margin-bottom:50px;
+}  
 div#donations, .rightbar{
 	float: right;
     padding: 20px;
@@ -78,8 +83,9 @@ div#donations, .rightbar{
     padding-top: 70px;
     padding-bottom: 40px;
     padding-right: 29px;
-    margin-left:10px;
+    margin:0;
     margin-top:50px;
+    margin-left:100px;
     background: url("../assets/images/paint.png") no-repeat center left;	
    	
    	}
