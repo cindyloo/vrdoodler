@@ -45,10 +45,9 @@ body {
 }
 
 
-   div.container, h2, .h2, h4, .h4, h3, .h3{
+div.container, h2, .h2, h4, .h4, h3, .h3{
 
 		font-family: Oswald;
-
 		font-style: normal;
 		font-variant: normal;
 		font-weight: 100;
@@ -58,11 +57,11 @@ body {
    
    h2{	margin-top:50px;}
    
- div#info { background-color:lightyellow}
-  div#previewVR{ float:right;margin-right:50px; background-color:lightyellow}
+div#info { background-color:lightyellow}
+div#previewVR{ float:right;margin-right:50px; background-color:lightyellow}
  
 div#home{
-	margin:0;
+	
 	margin-bottom:50px;
 }  
 div#donations, .rightbar{
