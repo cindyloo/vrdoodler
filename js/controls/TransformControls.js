@@ -80,7 +80,7 @@
 	THREE.TransformGizmo = function () {
 
 		var scope = this;
-		var showPickers = false; //debug
+		var showPickers = true; //debug
 		var showActivePlane = false; //debug
 
 		this.init = function () {
@@ -975,18 +975,19 @@
 			onPointerHover( event );
 
 		}
-
-		function intersectObjects( pointer, objects ) {
-
+function intersectObjects( pointer, objects ) {
+		//mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+		//mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
 			var rect = domElement.getBoundingClientRect();
-			var x = ( pointer.clientX - rect.left ) / rect.width;
-			var y = ( pointer.clientY - rect.top ) / rect.height;
+			var x = ( pointer.clientX / window.innerWidth ) * 2 ;//( pointer.clientX - rect.left ) / rect.width;
+			var y = - ( (pointer.clientY- container.offsetTop)/ window.innerHeight ) * 2;//( pointer.clientY - rect.top ) / rect.height;
 
-			pointerVector.set( ( x * 2 ) - 1, - ( y * 2 ) + 1, 0.5 );
+			//pointerVector.set( ( x * 2 ) - 1, - ( y * 2 ) + 1, 0.5 );
+			pointerVector.set(  x - 1.201, y + 1.295, 0.5 );
 			pointerVector.unproject( camera );
 
-			ray.set( camPosition, pointerVector.sub( camPosition ).normalize() );
-
+			//ray.set( camPosition, );
+raycaster.setFromCamera( pointerVector.sub( camPosition ).normalize() , camPosition );
 			var intersections = ray.intersectObjects( objects, true );
 			return intersections[0] ? intersections[0] : false;
 

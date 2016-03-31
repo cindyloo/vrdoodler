@@ -80,6 +80,7 @@
 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	<script src="http://threejs.org/examples/js/controls/VRControls.js"></script>	
 	<script src="js/controls/DeviceOrientationControls.js"></script>
+		<script src="js/controls/TransformControls.js"></script>
   	<script src="js/effects/StereoEffect.js"></script>
   
 
@@ -163,7 +164,11 @@
 		<section>
 		<ul>
 	
-			<li><form class="draw_mode"><input id="draw" class="mytt" type="radio" name="drawmode" value="draw" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span><input id="orbit" type="radio"  name="drawmode" value="orbit"/><span class="input_label">orbit</span> </form></li>
+			<li><form class="draw_mode">
+				<input id="draw" class="mytt" type="radio" name="drawmode" value="1" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span>
+				<input id="orbit" type="radio"  name="drawmode" value="0"/><span class="input_label">orbit</span>
+				<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+				</form></li>
 
 			<li><form><input id="snapTo" type="checkbox" class="mytt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
 	
@@ -179,13 +184,13 @@
 				<div>
 					<div id="preview">
 						<input type="file" name="file" id="import" class="inputfile tt" />
-						<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ or an image: JPG/PNG file">Import</label>
+						<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ or an image: JPG/PNG file">Load...</label>
 					</div>
 					<a class="imgclose" id="imgclose"></a>
 				</div>
 			</li>
 
-			<li><input id="exportLine" type="button" class="tt" value="Export" data-toggle="tooltip" title="Export drawing as an OBJ file"/></li>
+			<li><input id="exportLine" type="button" class="tt" value="Download" data-toggle="tooltip" title="Export drawing as an OBJ file"/></li>
 
 			<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
 		
@@ -224,7 +229,8 @@
     var geometry, material, mesh;
     var controls, minicamera;
     var effects, vrmanager;
-    var orientControls;
+    var defaultControls, orientControls, transformControls;
+    var transGeo, transMat;
  	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
@@ -256,6 +262,7 @@
 	var FREEHANDMODE = 1;  //when drawing
 	var SNAPMODE = 0;		//snap to pre-existing line/objects	
 	var DRAWMODE = 0;//ORBITMODE;
+	var MOVEMODE=0;
 	var CURRENTLINEWIDTH = 2;
 	var PLANEROTATIONCOLOR = 0xff000;
 	var PLANELOCK = 0;  //lock currentIntersection
@@ -350,7 +357,7 @@
 		scene = new THREE.Scene();
 
     	axisHelper = new THREE.AxisHelper(500);
-    	scene.add(axisHelper  );  
+    	//scene.add(axisHelper  );  
     	
     	
     	light = new THREE.DirectionalLight( 0xffffff );
@@ -383,11 +390,14 @@
   		scene.add(sketchContainer);
   		
   		
-		controls = new THREE.OrbitControls( camera, renderer.domElement );
-		
+		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
 		orientControls = new THREE.DeviceOrientationControls( camera );
-		//controls.addEventListener( 'change', render ); not needed b/c I have an animate loop
-		//vrControls = new THREE.VRControls(camera);
+		transformControls = new THREE.TransformControls( camera, renderer.domElement );
+		transGeo= new THREE.BoxGeometry( 1, 1, 1 );
+		transMat = new THREE.MeshBasicMaterial( {color:0xff33de } );
+				
+			
+		controls = defaultControls;
 		
 	 	 effect = new THREE.StereoEffect(renderer);
 	 	/* var params = {
@@ -430,6 +440,7 @@
 		
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('orbit').onclick = toggleDrawMode;
+		//document.getElementById('move').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
@@ -515,6 +526,24 @@
 	   
 
 	}
+	
+	/*not yet implemented*/
+	var getWhatYouCanDoMode = (function() {
+
+		/*var whatyoucando = {};
+		
+		if (input.straightline is checked)
+		
+		else if
+		
+		if (usersettings...)
+		...
+		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
+		//eval usersettings, button states, return an array of can-dos
+		
+		*/
+	})();
+	
 	
 	function onTabClick( event ) {
 		select( event.target.textContent );
@@ -724,7 +753,8 @@
 	
 				object.traverse( function ( child ) {						
 						if ( child instanceof THREE.Line ) { //THREE.Line
-									initNewLine(null, null, child.geometry, child.geometry.attributes.position);
+									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
+									initNewLine(null, null, child);
 						}
 					 });
 				
@@ -791,6 +821,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             
             effect.setSize(window.innerWidth, window.innerHeight);
+            render();
 	}
 
 
@@ -939,7 +970,9 @@
 				$("#snapTo").prop("disabled", userSettings.snapMode);
 				changeControls(false);
 				
-				setupGrid();				
+				setupGrid();	
+				$("#grid").prop("checked",true);
+				$("#grid").prop("disabled",true);			
 				
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
@@ -965,7 +998,7 @@
 				
 				$(".hero-unit").css("visibility","visible");
 				setupGrid();
-				
+				$("#grid").prop("disabled",false);	
 
 				tuteBegCount = 0;
 				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
@@ -1088,16 +1121,51 @@
 			camera.position.copy( prevCamera.position );
 			camera.rotation.copy( prevCamera.rotation );
 		}
-		
+	
 
-		if (!DRAWMODE){
+		if (DRAWMODE == 2){ //MOVEMODE){
+			document.removeEventListener('mousedown', onSketchMouseDown, false);
+			document.removeEventListener('mousemove', onSketchMouseMove, false);
+			document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			scene.remove(plane);
+			scene.remove(planeLockOutline);
+			scene.remove( transformControls );
+			scene.remove(scene.getObjectByName("transform"));
+			controls.enabled = false;
+				
+				
+				controls = transformControls;
+				
+			
+				
+				controls.addEventListener( 'change', render );
+				//controls.detach( mesh );
+
+				//var mesh = new THREE.Mesh( transGeo, transMat );
+				//mesh.name = "transform";
+				//scene.add( mesh );
+				//mesh.position.set(0,0,0);
+				controls.attach( lastIntersected );
+				scene.add( controls );
+				controls.enabled = true;
+				//controls.setMode( "translate" );
+				//controls.gizmo["translate"].show();
+				
+
+		}else if (DRAWMODE ==0){
+		document.addEventListener('mousedown', onSketchMouseDown, false);
+			controls = defaultControls;
 			controls.enabled = true;
 			controls.object = camera;
+			  
+					
 			
-			
-		}else{ //if EXTRUDEMODE  //acutally suggesting a flow draw...
+		}else{ //
+		document.addEventListener('mousedown', onSketchMouseDown, false);
+		controls = defaultControls;
 			controls.object = camera;
 			controls.enabled = false;
+			 		
 		}
 		controls.target = lastIntersectedPoint;
 		camera.lookAt(lastIntersectedPoint);
@@ -1108,10 +1176,11 @@
 	
 
 	
-	function setDrawMode(onoroff){
-	 	DRAWMODE = onoroff;
-	 	$("#draw").prop("checked",DRAWMODE);
-	 	$("#orbit").prop("checked",!DRAWMODE);
+	function setDrawMode(type){
+	 	DRAWMODE = parseInt(type);
+	 	$("#draw").prop("checked",(DRAWMODE ==1));
+	 	$("#orbit").prop("checked",(DRAWMODE==0));
+	 	$("#move").prop("checked",(DRAWMODE==2));
 	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
 		console.log("draw mode is " + DRAWMODE);
 	
@@ -1125,9 +1194,12 @@
 	
 	
 /* if draw, mouse draws (snapping or not). if false, mouse moves camera */
-	function toggleDrawMode(){
-       
-		DRAWMODE = DRAWMODE?setDrawMode(0):setDrawMode(1);       
+	function toggleDrawMode(e){
+	var target ;
+       if (e == null) target = DRAWMODE?0:1;
+       else target = e.currentTarget.value;
+		setDrawMode(target);   
+     
 		changeControls(true);		
     	return DRAWMODE;
 	}
@@ -1170,19 +1242,16 @@
 		if (plane){
 			plane.rotation.x= 0;
 			plane.rotation.z= 0;
-			planeLockOutline.rotation.x= 0;
-			planeLockOutline.rotation.z= 0;
-			planeLockOutline.lookAt(cameraclone.position);
+			
+			cameraclone.position.setY(planeLockOutline.position.y);
+			planeLockOutline.lookAt(cameraclone.position); //at same level as y of intersection
+			
 			
 			if (!keepOrientation){
 				plane.rotation.y= 0;
 				planeLockOutline.rotation.y = 0;
 			}
 			
-			if (planeBounds){//not currently used
-				planeBounds.rotation.z = 0;
-				planeBounds.rotation.x = 0;
-			}
 		}
 	}
 	
@@ -1459,7 +1528,7 @@
 					mouse.y,
 					0.5 );
             
-            if(DRAWMODE){
+            if(DRAWMODE ==1){
             	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
             	
             		if (plane.position !== undefined  && rayPointIndSphere.position !== undefined){  //plane-of-interest better be valid!
@@ -1522,7 +1591,7 @@
     function onSketchMouseUp(evt) {
     	document.removeEventListener("mousemove",onSketchMouseMove,false);
   	
-    	if (DRAWMODE){
+    	if (DRAWMODE ==1){
     	
 			bIsDrawing=false;
 			
@@ -1569,10 +1638,11 @@
 
 
 	/* setup buffer geometry to store drawn vertices*/
-	function initDrawnLine(geometry, positions,mv){
+	function initDrawnLine(lineImported,mv){
 		
 		var linename;
-		if (!geometry){  //freehand or snap, doesn't matter, init the line
+		var newOrImportedLine;
+		if (!lineImported){  //freehand or snap, doesn't matter, init the line
 			geometry = new THREE.BufferGeometry();
 			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
 			countVertices = 0;
@@ -1585,20 +1655,24 @@
 			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
 			geometry.setDrawRange( 0, 1 );	
 			linename = "line";
+			
+			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
+			newOrImportedLine = new THREE.Line( geometry,  linematerial );
 		
 		}else{ //loaded from OBJ file
 			
-			geometry.addAttribute( 'position', positions )
-			geometry.setDrawRange( 0, geometry.attributes.position.count-1 );
+			//lineImported.geometry.addAttribute( 'position', positions )
+			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
 			linename = "lineimported";
+			newOrImportedLine = lineImported;//.clone();
 		}
 	
 		
-		linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
+		
 	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
 	    
 		
-		drawnline.push(new THREE.Line( geometry,  linematerial )); //to store line	
+		drawnline.push(newOrImportedLine); //to store line	
 		mostRecentDrawnLine().position = mv; //for later...
 		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
 		mostRecentDrawnLine().name = linename;
@@ -1610,14 +1684,18 @@
 	}
 	
 
-	function addToContainer(newline){
+	function addToContainer(newline, group){
 	
 		//create new group or add to pre-existing 
 		
 		var lineGroup; 
-		if (lastLineIntersection && lastLineIntersection.name == "line"){
+		if (group != null){
+			group.parent.name="linegroup";
+			objContainer.add(group.parent);
+		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
 			lastLineIntersection.parent.add(newline);
 			lastLineIntersection = null;
+		
 		}else{
 		
 			lineGroup = new THREE.Object3D();
@@ -1635,20 +1713,20 @@
 		
 	//called from mouseDown
 	//works for importing from file or if using mouse to start line
-	function initNewLine(mouseVec, bUnproject, geo,positions){
+	function initNewLine(mouseVec, bUnproject, lineImported){
 
 		
-		if (!geo){
+		if (!lineImported){
 			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
 			 if (bUnproject)
 				vNow.unproject(camera);
 		
-			initDrawnLine(null, null, vNow);
+			initDrawnLine(null, vNow);
 
 		}else //from import
-		 	initDrawnLine(geo, positions);
+		 	initDrawnLine(lineImported);
 		
-		addToContainer( mostRecentDrawnLine() );
+		addToContainer( mostRecentDrawnLine(), lineImported );
 		
 		
 	
@@ -1669,7 +1747,7 @@
           	mouse.x = ( evt.clientX / window.innerWidth ) * 2 -mouseXOFFSET;
   			mouse.y =  - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
        		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-			if (DRAWMODE > ORBITMODE){
+			if (DRAWMODE == 1){
 			
 			
 				//was there an intersection with a line? if so, save it b/c we are about to raycast the plane instead
@@ -1716,7 +1794,11 @@
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
 			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
-			planeLockOutline.lookAt(camera.position);
+			
+			var cameraclone = camera.position.clone();
+			cameraclone.setY(planeLockOutline.position.y);
+			planeLockOutline.lookAt(cameraclone);
+
 			planeLockOutline.visible = true;
 			planeLockOutline.name = name;
 			planeLockOutline.material.wireframe = true;
@@ -1990,7 +2072,7 @@
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 		
-		if (!runPlayBack()){
+		if (!runPlayBack() && DRAWMODE ==1){
 			raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
 			
 			var intersects = raycaster.intersectObjects( objContainer.children, true);
@@ -2031,7 +2113,8 @@
 
 			//renderer.render( scene, camera );
   		}else{
-  		
+  		if (controls.gizmo) controls.gizmo["translate"].show();
+  		controls.update();
   		
 			minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
