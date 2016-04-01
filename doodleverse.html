@@ -1,0 +1,1040 @@
+ <!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>VRDoodler!!!-beta</title>
+ <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+	<!--<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+	<link rel="stylesheet" href="css/style.css">-->
+	
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script>
+		// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+		isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+		// Firefox 1.0+
+		isFirefox = typeof InstallTrigger !== 'undefined';
+		// At least Safari 3+: "[object HTMLElementConstructor]"
+		isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+		// At least IE6
+		isIE = /*@cc_on!@*/false || !!document.documentMode;
+		// Edge 20+
+		isEdge = !isIE && !!window.StyleMedia;
+		// Chrome 1+
+		isChrome = !!window.chrome && !!window.chrome.webstore;
+		// Blink engine detection
+		isBlink = (isChrome || isOpera) && !!window.CSS;
+		
+		if(isChrome || isFirefox){
+		   // is Google Chrome on IOS
+		} else { 
+		  alert("VRDoodler requires Chrome or FF");
+		 } 
+		 
+		 
+		 
+		 function isMobBrowser() { 
+			 if( navigator.userAgent.match(/Android/i)
+			 || navigator.userAgent.match(/webOS/i)
+			 || navigator.userAgent.match(/iPhone/i)
+			 || navigator.userAgent.match(/iPad/i)
+			 || navigator.userAgent.match(/iPod/i)
+			 || navigator.userAgent.match(/BlackBerry/i)
+			 || navigator.userAgent.match(/Windows Phone/i)
+			 ){
+				return true;
+			  }
+			 else {
+				return false;
+			  }
+		}
+		 
+		var getParams = (function() {
+	
+			var _get = {};
+			var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+			while (m = re.exec(location.search))
+				_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+			return _get;
+		})();
+		
+		
+		function inMobileMode(){
+		
+			if (isMobBrowser() || getParams["mobile"] == 1)
+				return true;
+			else
+				return false;
+		
+		}
+	 
+	</script>
+
+
+	
+	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
+	<!--	<script src="js/controls/TransformControls.js"></script>-->
+  	<!--<script src="js/effects/StereoEffect.js"></script>-->
+
+   <script src="js/three.js"></script>
+
+<!--
+  VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+   -->
+<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
+
+<!--
+  VREffect.js handles stereo camera setup and rendering.
+  -->
+<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+
+<!--
+  A polyfill for WebVR using the Device{Motion,Orientation}Event API.
+  -->
+<script src="js/webvr-polyfill.js"></script>
+
+<!--
+  Helps enter and exit VR mode, provides best practices while in VR.
+  -->
+<script src="js/webvr-manager.js"></script>
+    <script src="js/exporters/OBJExporter.js"></script>
+	<script src="js/loaders/OBJLoader.js"></script>
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-75274623-1', 'auto');
+	  ga('send', 'pageview');
+	
+	</script>
+
+ <script id="vertexShader" type="x-shader/x-vertex">  
+      
+	varying vec2 vUv;
+	uniform float color;
+	varying float noise;
+	uniform float time;
+	
+	
+	
+	
+	void main() {
+	
+		vUv = uv;
+	
+		// add time to the noise parameters so it's animated
+		//noise = 15.0 *  -.10 * turbulence( .2 * normal + time );
+		//float b = 2.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 2.0 ) );
+		//float displacement = noise/.5;
+		//- noise + b;
+		//sin(fTimer+Tex.x*10)*0.01f;
+		//	float newXPosition = sin(time + position.x * 2.)  ;
+		
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position,1.0 );
+	
+	}
+               
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+
+    varying vec2 vUv;
+	uniform float color;
+	void main() {
+
+    // colour is RGBA: u, v, 0, 1
+	//gl_FragColor = vec4( vec3(color), 1. );
+
+	}
+    </script>
+    
+    <script src="js/shaders/LineDisplacementShader.js"></script>
+
+    
+    
+    
+  <body>  
+  
+	<div class="top-unit">
+		<h4><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h4>
+		
+	</div>
+	
+
+</body>
+
+
+
+<script>
+ 
+ 
+ 	var camera, scene, expScene, renderer,orbitcamera,light;
+    var geometry, material, mesh;
+    var controls, minicamera;
+    var effects, vrmanager;
+    var defaultControls, orientControls, transformControls;
+    var transGeo, transMat;
+ 	var context = null;
+	var currentPlane = 0;
+	var drawnline = [];
+	var container, canvas;
+
+	
+	var manager;
+
+
+	var MAX_POINTS = 2000;
+	var CURRENT_LONGEST_LINE_LENGTH = 0; //change this once we get our first line...
+	var countVertices = 0;
+	var sketchContainer,objContainer ;
+	var CURRENTspline = -1; //incremented at initNewLine
+var grid ;
+	var mouse = new THREE.Vector2();
+	var mouseXOFFSET = 1.01;
+	var mouseYOFFSET = .975;
+	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
+	var lastLineIntersection = null;
+	
+	var axisHelper;
+	var bIsDrawing = false;
+	var bShowInfo = true;
+	
+	var copiedObj = null;
+	
+	var ORBITMODE = 0;  //when not drawing
+	var FREEHANDMODE = 1;  //when drawing
+	var SNAPMODE = 0;		//snap to pre-existing line/objects	
+	var DRAWMODE = 0;//ORBITMODE;
+	var MOVEMODE=0;
+	var CURRENTLINEWIDTH = 2;
+	var PLANEROTATIONCOLOR = 0xff000;
+	var PLANELOCK = 0;  //lock currentIntersection
+	var STEREOSCOPIC = 0;
+	
+	var SNAPPLANETOGRID = 0;
+	
+	var cameraAngle = 0;
+	var pivotRadius = 1;
+	var pivotPoint;
+	var initCamRotPos =0;
+	var squareAngle = 90 * Math.PI/180;
+	var plane, planegeo, planemat,planeBoundsMat, planeBounds;
+	var PLANEROTATE = 0;
+	var COLOR = 0;
+	var linematerial = null;
+
+	var edges, cameraHelp;
+	
+	var start = Date.now();
+	var clock = new THREE.Clock();
+	var PLAYBACK = 0;
+	var playBackCount = 0;
+	var PLAYBACKSPEED = .0005;
+	
+	var userSettings = {};
+	
+	var defUserSettings = {
+	
+		userLevel:0,
+		snapMode:1,
+		drawMode:1,
+		lockPlane:1
+
+	
+	};
+	
+	var advUserSettings = {
+	
+		userLevel:2,
+		snapMode:0,
+		drawMode:0,
+		lockPlane:1
+
+	
+	};
+
+
+	
+
+	function init(){	
+		container = document.createElement( 'div' );
+		container.style.position = 'absolute';
+		container.style.top = '0';
+		container.style.width = '100%';
+		container.style.textAlign = 'center';
+		container.style.color = '#000';
+		container.style.fontWeight = 'bold';
+		container.style.backgroundColor = '#000';
+		container.style.zIndex = '1';
+		container.style.fontFamily = 'Monospace';
+		document.body.appendChild( container );
+
+	
+		scene = new THREE.Scene();
+
+    	axisHelper = new THREE.AxisHelper(500);
+    	//scene.add(axisHelper  );  
+    	
+    	
+    	light = new THREE.DirectionalLight( 0xffffff );
+		scene.add( light );
+    	renderer = new THREE.WebGLRenderer( { antialias: false } );		
+		renderer.setSize( window.innerWidth, window.innerHeight );
+	
+		renderer.autoClear = false;	
+		container.appendChild( renderer.domElement );
+	
+		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set(1, 1, 1);
+		camera.name="orig";
+
+		minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		minicamera.name="mini";
+		scene.add(minicamera);
+		
+		
+
+		//TODO merge the settings param here - when we have a user config
+
+			   		   
+		sketchContainer = new THREE.Object3D();  //helpers etc that aren't included in raycasting
+		objContainer = new THREE.Object3D();
+		objContainer.name = "objContainer";
+		objContainer.geometry = null;
+
+  		scene.add(objContainer);
+  		scene.add(sketchContainer);
+  		
+  		
+		
+		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
+		setupGrid();
+	
+			
+		controls = orientControls;
+
+		/*WebVR boilerplate implmentation */
+	 	effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
+		
+	 	 var params = {
+		  hideButton: false, // Default: false.
+		  isUndistorted: false // Default: false.
+		};
+		vrmanager = new WebVRManager(renderer, effect, params);
+  		    
+   		vrmanager.button.vrButton.style.width = '50px';
+   		vrmanager.button.vrButton.style.height ='50px';
+  		
+			
+		geometry = new THREE.SphereGeometry( .1 );
+		material = new THREE.MeshBasicMaterial( { color: 0x003333 } ); //???
+		
+		
+		window.addEventListener('resize', onWindowResize, false);
+		//document.getElementById("playback").onclick = togglePlayBackMode;
+
+		
+        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+		
+		
+		//window.addEventListener('deviceorientation', setOrientationControls, true);
+            
+       
+		 manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+				console.log( item, loaded, total );
+
+		};
+	
+		
+		$(document).ready(function(){
+		
+			$('input').tooltip(); 	
+			$('input').click(function() {
+			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
+				
+			});	
+			
+
+			$( "#playBackSpeedSlider" ).slider({
+			  min:10,
+			  max:20,
+			  change: function( event, ui ) {
+				PLAYBACKSPEED = (ui.value)/1000;
+				}
+			});
+	
+			$( "#lineWidthSlider" ).slider({
+				min:2,
+				max:40,
+				change: function( event, ui ) {
+					CURRENTLINEWIDTH = ui.value;
+				}
+			});
+			
+		
+			$("a.imgclose").click(function(e,preview, image){
+				$(this).parent().find("img").remove();
+				objContainer.remove(scene.getObjectByName("photosphere"));
+				objContainer.remove(scene.getObjectByName(f.name));
+				$("#preview").css("margin-bottom",10);
+				$(this).css("visibility","hidden");
+			});
+				
+			$("#help").hover(function() {
+					advanceInstructions()
+				  });
+				  
+			  
+		
+			if (inMobileMode())
+				 toggleStereoscopic();
+ 
+	  });
+	
+	   
+
+	}
+	
+	/*not yet implemented*/
+	var getWhatYouCanDoMode = (function() {
+
+		/*var whatyoucando = {};
+		
+		if (input.straightline is checked)
+		
+		else if
+		
+		if (usersettings...)
+		...
+		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
+		//eval usersettings, button states, return an array of can-dos
+		
+		*/
+	})();
+	
+	
+	function onTabClick( event ) {
+		select( event.target.textContent );
+	}
+	
+	function select(section){
+		$("#begTab").attr("class","");
+		$("#advTab").attr("class","");
+	
+		switch (section){
+			case "beginner":
+				$("#begTab").attr("class","selected");
+				setTutorialLevel(0);
+				break;
+			case "advanced":
+				$("#advTab").attr("class","selected");
+				setTutorialLevel(2);
+				break;
+				
+		
+		}
+	}
+	
+	/*local file download*/
+	var saveFileLocally = (function () {
+		var a = document.createElement("a");
+		document.body.appendChild(a);
+		a.style = "display: none";
+		return function (data, fileName) {
+			var json = JSON.stringify(data),
+				blob = new Blob([data], {type: "octet/stream"}),
+				url = window.URL.createObjectURL(blob);
+			a.href = url;
+			a.download = fileName;
+			a.click();
+			window.URL.revokeObjectURL(url);
+		};
+	}());
+
+
+	function prepAndExport(){
+		convertBuffGeoToGeo();
+		exportToObj();//expscene
+	
+	}
+	function convertBuffGeoToGeo(){
+		
+		expScene = new THREE.Scene();
+		for (var i = 0;i<objContainer.children.length;i++){
+			/*temp = new THREE.Mesh( drawnline[i],  linematerial );
+			temp.position.copy(drawnline[i].userData);
+			temp.name="exportedLine" + i;*/
+			if (objContainer.children[i].name == "linegroup")
+				expScene.add(objContainer.children[i].clone());
+		}
+		//return exportGeo;
+	}
+
+	function exportToObj ()
+			{				
+				var exporter = new THREE.OBJExporter();
+				var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
+				
+				saveFileLocally(result, "myDrawing.obj");
+				
+				var xmlhttp = new XMLHttpRequest();
+				xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
+				xmlhttp.onreadystatechange = function () {
+				  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+					//Handle response
+				  }
+				};
+				 xmlhttp.send(result);				
+	}
+	
+	
+	/*if URL params say load the doodleverse */
+	function loadInitialImages(dir){
+		    var xhrImg = new XMLHttpRequest();
+ 
+       		xhrImg.onreadystatechange=function() {
+				if (xhrImg.readyState==4 && xhrImg.status==200) {	
+				
+					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
+						
+						
+						dir = "assets/doodleverse/";
+						var images = [dir + "trees_and_buildings.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						 handleImport(images);
+					}
+					else{
+						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
+						
+			
+						object.name = "linedoodleverse";
+						importScene(object);					
+				  		
+				  	}
+				}else{
+					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
+							console.log("can't get file for loadInitialImages");			
+						
+					}
+				}
+			} 
+			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
+			if (location.hostname == "localhost") //debugging
+				xhrImg.open("GET", "assets/doodleverse/trees.txt");//easier to use node to get all the files in there even for debugging..);					
+			else
+				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
+	 
+			xhrImg.send();  
+
+    	}
+	function loadImages(imgArray){
+	
+			loadedImages = imgArray;
+			//create filelist or something to hand to handleImport
+			
+		}
+	
+	function handleImport() {
+  			var fileList = this.files; /* now you can work with the file list */
+  			
+  			for (var i = 0; i < fileList.length; i++) {
+  			
+  				f = fileList[i];		 
+				var reader  = new FileReader();
+				var extension;
+				if (f.name)
+					extension = f.name.split( '.' ).pop().toLowerCase();
+				else
+					extension = f.split( '.' ).pop().toLowerCase();
+
+				
+				switch(extension){
+					case 'json':
+					case '3geo':
+					case '3mat':
+					case '3obj':
+					case '3scn':
+	
+					reader.addEventListener( 'load', function ( event ) {
+						
+						var contents = event.target.result;
+						try {
+							data = JSON.parse( contents );
+						} catch ( error ) {
+							alert( error );
+							return;
+						}
+						importJSONObject( f.name, data );
+	
+					}, false );
+					reader.readAsText( f );	
+					break;
+	
+				case 'obj':
+				case 'txt':
+	
+					reader.addEventListener( 'load', function ( event ) {
+						var contents = event.target.result;
+						var object = new THREE.OBJLoader().parse( contents );
+						object.name = f.name;
+						importScene(object);					
+					}, false );
+					reader.readAsText( f );
+						
+					
+					break;
+					
+				case 'jpg':
+				case 'png':
+					var photo;
+					var preview = document.querySelector('#preview');
+					
+				 	reader.addEventListener("load", function () {
+						var image= new Image();
+						var image2 = new Image();
+						image.height = 1000;
+						image.title = f.name;
+						image.src = this.result;
+						image2.height = 100;
+						image2.title = f.name;
+						image2.src = this.result;
+						preview.appendChild( image2);
+						$("#preview").css("margin-bottom",120);
+	
+						var texture = new THREE.Texture( image );
+						texture.name=f.name;
+						texture.needsUpdate = true;
+						var psphere = makePhotoSphere(texture,25, 100);
+						
+						$("a.imgclose").css("visibility","visible");
+					});
+			
+				  	reader.readAsDataURL(f);
+					break;
+				}	
+  			} //for
+		}
+	
+	
+	function importScene(object){  //if in a group, we want to preserve it... have to change initNewLine...
+	
+				object.traverse( function ( child ) {						
+						if ( child instanceof THREE.Line ) { //THREE.Line
+									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
+									initNewLine(null, null, child);
+						}
+					 });
+				
+
+	}
+
+	
+	/* right outta the three.js editor. thanks @mrdoob! */
+	function importJSONObject(fn,data){
+		var material;
+				
+	    var loader = new THREE.JSONLoader();
+		var result = loader.parse( data );
+		if ( result.materials !== undefined ) {
+
+				if ( result.materials.length > 1 ) {
+					material = new THREE.MultiMaterial( result.materials );
+				} else {
+					material = result.materials[ 0 ];
+				}
+		} else {
+			material = new THREE.MeshStandardMaterial();
+		}
+
+		var geo = result.geometry;
+		geo.sourceType = "ascii";
+		geo.sourceFile = fn;
+
+		var mesh;
+
+		if ( geo.animation && geo.animation.hierarchy ) {
+			mesh = new THREE.SkinnedMesh( geo, material );
+		} else {
+			mesh = new THREE.Mesh( geo, material );
+		}
+		
+		var pos = new THREE.Vector3(0,0,0);	
+		if (currentIntersected)
+			pos = currentIntersected.position.copy();
+		mesh.position.set(pos);
+	
+		mesh.userData.name = "fromjson";		
+		objContainer.add( mesh );
+	
+	}
+
+
+
+	var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+	var onError = function ( xhr ) {
+	};
+	
+
+
+	
+	
+	function onWindowResize() {
+		var width = container.offsetWidth;
+        var height = container.offsetHeight;
+       
+	
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
+            render();
+	}
+
+
+
+	
+	function toggleStereoscopic(){
+		STEREOSCOPIC = STEREOSCOPIC?0:1;
+	 	
+	 	if (STEREOSCOPIC){
+	 		$(".hero-unit").css("visibility","hidden");
+	 		$(".top-unit").css("background-color","black");
+	 		if (window.screen.width < 500)
+	 			$("#stereoView").css("visibility","hidden");
+	 		//setDrawMode(0);
+	 		//setSnapMode(0);
+	 		orientControls.enabled=true;
+	 		setOrientationControls();
+	 		
+	 	}
+	 	else{
+	 		$(".hero-unit").css("visibility","visible");		
+	 		//controls.enabled = true;
+       		//orientControls.enabled=false;
+	 	}
+	
+		
+	
+	}
+	
+	
+	function setupGrid(){
+		if (!grid){grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );
+		}
+		grid.visible = true;
+		
+	}
+	function toggleGrid(){
+		if (userSettings.userLevel >0){
+			if (grid){
+				grid.visible = grid.visible?false:true;
+				axisHelper.visible = axisHelper.visible?false:true;
+			}else{
+				setupGrid();
+			}
+		}
+		$("#grid").prop("checked",grid.visible);
+	}
+
+
+      function setOrientationControls(e) {
+        if (e && !e.alpha) {
+          return;
+        }
+		//controls.enabled =false;
+
+        //orientcontrols = new THREE.DeviceOrientationControls(camera, true);
+        //orientcontrols.connect();
+        orientControls.update();
+       /* if (lastIntersectedPoint)
+        	camera.lookAt(lastIntersectedPoint);
+        else
+        	camera.lookAt(0,0,0);
+*/
+        if (mostRecentDrawnLine() == null)
+        	loadInitialImages();
+        
+        
+        //window.removeEventListener('deviceorientation', setOrientationControls, true);
+      }
+      
+
+    
+
+	/* setup buffer geometry to store drawn vertices*/
+	function initDrawnLine(lineImported,mv){
+		
+		var linename;
+		var newOrImportedLine;
+		if (!lineImported){  //freehand or snap, doesn't matter, init the line
+			geometry = new THREE.BufferGeometry();
+			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+			countVertices = 0;
+			if (mv){
+				positions[0] = mv.x;
+				positions[1] = mv.y;
+				positions[2] = mv.z;
+				countVertices = 1;
+			}
+			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
+			geometry.setDrawRange( 0, 1 );	
+			linename = "line";
+			
+			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
+			newOrImportedLine = new THREE.Line( geometry,  linematerial );
+			drawnline.push(newOrImportedLine); //to store line	
+		mostRecentDrawnLine().position = mv; //for later...
+		
+		}else{ //loaded from OBJ file
+			
+			//lineImported.geometry.addAttribute( 'position', positions )
+			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
+			linename = "lineimported";
+			newOrImportedLine = lineImported;//.clone();
+			drawnline.push(newOrImportedLine); //to store line	
+			//if (currentIntersected)
+			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
+			//this doesn't work so well if the line is then copied and pasted...
+		}
+	
+		
+		
+	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
+	    
+		
+		
+		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
+		mostRecentDrawnLine().name = linename;
+		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
+		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
+	
+	
+	console.log("init new Line");
+	}
+	
+
+	function addToContainer(newline, group){
+	
+		//create new group or add to pre-existing 
+		
+		var lineGroup; 
+		if (group != null){
+			group.parent.name="linegroup";
+			objContainer.add(group.parent);
+		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
+			lastLineIntersection.parent.add(newline);
+			lastLineIntersection = null;
+		
+		}else{
+		
+			lineGroup = new THREE.Object3D();
+			lineGroup.add(newline);  
+			lineGroup.name="linegroup";
+			objContainer.add(lineGroup);
+			
+			
+		}
+	
+	
+	
+	}
+	
+		
+	//called from mouseDown
+	//works for importing from file or if using mouse to start line
+	function initNewLine(mouseVec, bUnproject, lineImported){
+
+		
+		if (!lineImported){
+			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
+			 if (bUnproject)
+				vNow.unproject(camera);
+		
+			initDrawnLine(null, vNow);
+
+		}else //from import
+		 	initDrawnLine(lineImported);
+		
+		addToContainer( mostRecentDrawnLine(), lineImported );
+		
+		
+	
+	}
+
+
+	function mostRecentDrawnLine(){
+		CURRENTspline = drawnline.length -1;
+		return drawnline[CURRENTspline];
+	}
+
+    	
+	
+	
+
+ 
+		
+	function makePhotoSphere( tex, w, h){
+	
+	
+			var mesh;
+			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
+			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
+			mesh.name="photosphere";
+			objContainer.add(mesh);
+			
+			return mesh;
+	}
+	
+
+	
+	
+	function togglePlayBackMode(){
+	
+		PLAYBACK = PLAYBACK?0:1;
+		if (PLAYBACK) {
+			clock.start();
+			
+		}else{
+			clock.stop();
+			for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
+			}
+		}
+		return PLAYBACK;
+	
+	}
+	
+	function runPlayBack(){
+	
+		if (PLAYBACK){
+			for (var i=0;i< drawnline.length;i++){
+				if (drawnline[i] === undefined){  //if any weirdness, clean it up
+					drawnline.splice(i,1);
+					continue;
+				}
+				if ((drawnline[i].geometry.attributes.position.count/3) > CURRENT_LONGEST_LINE_LENGTH) 
+					CURRENT_LONGEST_LINE_LENGTH = (drawnline[i].geometry.attributes.position.count/3);
+				var count = playBackCount;
+				//determine what should be drawn
+				//count from 0 to length vertices of line..
+				//right now we are just going to animate each line at the same time....
+				
+				//truncate the count b/c playBackCount is the long pole
+				if (playBackCount > drawnline[i].geometry.attributes.position.count)  //what?
+					count =	drawnline[i].geometry.attributes.position.count;
+				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
+				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
+			}
+
+			if (clock.getDelta() > PLAYBACKSPEED){
+				playBackCount++;
+				start = Date.now();
+				console.log("playbackcount "+ playBackCount);
+			}
+			
+			if (playBackCount > CURRENT_LONGEST_LINE_LENGTH)	
+				playBackCount = 0;
+		}	
+		
+		
+		return PLAYBACK;
+		
+	}
+	
+	
+	
+	
+
+	function animate(timestamp) {
+
+		requestAnimationFrame(animate);
+
+		
+		camera.updateMatrixWorld();
+		camera.updateProjectionMatrix();
+		
+		
+		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
+		render(timestamp);	 
+		  
+	
+	
+	   } 
+	   
+	function render(timestamp) {
+		
+
+		renderer.setClearColor( 0x000000);
+
+
+		if (STEREOSCOPIC){
+		
+			 	orientControls.update();
+			 vrmanager.render(scene, camera, timestamp);
+			//effect.render(scene, camera);
+				//orientControls.object = camera;
+		
+    		//effect.render(scene, camera);
+ 
+  
+
+			
+
+			//renderer.render( scene, camera );
+  		}else{
+  			if (controls.gizmo) controls.gizmo["translate"].show();
+  			controls.update();
+  		
+			minicamera.position.set(5,5,5);
+			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+				
+			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
+			renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
+			renderer.setScissor( 10, 10, 200, 200  );
+						//renderer.setScissorTest( true );
+						//renderer.setClearColor( view.background );
+			minicamera.updateProjectionMatrix();
+			renderer.render( scene, minicamera );
+				
+					
+			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
+			renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
+			camera.updateProjectionMatrix();
+	 
+			renderer.render( scene, camera );
+  		}
+  			//renderer.clearDepth();
+	}
+		
+	init();
+	//cameraHelp = new THREE.CameraHelper(camera);
+	//scene.add(cameraHelp);
+	animate();
+	
+</script>
+</html>
