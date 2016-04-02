@@ -2,13 +2,17 @@
 <head>
     <meta charset="utf-8">
     <title>VRDoodler!!!-beta</title>
- 
+ <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
 	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-<link rel="stylesheet" href="build/css/glyphicon-cheatsheet.min.css">
+
 	<link rel="stylesheet" href="css/style.css">
 	
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
@@ -71,28 +75,26 @@
 				return false;
 		
 		}
-	
-
-		 
-		 
+	 
 	</script>
-    <script src="js/three.js"></script><!--b/c I have a hack/fix for exporting -->
-	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
-	<script src="http://threejs.org/examples/js/controls/VRControls.js"></script>	
-	<script src="js/controls/DeviceOrientationControls.js"></script>
-		<script src="js/controls/TransformControls.js"></script>
-  	<script src="js/effects/StereoEffect.js"></script>
-  
 
-<!--
-  Helps enter and exit VR mode, provides best practices while in VR.
 
-   <script src="js/src/webvr-polyfill.js"></script>
-  <script src="js/src/device-info-test.js"></script>
-<script src="js/src/webvr-manager.js"></script>
-  -->
-	<script src="js/exporters/OBJExporter.js"></script>
+	
+	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
+	<!--	<script src="js/controls/TransformControls.js"></script>-->
+  	<!--<script src="js/effects/StereoEffect.js"></script>-->
+
+    <script src="js/three.js"></script>
+   
+    <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
+	
+	<script src="js/controls/VRControls.js"></script>
+    <script src="js/effects/VREffect.js"></script>
+     <script src="js/webvr-polyfill.js"></script>
+      <script src="js/webvr-manager.js"></script>
+	
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -328,16 +330,7 @@
 	var tuteBegCount = 0;
 	var tuteAdvCount = 0;
 	
-		WebVRConfig = {
-	  // Forces cardboard distortion in VR mode.
-	  FORCE_DISTORTION: true, // Default: false.
-	  // Prevents cardboard distortion in VR mode
-	PREVENT_DISTORTION: true, // Default: false.
-	  // Override the cardboard distortion background color.
-	DISTORTION_BGCOLOR: {x: 1, y: 0, z: 0, w: 1}, // Default: (0,0,0,1).
-	  // Show eye centers (for debugging).
-	  SHOW_EYE_CENTERS: true, // Default: false.
-	};
+
 	
 
 	function init(){	
@@ -391,24 +384,32 @@
   		
   		
 		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
-		orientControls = new THREE.DeviceOrientationControls( camera );
+		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
+		
+		/* not using right now 
 		transformControls = new THREE.TransformControls( camera, renderer.domElement );
 		transGeo= new THREE.BoxGeometry( 1, 1, 1 );
-		transMat = new THREE.MeshBasicMaterial( {color:0xff33de } );
+		transMat = new THREE.MeshBasicMaterial( {color:0xff33de } );*/
 				
 			
 		controls = defaultControls;
+
+		/*WebVR boilerplate implmentation */
+	 	effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
 		
-	 	 effect = new THREE.StereoEffect(renderer);
-	 	/* var params = {
+	 	 var params = {
 		  hideButton: false, // Default: false.
 		  isUndistorted: false // Default: false.
 		};
-		vrmanager = new WebVRManager(renderer, effect, params);*/
-  		
+		vrmanager = new WebVRManager(renderer, effect, params);
+  		    
+   		vrmanager.button.vrButton.style.width = '50px';
+   		vrmanager.button.vrButton.style.height ='50px';
   		raycaster = new THREE.Raycaster();
 		raycaster.linePrecision = .055;
 		
+		/*indicator sphere */
 		var geometry = new THREE.SphereGeometry( .02,2,1 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
 		rayPointIndSphere = new THREE.Mesh( geometry, material );
@@ -416,7 +417,8 @@
 		scene.add( rayPointIndSphere );
 		
 		geometry = new THREE.SphereGeometry( .1 );
-		material = new THREE.MeshBasicMaterial( { color: 0x003333 } );
+		material = new THREE.MeshBasicMaterial( { color: 0x003333 } ); //???
+		
 		planeLockInd = new THREE.Mesh( geometry, material );
 		planeLockInd.visible = false;
 		//scene.add( planeLockInd );
@@ -438,20 +440,20 @@
 		
 		//document.getElementById('instructions').onclick = advanceInstructions;
 		
+		document.getElementById("stereoView").onclick = toggleStereoscopic;
+		document.getElementById("tabs").onclick = onTabClick;				
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('orbit').onclick = toggleDrawMode;
 		//document.getElementById('move').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
+		document.getElementById("import").onchange = handleImport;
 		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
 
-		document.getElementById("import").onchange = handleImport;
-		document.getElementById("tabs").onclick = onTabClick;
+
 		
 		document.getElementById("playback").onclick = togglePlayBackMode;
-
-		document.getElementById("stereoView").onclick = toggleStereoscopic;
 
 		/*
 		document.getElementById('colorToggle').onclick = colorToggle;*/
@@ -477,10 +479,7 @@
 		
 		$(document).ready(function(){
 		
-			$('input').tooltip(); 
-				
-		
-			
+			$('input').tooltip(); 	
 			$('input').click(function() {
 			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
 				
@@ -590,20 +589,7 @@
 	
 	}
 	function convertBuffGeoToGeo(){
-		/*var exportGeo = drawnline.map(function(eachline){
-		//mostRecentDrawnLine().geometry.computeFaceNormals(); //to avoid bug
-			var geo = new THREE.Geometry();
-			var buffgeo = eachline.geometry;
-			geo.userData = eachline.position;
-			return geo.fromBufferGeometry(buffgeo);
 		
-		});
-		linematerial = new THREE.LineBasicMaterial( { color: COLOR?0x000000:0xffffff, linewidth: getCurrentLineWidth(),smoothing:1 } );
-	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
-	   */
-	   
-	 
-	   
 		expScene = new THREE.Scene();
 		for (var i = 0;i<objContainer.children.length;i++){
 			/*temp = new THREE.Mesh( drawnline[i],  linematerial );
@@ -641,26 +627,32 @@
 				if (xhrImg.readyState==4 && xhrImg.status==200) {	
 				
 					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
+						
+						
 						dir = "assets/doodleverse/";
-						var images = [dir + "flowers.obj"];// + dir +"house.jpg",dir +"sun.jpg" ];
-						 //loadImages(images);
+						var images = [dir + "trees_and_buildings.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						 handleImport(images);
 					}
 					else{
 						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
+						
+			
 						object.name = "linedoodleverse";
 						importScene(object);					
 				  		
 				  	}
 				}else{
 					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
-						dir = "assets/doodleverse/";
-						var images = [dir + "flowers.obj"];				
-						 //loadImages(images);
+							console.log("can't get file for loadInitialImages");			
+						
 					}
 				}
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
-			xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
+			if (location.hostname == "localhost") //debugging
+				xhrImg.open("GET", "assets/doodleverse/trees.txt");//easier to use node to get all the files in there even for debugging..);					
+			else
+				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
 			xhrImg.send();  
 
@@ -677,9 +669,13 @@
   			
   			for (var i = 0; i < fileList.length; i++) {
   			
-  				f = fileList.item(i);		 
+  				f = fileList[i];		 
 				var reader  = new FileReader();
-				var extension = f.name.split( '.' ).pop().toLowerCase();
+				var extension;
+				if (f.name)
+					extension = f.name.split( '.' ).pop().toLowerCase();
+				else
+					extension = f.split( '.' ).pop().toLowerCase();
 
 				
 				switch(extension){
@@ -705,6 +701,7 @@
 					break;
 	
 				case 'obj':
+				case 'txt':
 	
 					reader.addEventListener( 'load', function ( event ) {
 						var contents = event.target.result;
@@ -818,11 +815,15 @@
 	
 	
 	function onWindowResize() {
+		var width = container.offsetWidth;
+        var height = container.offsetHeight;
+       
+	
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             
-            effect.setSize(window.innerWidth, window.innerHeight);
+           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
             render();
 	}
 
@@ -1027,16 +1028,14 @@
 	 			$("#stereoView").css("visibility","hidden");
 	 		setDrawMode(0);
 	 		//setSnapMode(0);
+	 		orientControls.enabled=true;
 	 		setOrientationControls();
 	 		
 	 	}
 	 	else{
-	 		$(".hero-unit").css("visibility","visible");
-	 		
-	 		 controls.enabled = true;
+	 		$(".hero-unit").css("visibility","visible");		
+	 		controls.enabled = true;
        		orientControls.enabled=false;
-	 		 
-	 		
 	 	}
 	
 		
@@ -1087,24 +1086,20 @@
 	}
 	
 	
-		
       function setOrientationControls(e) {
         if (e && !e.alpha) {
           return;
         }
 		controls.enabled =false;
-        orientcontrols = new THREE.DeviceOrientationControls(camera, true);
-        orientcontrols.connect();
-        orientcontrols.update();
-        if (lastIntersectedPoint)
-        	camera.lookAt(lastIntersectedPoint);
-        else
-        	camera.lookAt(0,0,0);
 
-        loadInitialImages();
+ 
+        orientControls.update();
+
+        if (mostRecentDrawnLine() == null)
+        	loadInitialImages();
         
         
-        window.removeEventListener('deviceorientation', setOrientationControls, true);
+        //window.removeEventListener('deviceorientation', setOrientationControls, true);
       }
       
 
@@ -1124,8 +1119,9 @@
 			camera.rotation.copy( prevCamera.rotation );
 		}
 	
-
-		if (DRAWMODE == 2){ //MOVEMODE){
+	if(STEREOSCOPIC) return;
+	
+			if (DRAWMODE == 2){ //MOVEMODE){
 			document.removeEventListener('mousedown', onSketchMouseDown, false);
 			document.removeEventListener('mousemove', onSketchMouseMove, false);
 			document.removeEventListener('mousemove', onDocumentMouseMove, false);
@@ -2051,7 +2047,7 @@
 	
 	
 
-	function animate() {
+	function animate(timestamp) {
 
 		requestAnimationFrame(animate);
 
@@ -2079,29 +2075,35 @@
 		}
 		
 		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
-		render();	 
+		render(timestamp);	 
 		  
 	
 	
 	   } 
 	   
-	function render() {
+	function render(timestamp) {
 		
 
 		renderer.setClearColor( 0x000000);
 
 
 		if (STEREOSCOPIC){
-			orientControls.update();
-			effect.render(scene, camera);
+		
+			 	orientControls.update();
+			 vrmanager.render(scene, camera, timestamp);
+			//effect.render(scene, camera);
 				//orientControls.object = camera;
-			
+		
+    		//effect.render(scene, camera);
+ 
+  
+
 			
 
 			//renderer.render( scene, camera );
   		}else{
-  		if (controls.gizmo) controls.gizmo["translate"].show();
-  		controls.update();
+  			if (controls.gizmo) controls.gizmo["translate"].show();
+  			controls.update();
   		
 			minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
