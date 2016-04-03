@@ -1645,8 +1645,18 @@
 			//lineImported.geometry.addAttribute( 'position', positions )
 			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
 			linename = "lineimported";
+
+            // we've lost the original transform, use bounding box center and ignore rotation
+            var box = new THREE.Box3().setFromObject(lineImported);
+            lineImported.geometry.computeBoundingBox();
+            var center = box.min.lerp(box.max, .5);
+            for (var i=0, child; child = lineImported.parent.children[i]; i++) {
+                child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
+            }
+
 			newOrImportedLine = lineImported;//.clone();
-			drawnline.push(newOrImportedLine); //to store line	
+			drawnline.push(newOrImportedLine); //to store line
+            
 			//if (currentIntersected)
 			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
 			//this doesn't work so well if the line is then copied and pasted...
@@ -1671,13 +1681,15 @@
 	function addToContainer(newline, group){
 	
 		//create new group or add to pre-existing 
-		
 		var lineGroup; 
 		if (group != null){
-			group.parent.name="linegroup";
-			objContainer.add(group.parent);
+            if (group.parent.name != "linegroup") {
+			    group.parent.name="linegroup";
+			    objContainer.add(group.parent);
+            }
 		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
 			lastLineIntersection.parent.add(newline);
+            newline.planeTransform = lastLineIntersection.planeTransform;
 			lastLineIntersection = null;
 		
 		}else{
