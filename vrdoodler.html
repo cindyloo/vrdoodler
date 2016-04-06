@@ -197,7 +197,7 @@
 
 			<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
 		
-			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Grid</label></li>
+			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Show Grid</label></li>
 		</ul>
 		</section>
 		<section>
@@ -244,7 +244,7 @@
 
 
 	var MAX_POINTS = 2000;
-	var CURRENT_LONGEST_LINE_LENGTH = 0; //change this once we get our first line...
+	var PB_LINE_VERTEX_COUNT_MAX = 0; //change this once we get our first line...
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
@@ -273,7 +273,7 @@
 	
 	var SNAPPLANETOGRID = 0;
 	
-	var cameraAngle = 0;
+	var cameraAngle, dollyAngle = 0;
 	var pivotRadius = 1;
 	var pivotPoint;
 	var initCamRotPos =0;
@@ -290,7 +290,7 @@
 	var PLAYBACK = 0;
 	var playBackCount = 0;
 	var PLAYBACKSPEED = .0005;
-	
+	var dollyPath;
 	var userSettings = {};
 	
 	var defUserSettings = {
@@ -383,6 +383,13 @@
   		scene.add(objContainer);
   		scene.add(sketchContainer);
   		
+  		var horizonPlane = new THREE.PlaneGeometry(50,50); //semi-opaque to help with orientation
+		var horizonMat = new THREE.MeshLambertMaterial( {color: 0x222222, side: THREE.DoubleSide, transparent:true, opacity:.5, depthWrite: false} );
+		var horizonMesh = new THREE.Mesh( horizonPlane, horizonMat );
+		
+  		sketchContainer.add(horizonMesh);
+  		horizonMesh.position.setY(-.001);
+  		horizonMesh.rotation.x = 90 * Math.PI / 180;	
   		
 		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
 		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
@@ -411,7 +418,7 @@
 		raycaster.linePrecision = .055;
 		
 		/*indicator sphere */
-		var geometry = new THREE.SphereGeometry( .02,2,1 );
+		var geometry = new THREE.SphereGeometry( .05,2,1 );
 		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
 		rayPointIndSphere = new THREE.Mesh( geometry, material );
 		rayPointIndSphere.visible = false;
@@ -436,8 +443,12 @@
 
 
 		window.addEventListener('resize', onWindowResize, false);
-		document.addEventListener('mousedown', onSketchMouseDown, false);
-		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchstart', onSketchStart, false);
+		
+		document.addEventListener( 'mousemove', onDocumentMouseMove, false );		
+		
 		
 		//document.getElementById('instructions').onclick = advanceInstructions;
 		
@@ -603,20 +614,20 @@
 	}
 
 	function exportToObj ()
-			{				
-				var exporter = new THREE.OBJExporter();
-				var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
-				
-				saveFileLocally(result, "myDrawing.obj");
-				
-				var xmlhttp = new XMLHttpRequest();
-				xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
-				xmlhttp.onreadystatechange = function () {
-				  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-					//Handle response
-				  }
-				};
-				 xmlhttp.send(result);				
+	{				
+		var exporter = new THREE.OBJExporter();
+		var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
+		
+		saveFileLocally(result, "myDrawing.obj");
+		
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
+		xmlhttp.onreadystatechange = function () {
+		  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+			//Handle response
+		  }
+		};
+		 xmlhttp.send(result);				
 	}
 	
 	
@@ -830,15 +841,6 @@
 
 
 
-	function onDocumentMouseMove( evt ) {
-
-		evt.preventDefault();
-		var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-		mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
-		mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
-	
-		
-	}
 	
 	
 
@@ -931,17 +933,21 @@
 		
 		if (SNAPPLANETOGRID){
 			planeLockOutline.lookAt(camera.position);
+			plane.lookAt(camera.position);
 		}
 		
     
 } 
 
 	
-
+//not used
 	function togglePlaneRotateLock(){
 		PLANEROTATELOCK =PLANEROTATELOCK?0:1;	
 		 return PLANEROTATELOCK;
 	}
+	
+	
+	
 	function advanceInstructions(){
 		if (userSettings.userLevel == "0"){
 			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
@@ -1017,6 +1023,17 @@
 		return CURRENTLINEWIDTH;
 	}
 	
+	
+	function makeDollyPlaybackPath(){
+		var dollyPath = new THREE.CatmullRomCurve3();
+	
+	//or get bounding box of all lines? or something?
+	
+		for (var line =0;line < drawnlines.length; line++){	
+			curve.push(drawnlines[l][0]);
+		}
+		return dollyPath;
+	}
 	
 	
 	function toggleStereoscopic(){
@@ -1120,12 +1137,14 @@
 			camera.rotation.copy( prevCamera.rotation );
 		}
 	
-	if(STEREOSCOPIC) return;
+			if(STEREOSCOPIC) return;
 	
 			if (DRAWMODE == 2){ //MOVEMODE){
-			document.removeEventListener('mousedown', onSketchMouseDown, false);
-			document.removeEventListener('mousemove', onSketchMouseMove, false);
+			document.removeEventListener('mousedown', onSketchStart, false);
+			
 			document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			//document.removeEventListener('touchdown', onSketchStart, false);
+			
 			scene.remove(plane);
 			scene.remove(planeLockOutline);
 			scene.remove( transformControls );
@@ -1152,7 +1171,10 @@
 				
 
 		}else if (DRAWMODE ==0){
-		document.addEventListener('mousedown', onSketchMouseDown, false);
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchdown', onSketchStart, false);
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+
 			controls = defaultControls;
 			controls.enabled = true;
 			controls.object = camera;
@@ -1160,7 +1182,10 @@
 					
 			
 		}else{ //
-		document.addEventListener('mousedown', onSketchMouseDown, false);
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchdown', onSketchStart, false);
+		document.addEventListener('mousemove', onDocumentMouseMove, false);
+
 		controls = defaultControls;
 			controls.object = camera;
 			controls.enabled = false;
@@ -1244,7 +1269,7 @@
 			
 			cameraclone.position.setY(planeLockOutline.position.y);
 			planeLockOutline.lookAt(cameraclone.position); //at same level as y of intersection
-			
+			plane.lookAt(cameraclone.position); 	
 			
 			if (!keepOrientation){
 				plane.rotation.y= 0;
@@ -1282,11 +1307,12 @@
                    planeLockOutline.material.wireframe = false;
 				  	PLANELOCK =true;
 				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
+				   	planeLockOutline.material.opacity = .3;
 					break;     
                      
                     case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
                     planeLockOutline.material.wireframe = false;
-                      
+                    	planeLockOutline.material.opacity = .3;  
                        if (evt.shiftKey && (evt.ctrlKey || evt.metaKey)){  //d
                    			//will draw straight vertical line parallel to x axis
                    			snapPlane(4);
@@ -1457,6 +1483,7 @@
 			  SNAPPLANETOGRID =false;
 			  PLANELOCK =false;
 			  planeLockOutline.material.wireframe = true;
+			  	planeLockOutline.material.opacity = 1;
 			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
 			break;
         }
@@ -1489,7 +1516,33 @@
 	
 	
 	}
-			
+
+
+
+	function onDocumentMouseMove( evt ) {
+
+		
+		
+		if ((evt.clientX)&(evt.clientY)){
+			var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+			mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+			mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+		}else if (evt.targetTouches) { 
+			mouse.x= evt.targetTouches[0].clientX; 
+			mouse.y = evt.targetTouches[0].clientY; evt.preventDefault();
+		 } 
+	
+		
+	}
+
+
+
+/*sketching or raycasting... */		
+    function onSketchMove(evt){
+		evt.preventDefault();
+		onSketchMouseMove(evt);
+	
+	}	
 
 /* if draw mode, add new vertex to line as mouse moves */
     function onSketchMouseMove(evt) {
@@ -1497,10 +1550,14 @@
     	//var whatZ = .5;
         if(renderer) {
           
-           	mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
-  			mouse.y =  - ( (evt.clientY- container.offsetTop) / window.innerHeight ) * 2 + mouseYOFFSET;
-                
-            var vNow = new THREE.Vector3();
+            if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= evt.targetTouches[0].clientX; 
+				mouse.y = evt.targetTouches[0].clientY; 
+			 }             var vNow = new THREE.Vector3();
             vNow.set(
 					mouse.x,
 					mouse.y,
@@ -1562,7 +1619,17 @@
 		return drawnline[CURRENTspline];
 	}
 
-    		    
+    function onSketchTouchUp(evt){
+
+
+		evt.preventDefault();
+		document.removeEventListener("touchmove",onSketchTouchMove,false);
+		if (evt.target.nodeName == 'CANVAS')
+			onSketchMouseUp(evt);
+		else
+			event.target.click();
+	
+	}		    
     
     /* after initing new line
     */
@@ -1730,6 +1797,16 @@
 
 
 
+	function onSketchStart(evt){
+		
+		evt.preventDefault();
+		if (evt.target.nodeName == 'CANVAS')
+			onSketchMouseDown(evt);
+		//else
+		//	event.target.click();
+	}
+
+
     /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
     according to unprojected mouse vector 
     
@@ -1740,8 +1817,17 @@
    		if(evt.which == 3) return;      	
     	if (evt.target.nodeName == 'CANVAS'){
           	
-          	mouse.x = ( evt.clientX / window.innerWidth ) * 2 -mouseXOFFSET;
-  			mouse.y =  - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+          	if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= evt.targetTouches[0].clientX; 
+				mouse.y = evt.targetTouches[0].clientY; 
+			 } 
+          	
+          	
+          
        		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
 			if (DRAWMODE == 1){
 			
@@ -1754,8 +1840,8 @@
 								  either grid or previously drawn line via plane-of-interest*/
 				
 					//ok, now raycast the plane.  it's here b/c this event happens before the animate event
-					
-					var intersects = raycaster.intersectObjects([planeLockOutline], true);
+					planeLockOutline.geometry.computeBoundingSphere(); 
+					var intersects = raycaster.intersectObjects([planeLockOutline], true); //doesn't work for touch btw. bounding box is origin 0
 					currentIntersectedPoint = handleRayIntersections(intersects);
 				
 					var snapTo = currentIntersectedPoint;
@@ -1769,8 +1855,10 @@
 						initNewLine(mouseVec, true);									
 				} 			
 				//set up for drawing line
-				document.addEventListener("mousemove",onSketchMouseMove,false);
-				document.addEventListener("mouseup",onSketchMouseUp,false);				
+				document.addEventListener("mousemove",onSketchMove,false);
+				document.addEventListener("mouseup",onSketchMouseUp,false);
+				//document.addEventListener("touchmove",onSketchMove,false);
+				//document.addEventListener("touchup",onSketchTouchUp,false);				
 			}
         }
     }
@@ -1783,10 +1871,11 @@
 		
 	
 	function makeDrawingPlane(planePos, name){
-			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.2,side: THREE.DoubleSide } );
+			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.5,side: THREE.DoubleSide } );
 			
 			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
-			planeLockOutline.scale.multiplyScalar(10); //should pay adjust accord to distance of intersection...
+			planeLockOutline.scale.x = 50;
+			planeLockOutline.scale.y = 50;
 			planeLockOutline.position.set( 0, 0, 0 );
 			planeLockOutline.position.copy(planePos);
 			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
@@ -1798,7 +1887,7 @@
 			planeLockOutline.visible = true;
 			planeLockOutline.name = name;
 			planeLockOutline.material.wireframe = true;
-			planeLockOutline.material.wireframeLinewidth = 10;
+			planeLockOutline.material.wireframeLinewidth = 5;
 			scene.add(planeLockOutline); //note- can adding this to raycasting objects
 			
 			return planeLockOutline;
@@ -2002,12 +2091,29 @@
 	
 	}
 	
+	function raycastGazeForDollyCam(){
+		//TODO: should only run when in playback mode
+		var vGaze = new THREE.Vector3(0,0,.1);  //for now, let's make the gaze static
+		//raycaster.setFromCamera( vGaze, camera );		
+		//var intersects = raycaster.intersectObjects( objContainer.children, true); 	
+		//currentIntersectedPoint = handleRayIntersections(intersects);
+		//pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
+		//camera.position.z += Math.cos(dollyAngle) * 5;
+		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
+		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
+		dollyAngle += .31;
+		if (dollyAngle >720) 
+			dollyAngle = 0;
+		//tell dolly to move along the path from camera origin at increments 
 	
+	}	
 	function togglePlayBackMode(){
 	
 		PLAYBACK = PLAYBACK?0:1;
 		if (PLAYBACK) {
 			clock.start();
+			//dollyPath = makeDollyPlaybackPath();
+			
 			
 		}else{
 			clock.stop();
@@ -2019,16 +2125,40 @@
 	
 	}
 	
-	function runPlayBack(){
+	function aggregateVertexCount(){
+		var count = 0;
+		for (var i=0;i< drawnline.length;i++){
+				count += drawnline[i].geometry.attributes.position.count;
+		}
+		return count;				
+		
+	}
 	
-		if (PLAYBACK){
-			for (var i=0;i< drawnline.length;i++){
+	function pb_drawOneAtATime(){
+		console.log("aggCount is " +  aggregateVertexCount());
+		
+		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		for (var i=0;i< drawnline.length;i++){
+			
+			var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
+			
+			count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
+			for (var vertex=0;vertex< count;vertex++){
+				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
+				drawnline[i].geometry.attributes.position.needsUpdate = true; 
+				
+			}
+		}
+	}
+	
+	function pb_drawAllAtOnce(){
+		for (var i=0;i< drawnline.length;i++){
 				if (drawnline[i] === undefined){  //if any weirdness, clean it up
 					drawnline.splice(i,1);
 					continue;
 				}
-				if ((drawnline[i].geometry.attributes.position.count/3) > CURRENT_LONGEST_LINE_LENGTH) 
-					CURRENT_LONGEST_LINE_LENGTH = (drawnline[i].geometry.attributes.position.count/3);
+				if ((drawnline[i].geometry.attributes.position.count/3) > PB_LINE_VERTEX_COUNT_MAX) 
+					PB_LINE_VERTEX_COUNT_MAX = (drawnline[i].geometry.attributes.position.count/3);
 				var count = playBackCount;
 				//determine what should be drawn
 				//count from 0 to length vertices of line..
@@ -2040,14 +2170,32 @@
 				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
 				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
 			}
+	
+	}
+	
+	function drawBack(){
+		//if (){
+			pb_drawAllAtOnce();
+		//} else {
+		//	pb_drawOneAtATime();
+		//}
+	
+	}
+	
+	function runPlayBack(){
+	
+		if (PLAYBACK){
+			drawBack();
 
 			if (clock.getDelta() > PLAYBACKSPEED){
 				playBackCount++;
-				start = Date.now();
+				//start = Date.now(); //not relevant
+				
+				raycastGazeForDollyCam();
 				console.log("playbackcount "+ playBackCount);
 			}
 			
-			if (playBackCount > CURRENT_LONGEST_LINE_LENGTH)	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
 				playBackCount = 0;
 		}	
 		
@@ -2069,10 +2217,11 @@
 		camera.updateProjectionMatrix();
 		
 		if (!runPlayBack() && DRAWMODE ==1){
-			raycaster.setFromCamera( mouse, camera );//setFromCamera unprojects mouse vector  ////LOOK HERE  //negate and see what happens  //check orbit
+			raycaster.setFromCamera( mouse, camera );
 			
-			var intersects = raycaster.intersectObjects( objContainer.children, true);
+			//doesn't work for touch events b/c have to touchstart to get coords
 			
+			var intersects = raycaster.intersectObjects( objContainer.children, true); 
 			if (DRAWMODE && SNAPMODE &&!bIsDrawing){
 			
 				currentIntersectedPoint = handleRayIntersections(intersects);
@@ -2086,8 +2235,7 @@
 			//TODO add ability to draw while moving plane backwards or forwards
 		
 		}
-		
-		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
+	
 		render(timestamp);	 
 		  
 	
