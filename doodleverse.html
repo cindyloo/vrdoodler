@@ -119,59 +119,9 @@
 	
 	</script>
 
- <script id="vertexShader" type="x-shader/x-vertex">  
-      
-	varying vec2 vUv;
-	uniform float color;
-	varying float noise;
-	uniform float time;
-	
-	
-	
-	
-	void main() {
-	
-		vUv = uv;
-	
-		// add time to the noise parameters so it's animated
-		//noise = 15.0 *  -.10 * turbulence( .2 * normal + time );
-		//float b = 2.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 2.0 ) );
-		//float displacement = noise/.5;
-		//- noise + b;
-		//sin(fTimer+Tex.x*10)*0.01f;
-		//	float newXPosition = sin(time + position.x * 2.)  ;
-		
-		gl_Position = projectionMatrix * modelViewMatrix * vec4( position,1.0 );
-	
-	}
-               
-    </script>
 
-    <script id="fragmentShader" type="x-shader/x-fragment">
 
-    varying vec2 vUv;
-	uniform float color;
-	void main() {
-
-    // colour is RGBA: u, v, 0, 1
-	//gl_FragColor = vec4( vec3(color), 1. );
-
-	}
-    </script>
-    
-    <script src="js/shaders/LineDisplacementShader.js"></script>
-
-    
-    
-    
   <body>  
-  
-	<div class="top-unit">
-		<h4><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h4>
-		
-	</div>
-	
-
 </body>
 
 
@@ -190,12 +140,9 @@
 	var drawnline = [];
 	var container, canvas;
 
-	
-	var manager;
-
 
 	var MAX_POINTS = 2000;
-	var CURRENT_LONGEST_LINE_LENGTH = 0; //change this once we get our first line...
+	var PB_LINE_VERTEX_COUNT_MAX= 0; //change this once we get our first line...
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
@@ -206,11 +153,6 @@ var grid ;
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var lastLineIntersection = null;
 	
-	var axisHelper;
-	var bIsDrawing = false;
-	var bShowInfo = true;
-	
-	var copiedObj = null;
 	
 	var ORBITMODE = 0;  //when not drawing
 	var FREEHANDMODE = 1;  //when drawing
@@ -233,6 +175,7 @@ var grid ;
 	var PLANEROTATE = 0;
 	var COLOR = 0;
 	var linematerial = null;
+	var dollyAngle = 0;
 
 	var edges, cameraHelp;
 	
@@ -242,28 +185,7 @@ var grid ;
 	var playBackCount = 0;
 	var PLAYBACKSPEED = .0005;
 	
-	var userSettings = {};
 	
-	var defUserSettings = {
-	
-		userLevel:0,
-		snapMode:1,
-		drawMode:1,
-		lockPlane:1
-
-	
-	};
-	
-	var advUserSettings = {
-	
-		userLevel:2,
-		snapMode:0,
-		drawMode:0,
-		lockPlane:1
-
-	
-	};
-
 
 	
 
@@ -281,227 +203,65 @@ var grid ;
 		document.body.appendChild( container );
 
 	
-		scene = new THREE.Scene();
-
-    	axisHelper = new THREE.AxisHelper(500);
-    	//scene.add(axisHelper  );  
-    	
-    	
-    	light = new THREE.DirectionalLight( 0xffffff );
-		scene.add( light );
-    	renderer = new THREE.WebGLRenderer( { antialias: false } );		
-		renderer.setSize( window.innerWidth, window.innerHeight );
-	
-		renderer.autoClear = false;	
+		renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.setPixelRatio(window.devicePixelRatio);
+		// Append the canvas element created by the renderer to document body element.
 		container.appendChild( renderer.domElement );
-	
-		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-		camera.position.set(1, 1, 1);
-		camera.name="orig";
-
-		minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-		minicamera.name="mini";
-		scene.add(minicamera);
-		
-		
-
-		//TODO merge the settings param here - when we have a user config
-
+		// Create a three.js scene.
+		scene = new THREE.Scene();
+		// Create a three.js camera.
+		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+		camera.position.set(0,.5,5);
+		// Apply VR headset positional data to camera.
+		orientControls = new THREE.VRControls(camera);
+		// Apply VR stereo rendering to renderer.
+		var effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
 			   		   
-		sketchContainer = new THREE.Object3D();  //helpers etc that aren't included in raycasting
 		objContainer = new THREE.Object3D();
 		objContainer.name = "objContainer";
 		objContainer.geometry = null;
 
   		scene.add(objContainer);
-  		scene.add(sketchContainer);
+  		
+  		//sketchContainer.add(camera);
+		//sketchContainer.lookAt(0,5,0);
   		
   		
-		
-		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
 		setupGrid();
 	
-			
-		controls = orientControls;
-
-		/*WebVR boilerplate implmentation */
-	 	effect = new THREE.VREffect(renderer);
-		effect.setSize(window.innerWidth, window.innerHeight);
-		
+	
 	 	 var params = {
 		  hideButton: false, // Default: false.
 		  isUndistorted: false // Default: false.
 		};
 		vrmanager = new WebVRManager(renderer, effect, params);
   		    
-   		vrmanager.button.vrButton.style.width = '50px';
-   		vrmanager.button.vrButton.style.height ='50px';
+   		vrmanager.button.vrButton.style.width = '25px';
+   		vrmanager.button.vrButton.style.height ='25px';
   		
 			
-		geometry = new THREE.SphereGeometry( .1 );
-		material = new THREE.MeshBasicMaterial( { color: 0x003333 } ); //???
-		
 		
 		window.addEventListener('resize', onWindowResize, false);
 		//document.getElementById("playback").onclick = togglePlayBackMode;
 
-		
-        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
-				light.position.set( 1, 1, 1 ).normalize();
-				scene.add( light );
-		
-		
-		//window.addEventListener('deviceorientation', setOrientationControls, true);
-            
-       
-		 manager = new THREE.LoadingManager();
-				manager.onProgress = function ( item, loaded, total ) {
-				console.log( item, loaded, total );
 
-		};
-	
 		
 		$(document).ready(function(){
-		
-			$('input').tooltip(); 	
-			$('input').click(function() {
-			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
-				
-			});	
-			
 
-			$( "#playBackSpeedSlider" ).slider({
-			  min:10,
-			  max:20,
-			  change: function( event, ui ) {
-				PLAYBACKSPEED = (ui.value)/1000;
-				}
-			});
-	
-			$( "#lineWidthSlider" ).slider({
-				min:2,
-				max:40,
-				change: function( event, ui ) {
-					CURRENTLINEWIDTH = ui.value;
-				}
-			});
-			
-		
-			$("a.imgclose").click(function(e,preview, image){
-				$(this).parent().find("img").remove();
-				objContainer.remove(scene.getObjectByName("photosphere"));
-				objContainer.remove(scene.getObjectByName(f.name));
-				$("#preview").css("margin-bottom",10);
-				$(this).css("visibility","hidden");
-			});
-				
-			$("#help").hover(function() {
-					advanceInstructions()
-				  });
-				  
-			  
-		
 			if (inMobileMode())
 				 toggleStereoscopic();
+				
+	
  
 	  });
 	
 	   
 
 	}
-	
-	/*not yet implemented*/
-	var getWhatYouCanDoMode = (function() {
 
-		/*var whatyoucando = {};
-		
-		if (input.straightline is checked)
-		
-		else if
-		
-		if (usersettings...)
-		...
-		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
-		//eval usersettings, button states, return an array of can-dos
-		
-		*/
-	})();
 	
-	
-	function onTabClick( event ) {
-		select( event.target.textContent );
-	}
-	
-	function select(section){
-		$("#begTab").attr("class","");
-		$("#advTab").attr("class","");
-	
-		switch (section){
-			case "beginner":
-				$("#begTab").attr("class","selected");
-				setTutorialLevel(0);
-				break;
-			case "advanced":
-				$("#advTab").attr("class","selected");
-				setTutorialLevel(2);
-				break;
-				
-		
-		}
-	}
-	
-	/*local file download*/
-	var saveFileLocally = (function () {
-		var a = document.createElement("a");
-		document.body.appendChild(a);
-		a.style = "display: none";
-		return function (data, fileName) {
-			var json = JSON.stringify(data),
-				blob = new Blob([data], {type: "octet/stream"}),
-				url = window.URL.createObjectURL(blob);
-			a.href = url;
-			a.download = fileName;
-			a.click();
-			window.URL.revokeObjectURL(url);
-		};
-	}());
 
-
-	function prepAndExport(){
-		convertBuffGeoToGeo();
-		exportToObj();//expscene
-	
-	}
-	function convertBuffGeoToGeo(){
-		
-		expScene = new THREE.Scene();
-		for (var i = 0;i<objContainer.children.length;i++){
-			/*temp = new THREE.Mesh( drawnline[i],  linematerial );
-			temp.position.copy(drawnline[i].userData);
-			temp.name="exportedLine" + i;*/
-			if (objContainer.children[i].name == "linegroup")
-				expScene.add(objContainer.children[i].clone());
-		}
-		//return exportGeo;
-	}
-
-	function exportToObj ()
-			{				
-				var exporter = new THREE.OBJExporter();
-				var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
-				
-				saveFileLocally(result, "myDrawing.obj");
-				
-				var xmlhttp = new XMLHttpRequest();
-				xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
-				xmlhttp.onreadystatechange = function () {
-				  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-					//Handle response
-				  }
-				};
-				 xmlhttp.send(result);				
-	}
-	
 	
 	/*if URL params say load the doodleverse */
 	function loadInitialImages(dir){
@@ -519,10 +279,10 @@ var grid ;
 					}
 					else{
 						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
-						
 			
 						object.name = "linedoodleverse";
-						importScene(object);					
+						importScene(object);
+											
 				  		
 				  	}
 				}else{
@@ -638,7 +398,9 @@ var grid ;
 									initNewLine(null, null, child);
 						}
 					 });
-				
+					 
+					
+		
 
 	}
 
@@ -699,16 +461,9 @@ var grid ;
 	
 	
 	function onWindowResize() {
-		var width = container.offsetWidth;
-        var height = container.offsetHeight;
-       
-	
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            
-           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
-            render();
+		  effect.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
 	}
 
 
@@ -718,24 +473,10 @@ var grid ;
 		STEREOSCOPIC = STEREOSCOPIC?0:1;
 	 	
 	 	if (STEREOSCOPIC){
-	 		$(".hero-unit").css("visibility","hidden");
-	 		$(".top-unit").css("background-color","black");
-	 		if (window.screen.width < 500)
-	 			$("#stereoView").css("visibility","hidden");
-	 		//setDrawMode(0);
-	 		//setSnapMode(0);
 	 		orientControls.enabled=true;
-	 		setOrientationControls();
-	 		
+	 		setOrientationControls();	 		
 	 	}
-	 	else{
-	 		$(".hero-unit").css("visibility","visible");		
-	 		//controls.enabled = true;
-       		//orientControls.enabled=false;
-	 	}
-	
 		
-	
 	}
 	
 	
@@ -766,18 +507,10 @@ var grid ;
         if (e && !e.alpha) {
           return;
         }
-		//controls.enabled =false;
-
-        //orientcontrols = new THREE.DeviceOrientationControls(camera, true);
-        //orientcontrols.connect();
         orientControls.update();
-       /* if (lastIntersectedPoint)
-        	camera.lookAt(lastIntersectedPoint);
-        else
-        	camera.lookAt(0,0,0);
-*/
-        if (mostRecentDrawnLine() == null)
-        	loadInitialImages();
+      
+       // if (mostRecentDrawnLine() == null)
+       // 	loadInitialImages();
         
         
         //window.removeEventListener('deviceorientation', setOrientationControls, true);
@@ -911,13 +644,25 @@ var grid ;
 	}
 	
 
-	
-	
+	function raycastGazeForDollyCam(){
+		//TODO: should only run when in playback mode
+		var vGaze = new THREE.Vector3(0,0,.1);  //for now, let's make the gaze static
+		
+		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
+		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
+		dollyAngle += .1;
+		if (dollyAngle >720) 
+			dollyAngle = 0;
+		//tell dolly to move along the path from camera origin at increments 
+		
+	}	
 	function togglePlayBackMode(){
 	
 		PLAYBACK = PLAYBACK?0:1;
 		if (PLAYBACK) {
 			clock.start();
+			//dollyPath = makeDollyPlaybackPath();
+			
 			
 		}else{
 			clock.stop();
@@ -929,16 +674,37 @@ var grid ;
 	
 	}
 	
-	function runPlayBack(){
+	function aggregateVertexCount(){
+		var count = 0;
+		for (var i=0;i< drawnline.length;i++){
+				count += drawnline[i].geometry.attributes.position.count;
+		}
+		return count;				
+		
+	}
 	
-		if (PLAYBACK){
-			for (var i=0;i< drawnline.length;i++){
-				if (drawnline[i] === undefined){  //if any weirdness, clean it up
-					drawnline.splice(i,1);
-					continue;
-				}
-				if ((drawnline[i].geometry.attributes.position.count/3) > CURRENT_LONGEST_LINE_LENGTH) 
-					CURRENT_LONGEST_LINE_LENGTH = (drawnline[i].geometry.attributes.position.count/3);
+	function pb_drawOneAtATime(){
+		console.log("aggCount is " +  aggregateVertexCount());
+		
+		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		for (var i=0;i< drawnline.length;i++){
+			
+			var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
+			
+			count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
+			for (var vertex=0;vertex< count;vertex++){
+				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
+				drawnline[i].geometry.attributes.position.needsUpdate = true; 
+				
+			}
+		}
+	}
+	
+	function pb_drawAllAtOnce(){
+		for (var i=0;i< drawnline.length;i++){
+				
+				if ((drawnline[i].geometry.attributes.position.count/3) > PB_LINE_VERTEX_COUNT_MAX) 
+					PB_LINE_VERTEX_COUNT_MAX = (drawnline[i].geometry.attributes.position.count/3);
 				var count = playBackCount;
 				//determine what should be drawn
 				//count from 0 to length vertices of line..
@@ -950,14 +716,35 @@ var grid ;
 				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
 				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
 			}
+	
+	}
+	
+	function drawBack(){
+		//if (){
+		if (drawnline && drawnline.length >0)
+				pb_drawAllAtOnce();
+		//} else {
+		//	pb_drawOneAtATime();
+		//}
+	
+	}
+	
+	function runPlayBack(){
+	
+	//	if (mostRecentDrawnLine() != null && PLAYBACK ==0)
+    //     	 	togglePlayBackMode();//mobile doesn't like this...
+		if (PLAYBACK){
+			drawBack();
 
 			if (clock.getDelta() > PLAYBACKSPEED){
 				playBackCount++;
-				start = Date.now();
-				console.log("playbackcount "+ playBackCount);
+				//start = Date.now(); //not relevant
+				
+				
+				//console.log("playbackcount "+ playBackCount);
 			}
 			
-			if (playBackCount > CURRENT_LONGEST_LINE_LENGTH)	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
 				playBackCount = 0;
 		}	
 		
@@ -978,8 +765,12 @@ var grid ;
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 		
+		runPlayBack();
+			
+			//TODO add ability to draw while moving plane backwards or forwards
 		
-		//if (linematerial) linematerial.uniforms[ 'time' ].value = .000025 * ( Date.now() - start );
+	
+	
 		render(timestamp);	 
 		  
 	
@@ -994,47 +785,30 @@ var grid ;
 
 		if (STEREOSCOPIC){
 		
-			 	orientControls.update();
+		 	
+			 orientControls.update();
 			 vrmanager.render(scene, camera, timestamp);
 			//effect.render(scene, camera);
 				//orientControls.object = camera;
 		
     		//effect.render(scene, camera);
- 
+ 			raycastGazeForDollyCam();
   
 
 			
 
 			//renderer.render( scene, camera );
   		}else{
-  			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update();
-  		
-			minicamera.position.set(5,5,5);
-			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
-				
-			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
-			renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
-			renderer.setScissor( 10, 10, 200, 200  );
-						//renderer.setScissorTest( true );
-						//renderer.setClearColor( view.background );
-			minicamera.updateProjectionMatrix();
-			renderer.render( scene, minicamera );
-				
-					
-			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
-			renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
-			camera.updateProjectionMatrix();
-	 
+  			
 			renderer.render( scene, camera );
   		}
-  			//renderer.clearDepth();
 	}
 		
 	init();
 	//cameraHelp = new THREE.CameraHelper(camera);
 	//scene.add(cameraHelp);
 	animate();
+	
 	
 </script>
 </html>
