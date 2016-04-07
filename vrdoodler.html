@@ -289,7 +289,7 @@
 	var clock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-	var PLAYBACKSPEED = .0005;
+	var PLAYBACKSPEED = .005;
 	var dollyPath;
 	var userSettings = {};
 	
@@ -2135,18 +2135,30 @@
 	}
 	
 	function pb_drawOneAtATime(){
-		console.log("aggCount is " +  aggregateVertexCount());
+		
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		
+		 var aggDrawnVertices = 0;		
+	
+		
 		for (var i=0;i< drawnline.length;i++){
 			
-			var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
+			 verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount; //incremented every half second basically so this number shrinks
 			
-			count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
-			for (var vertex=0;vertex< count;vertex++){
-				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
-				drawnline[i].geometry.attributes.position.needsUpdate = true; 
+			
+			if (verticesYetToBeDrawn > 0){
 				
+				var thisLineRange = Math.min(verticesYetToBeDrawn, drawnline[i].geometry.attributes.position.count);
+				var currentlyDrawn = Math.min(thisLineRange, playBackCount);
+				currentlyDrawn = Math.min(currentlyDrawn, (playBackCount - aggDrawnVertices)); //completed lines vertex count so we have the remainder
+				for (var vertex=0;vertex< currentlyDrawn;vertex++){								//eg 303 - 300  3 lines to draw
+					drawnline[i].geometry.setDrawRange( 0, vertex * 3);
+					drawnline[i].geometry.attributes.position.needsUpdate = true; 
+					
+				}
+				if ((playBackCount - aggDrawnVertices) < drawnline[i].geometry.attributes.position.count) return; //don't advance to next line since current line is under range
+				aggDrawnVertices += drawnline[i].geometry.attributes.position.count;
 			}
 		}
 	}
@@ -2175,9 +2187,9 @@
 	
 	function drawBack(){
 		//if (){
-			pb_drawAllAtOnce();
+		//	pb_drawAllAtOnce();
 		//} else {
-		//	pb_drawOneAtATime();
+			pb_drawOneAtATime();
 		//}
 	
 	}
