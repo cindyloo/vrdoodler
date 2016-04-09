@@ -642,7 +642,7 @@
 						
 						
 						dir = "assets/doodleverse/";
-						var images = [dir + "trees_and_buildings.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						var images = [dir + "armymen.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
 						 handleImport(images);
 					}
 					else{
@@ -662,7 +662,7 @@
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
 			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "assets/doodleverse/trees.txt");//easier to use node to get all the files in there even for debugging..);					
+				xhrImg.open("GET", "assets/doodleverse/armymen.txt");//easier to use node to get all the files in there even for debugging..);					
 			else
 				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
@@ -1392,6 +1392,8 @@
                    	break;
                    	
                    case 86: //ctrl-v  paste! 
+                   
+                   evt.preventDefault();  
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (currentIntersectedPoint && copiedObj){
                    		
@@ -1403,8 +1405,9 @@
 									for (l = 0;l<copiedObj.children.length;l++){
 									
                                         var originalTransform = copiedObj.children[l].planeTransform;
-                                        if (originalTransform) {
+                                        if (originalTransform) { 
     										var newLine = copiedObj.children[l].clone();
+    										newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
     										newLine.geometry= newLine.geometry.clone();
     										
     										var attribute = newLine.geometry.attributes.position;
@@ -1417,6 +1420,7 @@
     										newLine.geometry.attributes.position = attribute;
     										newLine.geometry.attributes.position.needsUpdate = true;
     										drawnline.push(newLine);
+    										mostRecentDrawnLine();
     										copiedObj2.name="linegroup";
     										copiedObj2.add(newLine);	
 					                    }									
@@ -1440,16 +1444,19 @@
                    	case 90: //control-z to erase last
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (mostRecentDrawnLine()){
-                   			
-                   			mostRecentDrawnLine().geometry.attributes.position.array = [];
+                   			var deletedLineToBe = mostRecentDrawnLine();
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
                    			drawnline.pop();
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
                    			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    		}
                    	}
                  
                    	break;
                    	case 8: //backspace  
-                   	evt.preventDefault();  //otherwise loses drawing by going to past page!
+                   		evt.preventDefault();  //otherwise loses drawing by going to past page!
                    		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
                    		 	
                    			var id = currentIntersected.uuid;                			
@@ -1459,9 +1466,13 @@
 							}
 							console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    			var lineToEraseIndex = drawnline.findIndex(findUUID);
-                   			drawnline[lineToEraseIndex].geometry.attributes.position.array = [];
+                   			var deletedLineToBe =drawnline[lineToEraseIndex];
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
+                   			
                    			drawnline.splice(lineToEraseIndex,1);
-                   	
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
                    			//get it out of drawnline
                    			
                    		}
@@ -2143,8 +2154,11 @@
 	
 		
 		for (var i=0;i< drawnline.length;i++){
-			
-			 verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount; //incremented every half second basically so this number shrinks
+			if (drawnline[i] === undefined){  //if any weirdness, clean it up
+					drawnline.splice(i,1);
+					continue;
+			}
+			verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount; //incremented every half second basically so this number shrinks
 			
 			
 			if (verticesYetToBeDrawn > 0){

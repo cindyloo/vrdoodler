@@ -108,6 +108,8 @@
     <script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
 	
+	<script src="js/BufferLoader.js"></script>
+	
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -122,6 +124,12 @@
 
 
   <body>  
+  
+  <div class="">
+		<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
+		<input id="playback" type="button" data-toggle="tooltip" value="" title="Playback"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	
+	</div>
 </body>
 
 
@@ -185,7 +193,13 @@ var grid ;
 	var playBackCount = 0;
 	var PLAYBACKSPEED = .0005;
 	
-	
+	//audio stuff
+	var audioCtx ; // define audio context
+	var sound1 = {};  //sound object
+	// Webkit/blink browsers need prefix, Safari won't work without window.
+	var bufferLoader;
+	var analyser ,distortion,mainVolume ,biquadFilter, panner ;
+
 
 	
 
@@ -243,7 +257,52 @@ var grid ;
 			
 		
 		window.addEventListener('resize', onWindowResize, false);
-		//document.getElementById("playback").onclick = togglePlayBackMode;
+		document.getElementById("playback").onclick = togglePlayBackMode;
+
+
+///sound stuff
+			
+			audioCtx = new (window.AudioContext || window.webkitAudioContext)(); // define audio context
+			// Webkit/blink browsers need prefix, Safari won't work without window.
+			
+			//analyser = audioCtx.createAnalyser();
+			//distortion = audioCtx.createWaveShaper();
+			mainVolume = audioCtx.createGain();
+			//biquadFilter = audioCtx.createBiquadFilter();
+			panner = audioCtx.createPanner();
+			
+			bufferLoader = new BufferLoader(
+				audioCtx,
+				[
+				  '/assets/danny.wav'
+				],
+				finishedLoading
+				);
+			
+			  bufferLoader.load();
+			
+			
+			function finishedLoading(bufferList) {
+			  // Create two sources and play them both together.
+			  
+			  sound1 = audioCtx.createBufferSource();
+			  sound1.volume = audioCtx.createGain();
+			  sound1.buffer = bufferList[0];
+			  //sound1.panner = audioCtx.createPanner();
+			  
+			 /* var source2 = audioCtx.createBufferSource();		  
+			  source2.buffer = bufferList[0];
+			  */
+			  mainVolume.gain.value = 1;
+			  mainVolume.connect(audioCtx.destination);
+			  
+			  sound1.connect(mainVolume);
+			 // sound1.panner.connect(mainVolume);
+			 // source2.connect(mainVolume);
+			  
+			  sound1.start(0);
+			  //source2.start(0);
+			}
 
 
 		
@@ -274,14 +333,14 @@ var grid ;
 						
 						
 						dir = "assets/doodleverse/";
-						var images = [dir + "trees_and_buildings.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						var images = [dir + "scene.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
 						 handleImport(images);
 					}
 					else{
 						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
 			
 						object.name = "linedoodleverse";
-						importScene(object);
+						importScene(object); 
 											
 				  		
 				  	}
@@ -294,7 +353,7 @@ var grid ;
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
 			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "assets/doodleverse/trees.txt");//easier to use node to get all the files in there even for debugging..);					
+				xhrImg.open("GET", "assets/doodleverse/scene.txt");//easier to use node to get all the files in there even for debugging..);					
 			else
 				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
@@ -462,8 +521,8 @@ var grid ;
 	
 	function onWindowResize() {
 		  effect.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+		  camera.aspect = window.innerWidth / window.innerHeight;
+		  camera.updateProjectionMatrix();
 	}
 
 
@@ -509,8 +568,8 @@ var grid ;
         }
         orientControls.update();
       
-       // if (mostRecentDrawnLine() == null)
-       // 	loadInitialImages();
+        if (mostRecentDrawnLine() == null)
+        	loadInitialImages();
         
         
         //window.removeEventListener('deviceorientation', setOrientationControls, true);
@@ -621,27 +680,14 @@ var grid ;
 
 
 	function mostRecentDrawnLine(){
-		CURRENTspline = drawnline.length -1;
-		return drawnline[CURRENTspline];
+		if (drawnline && drawnline.length > 0){
+			CURRENTspline = drawnline.length -1;
+			return drawnline[CURRENTspline];
+		}
+		return null;
 	}
 
-    	
-	
-	
 
- 
-		
-	function makePhotoSphere( tex, w, h){
-	
-	
-			var mesh;
-			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
-			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
-			mesh.name="photosphere";
-			objContainer.add(mesh);
-			
-			return mesh;
-	}
 	
 
 	function raycastGazeForDollyCam(){
@@ -683,10 +729,41 @@ var grid ;
 		
 	}
 	
+	function recurseDrawRange(array, p, currentcount){
+	
+		var alreadyWritten = playBackCount;
+		for (var i=0;i< drawnline.length;i++){ //but wait, only draw next line if the prev line is done or mostly done!
+	
+			var remainderOfTotalCount  = PB_LINE_VERTEX_COUNT_MAX - alreadyWritten;
+			
+			//need to check to see at what line we are writing
+		  	var prevLineRange = drawnline[i-1]? drawnline[i-1].geometry.attributes.position.count: drawnline[0].geometry.attributes.position.count;
+		  
+		    var lineRange = drawnline[i].geometry.attributes.position.count;
+		    
+		  	if (remainderOfTotalCount > prevLineRange){ //if prev line or first vertex count is less than already written, we start drawing the next line
+		  			  
+				
+				 var verticesToWrite = lineRange - remainderOfTotalCount; //how many more vertices to draw
+		 
+				 for (var v = 0; v < verticesToWrite; v ++){
+				 	drawnline[i].geometry.setDrawRange( 0, verticesToWrite * 3);
+				 
+				 }
+			}
+			else
+				drawnline[i-1].geometry.setDrawRange( 0, lineRange * 3);
+		}
+		
+	
+	}	
+	
 	function pb_drawOneAtATime(){
 		console.log("aggCount is " +  aggregateVertexCount());
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		
+		
 		for (var i=0;i< drawnline.length;i++){
 			
 			var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
@@ -731,17 +808,13 @@ var grid ;
 	
 	function runPlayBack(){
 	
-	//	if (mostRecentDrawnLine() != null && PLAYBACK ==0)
-    //     	 	togglePlayBackMode();//mobile doesn't like this...
+		
 		if (PLAYBACK){
 			drawBack();
 
 			if (clock.getDelta() > PLAYBACKSPEED){
 				playBackCount++;
-				//start = Date.now(); //not relevant
-				
-				
-				//console.log("playbackcount "+ playBackCount);
+	
 			}
 			
 			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
@@ -784,14 +857,9 @@ var grid ;
 
 
 		if (STEREOSCOPIC){
-		
-		 	
+	 	
 			 orientControls.update();
 			 vrmanager.render(scene, camera, timestamp);
-			//effect.render(scene, camera);
-				//orientControls.object = camera;
-		
-    		//effect.render(scene, camera);
  			raycastGazeForDollyCam();
   
 
