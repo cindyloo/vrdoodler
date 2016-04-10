@@ -320,7 +320,6 @@ var grid ;
 	}
 
 	
-
 	
 	/*if URL params say load the doodleverse */
 	function loadInitialImages(dir){
@@ -333,15 +332,20 @@ var grid ;
 						
 						
 						dir = "assets/doodleverse/";
-						var images = [dir + "scene.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						var images = [dir + "armymen.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
 						 handleImport(images);
 					}
 					else{
-						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
+						var objects =  xhrImg.responseText.split('EOF');    
+						
+						objects.forEach(function(object){
+							var cleanedobj = object.replace(/EOF/,'');
+							obj = new THREE.OBJLoader().parse(cleanedobj);
+						
 			
-						object.name = "linedoodleverse";
-						importScene(object); 
-											
+							obj.name = "linedoodleverse";
+							importScene(obj);
+						});					
 				  		
 				  	}
 				}else{
@@ -353,7 +357,7 @@ var grid ;
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
 			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "assets/doodleverse/scene.txt");//easier to use node to get all the files in there even for debugging..);					
+				xhrImg.open("GET", "/getObjFiles");//easier to use node to get all the files in there even for debugging..);					
 			else
 				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
@@ -687,26 +691,28 @@ var grid ;
 		return null;
 	}
 
-
-	
-
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
-		var vGaze = new THREE.Vector3(0,0,.1);  //for now, let's make the gaze static
-		
+		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
+		//raycaster.setFromCamera( vGaze, camera );		
+		//var intersects = raycaster.intersectObjects( objContainer.children, true); 	
+		//currentIntersectedPoint = handleRayIntersections(intersects);
+		//pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
+		//camera.position.z += Math.cos(dollyAngle) * 5;
 		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
 		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .1;
+		dollyAngle += .01;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
 		//tell dolly to move along the path from camera origin at increments 
-		
+	
 	}	
 	function togglePlayBackMode(){
 	
 		PLAYBACK = PLAYBACK?0:1;
 		if (PLAYBACK) {
 			clock.start();
+			clearLines();
 			//dollyPath = makeDollyPlaybackPath();
 			
 			
@@ -720,6 +726,17 @@ var grid ;
 	
 	}
 	
+	
+	function clearLines(){
+		var count = 0;
+		for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, 1);
+		}
+		return count;				
+		
+	}
+	
+	
 	function aggregateVertexCount(){
 		var count = 0;
 		for (var i=0;i< drawnline.length;i++){
@@ -729,57 +746,37 @@ var grid ;
 		
 	}
 	
-	function recurseDrawRange(array, p, currentcount){
-	
-		var alreadyWritten = playBackCount;
-		for (var i=0;i< drawnline.length;i++){ //but wait, only draw next line if the prev line is done or mostly done!
-	
-			var remainderOfTotalCount  = PB_LINE_VERTEX_COUNT_MAX - alreadyWritten;
-			
-			//need to check to see at what line we are writing
-		  	var prevLineRange = drawnline[i-1]? drawnline[i-1].geometry.attributes.position.count: drawnline[0].geometry.attributes.position.count;
-		  
-		    var lineRange = drawnline[i].geometry.attributes.position.count;
-		    
-		  	if (remainderOfTotalCount > prevLineRange){ //if prev line or first vertex count is less than already written, we start drawing the next line
-		  			  
-				
-				 var verticesToWrite = lineRange - remainderOfTotalCount; //how many more vertices to draw
-		 
-				 for (var v = 0; v < verticesToWrite; v ++){
-				 	drawnline[i].geometry.setDrawRange( 0, verticesToWrite * 3);
-				 
-				 }
-			}
-			else
-				drawnline[i-1].geometry.setDrawRange( 0, lineRange * 3);
-		}
 		
-	
-	}	
-	
 	function pb_drawOneAtATime(){
 		console.log("aggCount is " +  aggregateVertexCount());
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
 		
-		
+		var linesLeftToDraw = playBackCount;
 		for (var i=0;i< drawnline.length;i++){
 			
-			var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
 			
-			count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
-			for (var vertex=0;vertex< count;vertex++){
+			var howManyLinesToDraw = linesLeftToDraw;
+			var thisLineDrawn = (howManyLinesToDraw > drawnline[i].geometry.attributes.position.count)? drawnline[i].geometry.attributes.position.count:howManyLinesToDraw;
+			
+			
+			
+			//count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
+			for (var vertex=0;vertex< thisLineDrawn;vertex++){  //either the full lenght of the line or partial
 				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
 				drawnline[i].geometry.attributes.position.needsUpdate = true; 
 				
 			}
-		}
+			linesLeftToDraw -=  thisLineDrawn; //take this line off
+			}
 	}
-	
 	function pb_drawAllAtOnce(){
 		for (var i=0;i< drawnline.length;i++){
-				
+				if (drawnline[i] === undefined){  //if any weirdness, clean it up
+					drawnline.splice(i,1);
+					continue;
+				}
 				if ((drawnline[i].geometry.attributes.position.count/3) > PB_LINE_VERTEX_COUNT_MAX) 
 					PB_LINE_VERTEX_COUNT_MAX = (drawnline[i].geometry.attributes.position.count/3);
 				var count = playBackCount;
@@ -798,23 +795,24 @@ var grid ;
 	
 	function drawBack(){
 		//if (){
-		if (drawnline && drawnline.length >0)
-				pb_drawAllAtOnce();
+		//	pb_drawAllAtOnce();
 		//} else {
-		//	pb_drawOneAtATime();
+			pb_drawOneAtATime();
 		//}
 	
 	}
 	
 	function runPlayBack(){
 	
-		
 		if (PLAYBACK){
 			drawBack();
 
 			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount++;
-	
+				playBackCount+= 100;
+				//start = Date.now(); //not relevant
+				
+				raycastGazeForDollyCam();
+				console.log("playbackcount "+ playBackCount);
 			}
 			
 			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
@@ -825,6 +823,8 @@ var grid ;
 		return PLAYBACK;
 		
 	}
+	
+	
 	
 	
 	

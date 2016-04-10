@@ -289,7 +289,7 @@
 	var clock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-	var PLAYBACKSPEED = .005;
+	var PLAYBACKSPEED = .00005;
 	var dollyPath;
 	var userSettings = {};
 	
@@ -646,11 +646,16 @@
 						 handleImport(images);
 					}
 					else{
-						var object = new THREE.OBJLoader().parse( xhrImg.responseText );
+						var objects =  xhrImg.responseText.split('EOF');    
+						
+						objects.forEach(function(object){
+							var cleanedobj = object.replace(/EOF/,'');
+							obj = new THREE.OBJLoader().parse(cleanedobj);
 						
 			
-						object.name = "linedoodleverse";
-						importScene(object);					
+							obj.name = "linedoodleverse";
+							importScene(obj);
+						});					
 				  		
 				  	}
 				}else{
@@ -662,7 +667,7 @@
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
 			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "assets/doodleverse/armymen.txt");//easier to use node to get all the files in there even for debugging..);					
+				xhrImg.open("GET", "/getObjFiles");//easier to use node to get all the files in there even for debugging..);					
 			else
 				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
@@ -2104,7 +2109,7 @@
 	
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
-		var vGaze = new THREE.Vector3(0,0,.1);  //for now, let's make the gaze static
+		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
 		//raycaster.setFromCamera( vGaze, camera );		
 		//var intersects = raycaster.intersectObjects( objContainer.children, true); 	
 		//currentIntersectedPoint = handleRayIntersections(intersects);
@@ -2112,7 +2117,7 @@
 		//camera.position.z += Math.cos(dollyAngle) * 5;
 		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
 		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .31;
+		dollyAngle += .01;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
 		//tell dolly to move along the path from camera origin at increments 
@@ -2123,6 +2128,7 @@
 		PLAYBACK = PLAYBACK?0:1;
 		if (PLAYBACK) {
 			clock.start();
+			clearLines();
 			//dollyPath = makeDollyPlaybackPath();
 			
 			
@@ -2131,10 +2137,22 @@
 			for (var i=0;i< drawnline.length;i++){
 				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
 			}
+			
 		}
 		return PLAYBACK;
 	
 	}
+	
+	
+	function clearLines(){
+		var count = 0;
+		for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, 1);
+		}
+		return count;				
+		
+	}
+	
 	
 	function aggregateVertexCount(){
 		var count = 0;
@@ -2145,38 +2163,31 @@
 		
 	}
 	
-	function pb_drawOneAtATime(){
 		
+	function pb_drawOneAtATime(){
+		console.log("aggCount is " +  aggregateVertexCount());
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
 		
-		 var aggDrawnVertices = 0;		
-	
-		
+		var linesLeftToDraw = playBackCount;
 		for (var i=0;i< drawnline.length;i++){
-			if (drawnline[i] === undefined){  //if any weirdness, clean it up
-					drawnline.splice(i,1);
-					continue;
-			}
-			verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount; //incremented every half second basically so this number shrinks
 			
 			
-			if (verticesYetToBeDrawn > 0){
+			var howManyLinesToDraw = linesLeftToDraw;
+			var thisLineDrawn = (howManyLinesToDraw > drawnline[i].geometry.attributes.position.count)? drawnline[i].geometry.attributes.position.count:howManyLinesToDraw;
+			
+			
+			
+			//count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
+			for (var vertex=0;vertex< thisLineDrawn;vertex++){  //either the full lenght of the line or partial
+				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
+				drawnline[i].geometry.attributes.position.needsUpdate = true; 
 				
-				var thisLineRange = Math.min(verticesYetToBeDrawn, drawnline[i].geometry.attributes.position.count);
-				var currentlyDrawn = Math.min(thisLineRange, playBackCount);
-				currentlyDrawn = Math.min(currentlyDrawn, (playBackCount - aggDrawnVertices)); //completed lines vertex count so we have the remainder
-				for (var vertex=0;vertex< currentlyDrawn;vertex++){								//eg 303 - 300  3 lines to draw
-					drawnline[i].geometry.setDrawRange( 0, vertex * 3);
-					drawnline[i].geometry.attributes.position.needsUpdate = true; 
-					
-				}
-				if ((playBackCount - aggDrawnVertices) < drawnline[i].geometry.attributes.position.count) return; //don't advance to next line since current line is under range
-				aggDrawnVertices += drawnline[i].geometry.attributes.position.count;
 			}
-		}
+			linesLeftToDraw -=  thisLineDrawn; //take this line off
+			}
 	}
-	
 	function pb_drawAllAtOnce(){
 		for (var i=0;i< drawnline.length;i++){
 				if (drawnline[i] === undefined){  //if any weirdness, clean it up
@@ -2214,7 +2225,7 @@
 			drawBack();
 
 			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount++;
+				playBackCount+= 100;
 				//start = Date.now(); //not relevant
 				
 				raycastGazeForDollyCam();
@@ -2223,6 +2234,7 @@
 			
 			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
 				playBackCount = 0;
+				clearLines();
 		}	
 		
 		

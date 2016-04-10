@@ -31,18 +31,48 @@ my_http.createServer(function(request, response) {
     		writeOBJ(".", body);
     	}
 		
+		if (request.url === '/getObjFiles') {
+			sys.puts("getpics received");
+			
+			var files = getOBJFiles("/assets/doodleverse/",function(files){
+					 console.log("length " + files.length);
+						 for (f = 0; f< files.length; f++){
+						 	var file = files[f];
+							 filesys.readFile("/Users/csbishop/Sites/360/vrdoodler/" + file, "binary", function(err, file) {  
+								 if(err) {  
+									 response.writeHeader(500, {"Content-Type": "text/plain"});  
+									 response.write(err + "\n");  
+									 response.end();  
+									 console.log("error " + f);
+					
+								 }  
+								 else{
+									response.writeHeader(200);  
+									response.write(file, "binary"); 
+									response.write("EOF"); 
+									response.end();
+									console.log("file " + f);
+								}
+							
+							});	 
+							 
+						}
+			});
+			return;
+		}
+		  
 		response.on('error', function(err) {
 		  console.error(err);
 		});
 
- 		 path.exists(full_path,function(exists){
-		sys.puts("full path" + full_path);
-		if(!exists){
-				response.writeHeader(404, {"Content-Type": "text/plain"});  
-				response.write("node sez 404 Not Found\n");  
-				response.end();
-		}
-		else{
+ 		path.exists(full_path,function(exists){
+			sys.puts("full path" + full_path);
+			if(!exists){
+					response.writeHeader(404, {"Content-Type": "text/plain"});  
+					response.write("node sez 404 Not Found\n");  
+					response.end();
+			}
+			else{
 			
 				
 			
@@ -60,8 +90,8 @@ my_http.createServer(function(request, response) {
 					}
 						  
 				});
-		}
-    });
+			}
+    	});
     // Note: the 2 lines above could be replaced with this next one:
     // response.end(JSON.stringify(responseBody))
 
@@ -75,7 +105,14 @@ my_http.createServer(function(request, response) {
 }).listen(8080);
 sys.puts("yay, Server Running on 8080");  
 
-
+function getOBJFiles(path, sendBack){
+	// options is optional
+	return glob("assets/doodleverse/*.obj", function (er, files) {
+  	
+  		sys.puts("files are " + files);
+  		sendBack(files);
+  		})
+}
 
 function writeOBJ(path, data){
 		  if (data == null)

@@ -12,13 +12,23 @@ $images = array();
 for($x = 0; $x <= $total; $x++): if ($files[$x] != '.' && $files[$x] != '..' ) { $images[] = $files[$x]; }	
 endfor;
 
+$fcount = count($images);
 
-$filename = $images[0];
-$handle = fopen($dir . $filename, "r");
-$filesize = filesize($dir.$filename);
-$contents = fread($handle, $filesize);
-fclose($handle);
+for($temp = 0; $temp <= $fcount; $temp++):if ($images){
 
-echo $contents;
+	$filename = $images[$temp];
+
+	//$handle = fopen($dir . $filename, "r");
+	//$filesize = filesize($dir.$filename);
+	//$contents = fread($handle, $filesize);
+	//fclose($handle);
+	$contents = file_get_contents($dir . $filename);
+	echo $contents . 'EOF' ;
+}endfor;
+
+
+
+
+
 ?>
 
