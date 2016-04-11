@@ -15,20 +15,13 @@ endfor;
 $fcount = count($images);
 
 for($temp = 0; $temp <= $fcount; $temp++):if ($images){
-
 	$filename = $images[$temp];
+	$handle = fopen($dir . $filename, "r");
+	$filesize = filesize($dir.$filename);
+	$contents = fread($handle, $filesize);
+	fclose($handle);
 
-	//$handle = fopen($dir . $filename, "r");
-	//$filesize = filesize($dir.$filename);
-	//$contents = fread($handle, $filesize);
-	//fclose($handle);
-	$contents = file_get_contents($dir . $filename);
-	echo $contents . 'EOF' ;
+	echo $contents . "EOF";
 }endfor;
-
-
-
-
-
 ?>
 

@@ -48,10 +48,10 @@ my_http.createServer(function(request, response) {
 								 }  
 								 else{
 									response.writeHeader(200);  
-									response.write(file, "binary"); 
-									response.write("EOF"); 
+									response.write(file); 
+									//response.write("EOF"); 
 									response.end();
-									console.log("file " + f);
+									console.log("file " + file.length);
 								}
 							
 							});	 

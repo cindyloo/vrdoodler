@@ -8,13 +8,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
-	<!--<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-
-	<link rel="stylesheet" href="css/style.css">-->
-	
+		
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 	<script>
@@ -78,37 +72,30 @@
 	 
 	</script>
 
-
-	
-	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
-	<!--	<script src="js/controls/TransformControls.js"></script>-->
-  	<!--<script src="js/effects/StereoEffect.js"></script>-->
-
    <script src="js/three.js"></script>
 
-<!--
-  VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
-   -->
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
+	<!--
+	  VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	   -->
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
 
-<!--
-  VREffect.js handles stereo camera setup and rendering.
-  -->
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+	<!--
+	  VREffect.js handles stereo camera setup and rendering.
+	  -->
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
 
-<!--
-  A polyfill for WebVR using the Device{Motion,Orientation}Event API.
-  -->
-<script src="js/webvr-polyfill.js"></script>
+	<!--
+	  A polyfill for WebVR using the Device{Motion,Orientation}Event API.
+	  -->
+	<script src="js/webvr-polyfill.js"></script>
 
-<!--
-  Helps enter and exit VR mode, provides best practices while in VR.
-  -->
-<script src="js/webvr-manager.js"></script>
-    <script src="js/exporters/OBJExporter.js"></script>
+	<!--
+	  Helps enter and exit VR mode, provides best practices while in VR.
+	  -->
+	<script src="js/webvr-manager.js"></script>
+
 	<script src="js/loaders/OBJLoader.js"></script>
-	
-	<script src="js/BufferLoader.js"></script>
+ 
 	
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -121,7 +108,129 @@
 	
 	</script>
 
+<script>
+try {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    window.audioContext = new window.AudioContext();
+} catch (e) {
+    console.log("No Web Audio API support");
+}
 
+/*
+ * WebAudioAPISoundManager Constructor
+ */
+ var WebAudioAPISoundManager = function (context) {
+    this.context = context;
+    this.bufferList = {};
+    this.playingSounds = {};
+};
+
+/*
+ * WebAudioAPISoundManager Prototype
+ */
+WebAudioAPISoundManager.prototype = {
+     addSound: function (url, startPlayingIfLoaded) {
+        // Load buffer asynchronously
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "arraybuffer";
+
+        var self = this;
+
+        request.onload = function () {
+            // Asynchronously decode the audio file data in request.response
+            self.context.decodeAudioData(
+                request.response,
+
+                function (buffer) {
+                    if (!buffer) {
+                        alert('error decoding file data: ' + url);
+                        return;
+                    }
+                    self.bufferList[url] = buffer;
+                    startPlayingIfLoaded();
+  
+                });
+        };
+
+        request.onerror = function () {
+            alert('BufferLoader: XHR error');
+        };
+
+        request.send();
+    },
+    stopSoundWithUrl: function(url) {
+        if(this.playingSounds.hasOwnProperty(url)){
+            for(var i in this.playingSounds[url]){
+                if(this.playingSounds[url].hasOwnProperty(i))
+                    this.playingSounds[url][i].noteOff(0);
+            }
+        }
+    }
+};
+
+/*
+ * WebAudioAPISound Constructor
+ */
+ var WebAudioAPISound = function (url, options, afterLoad) {
+    this.settings = {
+        loop: false
+    };
+
+    for(var i in options){
+        if(options.hasOwnProperty(i))
+            this.settings[i] = options[i];
+    }
+
+    this.url = url ;
+    window.webAudioAPISoundManager = window.webAudioAPISoundManager || new WebAudioAPISoundManager(window.audioContext);
+    this.manager = window.webAudioAPISoundManager;
+    this.manager.addSound(this.url, afterLoad);
+    
+};
+
+/*
+ * WebAudioAPISound Prototype
+ */
+WebAudioAPISound.prototype = {
+    play: function () {
+        var buffer = this.manager.bufferList[this.url];
+        //Only play if it's loaded yet
+        if (typeof buffer !== "undefined") {
+            var source = this.makeSource(buffer);
+            source.loop = this.settings.loop;
+            source.start(0);
+
+            if(!this.manager.playingSounds.hasOwnProperty(this.url))
+                this.manager.playingSounds[this.url] = [];
+            this.manager.playingSounds[this.url].push(source);
+        }
+    },
+    stop: function () {
+        this.manager.stopSoundWithUrl(this.url);
+    },
+    getVolume: function () {
+        return this.translateVolume(this.volume, true);
+    },
+    //Expect to receive in range 0-100
+    setVolume: function (volume) {
+        this.volume = this.translateVolume(volume);
+    },
+    translateVolume: function(volume, inverse){
+        return inverse ? volume * 100 : volume / 100;
+    },
+    makeSource: function (buffer) {
+        var source = this.manager.context.createBufferSource();
+        var gainNode = this.manager.context.createGain();
+        gainNode.gain.value = this.volume ? this.volume: 0.5;
+        source.buffer = buffer;
+        source.connect(gainNode);
+        gainNode.connect(this.manager.context.destination);
+        return source;
+    }
+};
+
+</script>
 
   <body>  
   
@@ -130,6 +239,7 @@
 		<input id="playback" type="button" data-toggle="tooltip" value="" title="Playback"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
 	
 	</div>
+	<audio id="danny" src="assets/danny.wav"></audio>
 </body>
 
 
@@ -183,7 +293,7 @@ var grid ;
 	var PLANEROTATE = 0;
 	var COLOR = 0;
 	var linematerial = null;
-	var dollyAngle = 0;
+	var dollyAngle = 700;
 
 	var edges, cameraHelp;
 	
@@ -216,7 +326,10 @@ var grid ;
 		container.style.fontFamily = 'Monospace';
 		document.body.appendChild( container );
 
-	
+		sound1 = new WebAudioAPISound("assets/danny.wav", null, 
+			function(){
+				sound1.play();
+			});
 		renderer = new THREE.WebGLRenderer({antialias: true});
 		renderer.setPixelRatio(window.devicePixelRatio);
 		// Append the canvas element created by the renderer to document body element.
@@ -242,7 +355,7 @@ var grid ;
 		//sketchContainer.lookAt(0,5,0);
   		
   		
-		setupGrid();
+		//setupGrid();
 	
 	
 	 	 var params = {
@@ -260,49 +373,11 @@ var grid ;
 		document.getElementById("playback").onclick = togglePlayBackMode;
 
 
-///sound stuff
-			
-			audioCtx = new (window.AudioContext || window.webkitAudioContext)(); // define audio context
-			// Webkit/blink browsers need prefix, Safari won't work without window.
-			
-			//analyser = audioCtx.createAnalyser();
-			//distortion = audioCtx.createWaveShaper();
-			mainVolume = audioCtx.createGain();
-			//biquadFilter = audioCtx.createBiquadFilter();
-			panner = audioCtx.createPanner();
-			
-			bufferLoader = new BufferLoader(
-				audioCtx,
-				[
-				  '/assets/danny.wav'
-				],
-				finishedLoading
-				);
-			
-			  bufferLoader.load();
-			
-			
-			function finishedLoading(bufferList) {
-			  // Create two sources and play them both together.
-			  
-			  sound1 = audioCtx.createBufferSource();
-			  sound1.volume = audioCtx.createGain();
-			  sound1.buffer = bufferList[0];
-			  //sound1.panner = audioCtx.createPanner();
-			  
-			 /* var source2 = audioCtx.createBufferSource();		  
-			  source2.buffer = bufferList[0];
-			  */
-			  mainVolume.gain.value = 1;
-			  mainVolume.connect(audioCtx.destination);
-			  
-			  sound1.connect(mainVolume);
-			 // sound1.panner.connect(mainVolume);
-			 // source2.connect(mainVolume);
-			  
-			  sound1.start(0);
-			  //source2.start(0);
-			}
+window.addEventListener('touchstart', function(){
+	sound1.play();
+	toggleSound();
+	togglePlayBackMode();
+	});
 
 
 		
@@ -310,6 +385,8 @@ var grid ;
 
 			if (inMobileMode())
 				 toggleStereoscopic();
+				 
+		
 				
 	
  
@@ -319,7 +396,13 @@ var grid ;
 
 	}
 
-	
+	function toggleSound(){
+		if (sound1.playbackState ===sound1.PLAYING_STATE )	
+			sound1.stop();
+		else
+			sound1.start();
+		
+	}
 	
 	/*if URL params say load the doodleverse */
 	function loadInitialImages(dir){
@@ -345,8 +428,13 @@ var grid ;
 			
 							obj.name = "linedoodleverse";
 							importScene(obj);
-						});					
-				  		
+						});		
+						//if (sound && sound1.buffer) //how bad is this to do?
+						//	sound1.start(0); //start audio when images load	
+						
+				  		raycastGazeForDollyCam();
+				  		                   
+						
 				  	}
 				}else{
 					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
@@ -694,14 +782,10 @@ var grid ;
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
 		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
-		//raycaster.setFromCamera( vGaze, camera );		
-		//var intersects = raycaster.intersectObjects( objContainer.children, true); 	
-		//currentIntersectedPoint = handleRayIntersections(intersects);
-		//pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
-		//camera.position.z += Math.cos(dollyAngle) * 5;
+
 		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
 		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .01;
+		dollyAngle += .15;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
 		//tell dolly to move along the path from camera origin at increments 
@@ -797,6 +881,7 @@ var grid ;
 		//if (){
 		//	pb_drawAllAtOnce();
 		//} else {
+		if (drawnline && drawnline.length > 0)
 			pb_drawOneAtATime();
 		//}
 	
@@ -811,12 +896,21 @@ var grid ;
 				playBackCount+= 100;
 				//start = Date.now(); //not relevant
 				
-				raycastGazeForDollyCam();
+				
 				console.log("playbackcount "+ playBackCount);
 			}
 			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX){	
 				playBackCount = 0;
+				clearLines();
+				if (sound1){
+					sound1.stop(); 
+					sound1.play(); 
+				}		
+			
+			//document.getElementById("danny").stop();
+			//document.getElementById("danny").play();
+			}
 		}	
 		
 		
@@ -862,8 +956,6 @@ var grid ;
 			 vrmanager.render(scene, camera, timestamp);
  			raycastGazeForDollyCam();
   
-
-			
 
 			//renderer.render( scene, camera );
   		}else{

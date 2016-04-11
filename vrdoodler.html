@@ -2214,6 +2214,7 @@
 		//if (){
 		//	pb_drawAllAtOnce();
 		//} else {
+		if (drawnline && drawnline.length > 0)
 			pb_drawOneAtATime();
 		//}
 	
@@ -2232,9 +2233,10 @@
 				console.log("playbackcount "+ playBackCount);
 			}
 			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX)	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX){	
 				playBackCount = 0;
 				clearLines();
+			}
 		}	
 		
 		
