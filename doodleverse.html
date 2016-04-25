@@ -856,11 +856,6 @@ input[type=button] {
 		return null;
 	}
 
-	function toggleDolly(evt){
-		if (evt !== undefined) evt.preventDefault();
-		DOLLY = DOLLY?0:1;
-		defaultControls.autoRotate = DOLLY;
-	}
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
 		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
@@ -990,9 +985,7 @@ input[type=button] {
 		if (mode) {
 			pbclock.start(); //pbclock = setInterval(updatePB, 500);
 			clearLines();
-
-			//dollyPath = makeDollyPlaybackPath();
-			
+			controls.autoRotate = true;
 			
 		}else{
 
@@ -1000,6 +993,7 @@ input[type=button] {
 			for (var i=0;i< drawnline.length;i++){
 				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
 			}
+			controls.autoRotate = false;
 		}
 		return mode;
 	

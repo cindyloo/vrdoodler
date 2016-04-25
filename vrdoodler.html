@@ -289,7 +289,10 @@
 	var clock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-	var PLAYBACKSPEED = .00005;
+
+	var PLAYBACKSPEED = .0045;
+	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
+
 	var dollyPath;
 	var userSettings = {};
 	
@@ -2117,7 +2120,12 @@
 	
 	}
 	
-	function raycastGazeForDollyCam(){//no ray gazing yet fyi  just autorotation
+	function toggleDolly(evt){
+		if (evt !== undefined) evt.preventDefault();
+		DOLLY = DOLLY?0:1;
+		defaultControls.autoRotate = DOLLY;
+	}
+	function raycastGazeForDollyCam(){
 
 		dollyAngle +=  PER_MEDIA_INCREMENT;
 		if (dollyAngle >720) 
@@ -2125,35 +2133,19 @@
 		
 	}	
 	
-	function togglePlayBackMode(){
-	
-		PLAYBACK = PLAYBACK?0:1;
-		if (PLAYBACK) {
-			clock.start();
-			clearLines();
-			//dollyPath = makeDollyPlaybackPath();
-			controls.autoRotate = true;
-				controls.autoRotateSpeed = -.075
-			
-		}else{
-			clock.stop();
-			for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
-			}
-			controls.autoRotate = false;
-				controls.autoRotateSpeed = -.075
-			
-		}
-		return PLAYBACK;
-	
-	}
+
 	
 	
 	function clearLines(){
 		var count = 0;
-		for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, 1);
+		
+		if (drawnline && drawnline.length > 0){
+			for (var i=0;i< drawnline.length;i++){
+					drawnline[i].geometry.setDrawRange( 0, 1);
+					drawnline[i].geometry.attributes.position.needsUpdate = true; 
+			}
 		}
+
 		return count;				
 		
 	}
@@ -2161,8 +2153,10 @@
 	
 	function aggregateVertexCount(){
 		var count = 0;
-		for (var i=0;i< drawnline.length;i++){
+		if (drawnline && drawnline.length > 0){
+			for (var i=0;i< drawnline.length;i++){
 				count += drawnline[i].geometry.attributes.position.count;
+			}
 		}
 		return count;				
 		
@@ -2170,9 +2164,9 @@
 	
 		
 	function pb_drawOneAtATime(){
-		console.log("aggCount is " +  aggregateVertexCount());
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+	
 		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
 		
 		var linesLeftToDraw = playBackCount;
@@ -2192,6 +2186,7 @@
 			}
 			linesLeftToDraw -=  thisLineDrawn; //take this line off
 			}
+		
 	}
 	function pb_drawAllAtOnce(){
 		for (var i=0;i< drawnline.length;i++){
@@ -2225,23 +2220,55 @@
 	
 	}
 	
+	function setPlayBack(mode){ //on, off
+		PLAYBACK = mode;
+		if (mode) {
+			clock.start(); //pbclock = setInterval(updatePB, 500);
+			clearLines();
+			controls.autoRotate = true;
+			
+		}else{
+
+			clock.stop(); //clearInterval(pbtimer);
+			for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
+			}
+			controls.autoRotate = false;
+		}
+		return mode;
+	
+	}
+	
+	
+	function togglePlayBackMode(evt){
+		if (evt !== undefined) evt.preventDefault();
+		PLAYBACK = PLAYBACK?0:1;
+		setPlayBack(PLAYBACK);
+		return PLAYBACK;
+	
+	}
+	
+
 	function runPlayBack(){
 	
 		if (PLAYBACK){
+		
 			drawBack();
-
+			
 			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount+= 100;
-				//start = Date.now(); //not relevant
-				
-				raycastGazeForDollyCam();
-				
-				console.log("playbackcount "+ playBackCount);
+				playBackCount+= PLAYBACKCOUNT;
+
 			}
 			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX){	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX >0){
+	
 				playBackCount = 0;
 				clearLines();
+				/*if (sound1){
+					sound1.stop(); 
+					sound1.play(); 
+				}	*/	
+
 			}
 		}	
 		
@@ -2249,7 +2276,6 @@
 		return PLAYBACK;
 		
 	}
-	
 	
 	
 	
@@ -2296,10 +2322,9 @@
 
 		if (STEREOSCOPIC){
 		
-			 	orientControls.update();
+			 orientControls.update();
 			 vrmanager.render(scene, camera, timestamp);
-			//effect.render(scene, camera);
-				//orientControls.object = camera;
+			
 		
     
   		}else{
@@ -2324,7 +2349,7 @@
 	 
 			renderer.render( scene, camera );
 			
-			controls.update(pbclock.getDelta());
+			
   		}
   			//renderer.clearDepth();
 	}
