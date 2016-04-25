@@ -97,6 +97,7 @@
 
 	<script src="js/loaders/OBJLoader.js"></script>
  	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+ 	<script src="http://threejs.org/examples/js/controls/PointerLockControls.js"></script>
 	
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -283,6 +284,33 @@ input[type=button] {
 	}
 
 	input{ cursor:pointer;}
+	
+	
+				#blocker {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0,0,0,0.5);
+			}
+			#instructions {
+				width: 100%;
+				height: 100%;
+				display: -webkit-box;
+				display: -moz-box;
+				display: box;
+				-webkit-box-orient: horizontal;
+				-moz-box-orient: horizontal;
+				box-orient: horizontal;
+				-webkit-box-pack: center;
+				-moz-box-pack: center;
+				box-pack: center;
+				-webkit-box-align: center;
+				-moz-box-align: center;
+				box-align: center;
+				color: #ffffff;
+				text-align: center;
+				cursor: pointer;
+			}
 
 </style>
   <body>  
@@ -310,7 +338,7 @@ input[type=button] {
     var geometry, material, mesh;
     var controls, minicamera;
     var effect, vrmanager;
-    var defaultControls, orientControls, transformControls;
+    var defaultControls, orientControls, deviceControls;
     var transGeo, transMat;
  	var context = null;
 	var currentPlane = 0;
@@ -345,7 +373,7 @@ input[type=button] {
 
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-	var PLAYBACKSPEED = .0045;
+	var PLAYBACKSPEED = .0005;
 	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
 	
 	//audio stuff
@@ -384,7 +412,7 @@ input[type=button] {
 		camera.position.set(0,.5,10);
 		// Apply VR headset positional data to camera.
 		defaultControls = new THREE.OrbitControls(camera, renderer.domElement);
-		
+		//defaultControls = new THREE.PointerLockControls(camera, renderer.domElement);
 		// Apply VR stereo rendering to renderer.
 		var effect = new THREE.VREffect(renderer);
 		effect.setSize(window.innerWidth, window.innerHeight);
@@ -430,12 +458,14 @@ input[type=button] {
 				 toggleStereoscopic();
 			}
 			else{
-				PER_MEDIA_INCREMENT = .065;
-				PLAYBACKCOUNT = 25;//slower, bigger screen
+				PER_MEDIA_INCREMENT = .125;
+				PLAYBACKSPEED = .001;
+				PLAYBACKCOUNT = 35;//slower, bigger screen
 				if (orientControls !== undefined) orientControls.enabled = false;
 				loadInitialImages();
+				
 				defaultControls.autoRotate = true;
-				defaultControls.autoRotateSpeed = -.075
+				defaultControls.autoRotateSpeed = -.095
 			}
 			dollyAngle = getDollyOrigin();
 	  });
@@ -856,6 +886,11 @@ input[type=button] {
 		return null;
 	}
 
+	function toggleDolly(evt){
+		if (evt !== undefined) evt.preventDefault();
+		DOLLY = DOLLY?0:1;
+		defaultControls.autoRotate = DOLLY;
+	}
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
 		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
@@ -985,7 +1020,7 @@ input[type=button] {
 		if (mode) {
 			pbclock.start(); //pbclock = setInterval(updatePB, 500);
 			clearLines();
-			controls.autoRotate = true;
+
 			
 		}else{
 
@@ -993,7 +1028,6 @@ input[type=button] {
 			for (var i=0;i< drawnline.length;i++){
 				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
 			}
-			controls.autoRotate = false;
 		}
 		return mode;
 	
