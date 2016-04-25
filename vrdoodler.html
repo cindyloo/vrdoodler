@@ -529,8 +529,17 @@
 				  
 			  
 		
-			if (inMobileMode())
+			if (inMobileMode()){
 				 toggleStereoscopic();
+				 PER_MEDIA_INCREMENT = .125;
+				PLAYBACKCOUNT = 55;//slower, bigger screen
+			}else{
+				PER_MEDIA_INCREMENT = .065;
+				PLAYBACKCOUNT = 25;//slower, bigger screen
+				
+				controls.autoRotate = false;
+				controls.autoRotateSpeed = -.075
+			}
  
 	  });
 	
@@ -2108,24 +2117,14 @@
 	
 	}
 	
-	function raycastGazeForDollyCam(){
-		//TODO: should only run when in playback mode
-		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
-		//raycaster.setFromCamera( vGaze, camera );		
-		//var intersects = raycaster.intersectObjects( objContainer.children, true); 	
-		//currentIntersectedPoint = handleRayIntersections(intersects);
-		//pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
-		//camera.position.z += Math.cos(dollyAngle) * 5;
-		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
-		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .20;
+	function raycastGazeForDollyCam(){//no ray gazing yet fyi  just autorotation
+
+		dollyAngle +=  PER_MEDIA_INCREMENT;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
-		var gazeAt = new THREE.Vector3(camera.position.x + .5,camera.position.y,camera.position.z );
-		camera.lookAt(gazeAt);
-		//tell dolly to move along the path from camera origin at increments 
-	
+		
 	}	
+	
 	function togglePlayBackMode(){
 	
 		PLAYBACK = PLAYBACK?0:1;
@@ -2133,13 +2132,16 @@
 			clock.start();
 			clearLines();
 			//dollyPath = makeDollyPlaybackPath();
-			
+			controls.autoRotate = true;
+				controls.autoRotateSpeed = -.075
 			
 		}else{
 			clock.stop();
 			for (var i=0;i< drawnline.length;i++){
 				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
 			}
+			controls.autoRotate = false;
+				controls.autoRotateSpeed = -.075
 			
 		}
 		return PLAYBACK;
@@ -2233,6 +2235,7 @@
 				//start = Date.now(); //not relevant
 				
 				raycastGazeForDollyCam();
+				
 				console.log("playbackcount "+ playBackCount);
 			}
 			
@@ -2298,16 +2301,10 @@
 			//effect.render(scene, camera);
 				//orientControls.object = camera;
 		
-    		//effect.render(scene, camera);
- 
-  
-
-			
-
-			//renderer.render( scene, camera );
+    
   		}else{
   			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update();
+  			controls.update(clock.getDelta());
   		
 			minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
@@ -2326,6 +2323,8 @@
 			camera.updateProjectionMatrix();
 	 
 			renderer.render( scene, camera );
+			
+			controls.update(pbclock.getDelta());
   		}
   			//renderer.clearDepth();
 	}
