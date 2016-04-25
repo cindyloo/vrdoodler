@@ -161,29 +161,25 @@
 </body>
 
 <script>
- 
- 
- 	var camera, scene, expScene, renderer,orbitcamera,light;
-    var geometry, material, mesh;
-    var controls, minicamera;
-    var effects, vrmanager;
-    var defaultControls, orientControls, transformControls;
-    var transGeo, transMat;
- 	var context = null;
+	var camera, scene, expScene, renderer, orbitcamera, light;
+	var geometry, material, mesh;
+	var controls, minicamera;
+	var effects, vrmanager;
+	var defaultControls, orientControls, transformControls;
+	var transGeo, transMat;
+	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
 	var container, canvas;
 
-	
 	var manager;
-
 
 	var MAX_POINTS = 2000;
 	var PB_LINE_VERTEX_COUNT_MAX = 0; //change this once we get our first line...
 	var countVertices = 0;
-	var sketchContainer,objContainer ;
+	var sketchContainer, objContainer;
 	var CURRENTspline = -1; //incremented at initNewLine
-	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid ;
+	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid;
 	var mouse = new THREE.Vector2();
 	var mouseXOFFSET = 1.01;
 	var mouseYOFFSET = .975;
@@ -193,33 +189,33 @@
 	var axisHelper;
 	var bIsDrawing = false;
 	var bShowInfo = true;
-	
+
 	var copiedObj = null;
-	
-	var ORBITMODE = 0;  //when not drawing
-	var FREEHANDMODE = 1;  //when drawing
-	var SNAPMODE = 0;		//snap to pre-existing line/objects	
-	var DRAWMODE = 0;//ORBITMODE;
-	var MOVEMODE=0;
+
+	var ORBITMODE = 0; //when not drawing
+	var FREEHANDMODE = 1; //when drawing
+	var SNAPMODE = 0; //snap to pre-existing line/objects	
+	var DRAWMODE = 0; //ORBITMODE;
+	var MOVEMODE = 0;
 	var CURRENTLINEWIDTH = 2;
 	var PLANEROTATIONCOLOR = 0xff000;
 	var PLANELOCK = 0;  //lock currentIntersection
 	var STEREOSCOPIC = 0;
-	
+
 	var SNAPPLANETOGRID = 0;
-	
+
 	var cameraAngle, dollyAngle = 0;
 	var pivotRadius = 1;
 	var pivotPoint;
-	var initCamRotPos =0;
+	var initCamRotPos = 0;
 	var squareAngle = 90 * Math.PI/180;
-	var plane, planegeo, planemat,planeBoundsMat, planeBounds;
+	var plane, planegeo, planemat, planeBoundsMat, planeBounds;
 	var PLANEROTATE = 0;
 	var COLOR = 0;
 	var linematerial = null;
 
 	var edges, cameraHelp;
-	
+
 	var start = Date.now();
 	var clock = new THREE.Clock();
 	var PLAYBACK = 0;
@@ -227,49 +223,44 @@
 	var PLAYBACKSPEED = .00005;
 	var dollyPath;
 	var userSettings = {};
-	
+
 	var defUserSettings = {
-	
 		userLevel:0,
 		snapMode:1,
 		drawMode:1,
 		lockPlane:1
-
-	
 	};
 	
 	var advUserSettings = {
-	
 		userLevel:2,
 		snapMode:0,
 		drawMode:0,
 		lockPlane:1
-
-	
 	};
-	
-	var tuteBegPhrases = ["Press the mouse to begin drawing.",
-							"When you are done drawing, let go of the mouse",
-							"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
-							"When you see the red dot, you can connect a new line to the selected line",
-							"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
-							"You can also press r to rotate. It is best if you toggle drawing off while rotating",
-							"Unclick Draw to move the camera around your drawing"];
-							
-	var tuteAdvPhrases = ["Rotate the camera to desired view and press the d key to enter draw mode",
-							"Press the s key to snap your new line to either the grid or to a previous line",
-							"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
-							"Start drawing!",
-							"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
-							"Hover over the previous drawn line to connect your new lines",
-							"Familiarize yourself with the Snapping keys on the menu"];
+
+	var tuteBegPhrases = [
+		"Press the mouse to begin drawing.",
+		"When you are done drawing, let go of the mouse",
+		"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
+		"When you see the red dot, you can connect a new line to the selected line",
+		"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
+		"You can also press r to rotate. It is best if you toggle drawing off while rotating",
+		"Unclick Draw to move the camera around your drawing"
+	];
+
+	var tuteAdvPhrases = [
+		"Rotate the camera to desired view and press the d key to enter draw mode",
+		"Press the s key to snap your new line to either the grid or to a previous line",
+		"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
+		"Start drawing!",
+		"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
+		"Hover over the previous drawn line to connect your new lines",
+		"Familiarize yourself with the Snapping keys on the menu"
+	];
 	var tuteBegCount = 0;
 	var tuteAdvCount = 0;
-	
 
-	
-
-	function init(){	
+	function init() {
 		container = document.createElement( 'div' );
 		container.style.position = 'absolute';
 		container.style.top = '0';
