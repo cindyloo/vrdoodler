@@ -1,111 +1,100 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <head>
-    <meta charset="utf-8">
-    <title>VRDoodler!!!-beta</title>
- <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<meta charset="utf-8">
+	<title>VRDoodler!!!-beta</title>
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
-	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
-	<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css">
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script>
+	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Firefox 1.0+
+	isFirefox = typeof InstallTrigger !== 'undefined';
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least IE6
+	isIE = /*@cc_on!@*/false || !!document.documentMode;
+	// Edge 20+
+	isEdge = !isIE && !!window.StyleMedia;
+	// Chrome 1+
+	isChrome = !!window.chrome && !!window.chrome.webstore;
+	// Blink engine detection
+	isBlink = (isChrome || isOpera) && !!window.CSS;
 	
-    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-	<script>
-		// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-		isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-		// Firefox 1.0+
-		isFirefox = typeof InstallTrigger !== 'undefined';
-		// At least Safari 3+: "[object HTMLElementConstructor]"
-		isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-		// At least IE6
-		isIE = /*@cc_on!@*/false || !!document.documentMode;
-		// Edge 20+
-		isEdge = !isIE && !!window.StyleMedia;
-		// Chrome 1+
-		isChrome = !!window.chrome && !!window.chrome.webstore;
-		// Blink engine detection
-		isBlink = (isChrome || isOpera) && !!window.CSS;
-		
-		if(isChrome || isFirefox){
-		   // is Google Chrome on IOS
-		} else { 
-		  alert("VRDoodler requires Chrome or FF");
-		 } 
-		 
-		 
-		 
-		 function isMobBrowser() { 
-			 if( navigator.userAgent.match(/Android/i)
-			 || navigator.userAgent.match(/webOS/i)
-			 || navigator.userAgent.match(/iPhone/i)
-			 || navigator.userAgent.match(/iPad/i)
-			 || navigator.userAgent.match(/iPod/i)
-			 || navigator.userAgent.match(/BlackBerry/i)
-			 || navigator.userAgent.match(/Windows Phone/i)
-			 ){
-				return true;
-			  }
-			 else {
-				return false;
-			  }
+	if (isChrome || isFirefox) {
+	}
+	else {
+		alert("VRDoodler requires Chrome or FF");
+	} 
+
+	function isMobBrowser() {
+		if ( navigator.userAgent.match(/Android/i)
+			|| navigator.userAgent.match(/webOS/i)
+			|| navigator.userAgent.match(/iPhone/i)
+			|| navigator.userAgent.match(/iPad/i)
+			|| navigator.userAgent.match(/iPod/i)
+			|| navigator.userAgent.match(/BlackBerry/i)
+			|| navigator.userAgent.match(/Windows Phone/i)
+			) {
+			return true;
 		}
-		 
-		var getParams = (function() {
-	
-			var _get = {};
-			var re = /[?&]([^=&]+)(=?)([^&]*)/g;
-			while (m = re.exec(location.search))
-				_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
-			return _get;
-		})();
-		
-		
-		function inMobileMode(){
-		
-			if (isMobBrowser() || getParams["mobile"] == 1)
-				return true;
-			else
-				return false;
-		
+		else {
+			return false;
 		}
-	 
-	</script>
+	}
 
+	var getParams = (function() {
+		var _get = {};
+		var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+		while (m = re.exec(location.search))
+			_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+		return _get;
+	})();
 
-	
-	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
-	<!--	<script src="js/controls/TransformControls.js"></script>-->
-  	<!--<script src="js/effects/StereoEffect.js"></script>-->
+	function inMobileMode() {
+		if (isMobBrowser() || getParams["mobile"] == 1)
+			return true;
+		else
+			return false;
+	}
+</script>
 
-    <script src="js/three.js"></script>
-   
-    <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
-    <script src="js/exporters/OBJExporter.js"></script>
-	<script src="js/loaders/OBJLoader.js"></script>
-	
+<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
+<!--	<script src="js/controls/TransformControls.js"></script>-->
+<!--<script src="js/effects/StereoEffect.js"></script>-->
+
+<script src="js/three.js"></script>
+
+<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="js/exporters/OBJExporter.js"></script>
+<script src="js/loaders/OBJLoader.js"></script>
+
 <script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
 <script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
 
-     <script src="js/webvr-polyfill.js"></script>
-      <script src="js/webvr-manager.js"></script>
-	
-	<script>
-	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-	
-	  ga('create', 'UA-75274623-1', 'auto');
-	  ga('send', 'pageview');
-	
-	</script>
+<script src="js/webvr-polyfill.js"></script>
+<script src="js/webvr-manager.js"></script>
+
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-75274623-1', 'auto');
+	ga('send', 'pageview');
+</script>
 
  <script id="vertexShader" type="x-shader/x-vertex">  
       
