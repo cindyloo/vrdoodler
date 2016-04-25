@@ -1,7 +1,7 @@
  <!DOCTYPE html>
 <head>
     <meta charset="utf-8">
-    <title>VRDoodler!!!-beta</title>
+    <title>Doodleverse!!!-beta</title>
  <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -10,7 +10,7 @@
 </head>
 		
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 	<script>
 		// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
 		isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
@@ -30,7 +30,7 @@
 		if(isChrome || isFirefox){
 		   // is Google Chrome on IOS
 		} else { 
-		  alert("VRDoodler requires Chrome or FF");
+		  alert("VRDoodler requires Chrome or FF on Mac OS. For mobile devices you must have ios 9.3.1");
 		 } 
 		 
 		 
@@ -44,6 +44,7 @@
 			 || navigator.userAgent.match(/BlackBerry/i)
 			 || navigator.userAgent.match(/Windows Phone/i)
 			 ){
+			 
 				return true;
 			  }
 			 else {
@@ -95,7 +96,7 @@
 	<script src="js/webvr-manager.js"></script>
 
 	<script src="js/loaders/OBJLoader.js"></script>
- 
+ 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
 	
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -163,7 +164,7 @@ WebAudioAPISoundManager.prototype = {
         if(this.playingSounds.hasOwnProperty(url)){
             for(var i in this.playingSounds[url]){
                 if(this.playingSounds[url].hasOwnProperty(i))
-                    this.playingSounds[url][i].noteOff(0);
+                    this.playingSounds[url][i].stop(0);
             }
         }
     }
@@ -194,6 +195,7 @@ WebAudioAPISoundManager.prototype = {
  */
 WebAudioAPISound.prototype = {
     play: function () {
+    	
         var buffer = this.manager.bufferList[this.url];
         //Only play if it's loaded yet
         if (typeof buffer !== "undefined") {
@@ -204,10 +206,12 @@ WebAudioAPISound.prototype = {
             if(!this.manager.playingSounds.hasOwnProperty(this.url))
                 this.manager.playingSounds[this.url] = [];
             this.manager.playingSounds[this.url].push(source);
+            this.playbackState = "playing";
         }
     },
     stop: function () {
         this.manager.stopSoundWithUrl(this.url);
+        this.playbackState = "stopped";
     },
     getVolume: function () {
         return this.translateVolume(this.volume, true);
@@ -231,15 +235,70 @@ WebAudioAPISound.prototype = {
 };
 
 </script>
+<style>
+input[type=button] {
+		position:relative;
+		float:left;
+		width:50px;
+		height:50px;
+		z-index:3;
+		padding:10px;
+		border-radius:10px;
+		font-family: Oswald;
+		font-size: 18px;
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 20px;
+		
+		background-color:white;
+	}
+	i, i.glyphicon{
+		position: relative;
+		float: left;
+		left: -32px;
+		top:20px;
+		width:10px;
+		height:10px;
+		z-index:3;
+		cursor:pointer;
+	}
+	i.icon-spin{
+		left:0;
 
+	}
+	.spinner {
+		  display: inline-block;
+		  -webkit-transition: opacity 0.25s, width 0.25s;
+		  -moz-transition: opacity 0.25s, width 0.25s;
+		  -o-transition: opacity 0.25s, width 0.25s;
+		  transition: opacity 0.25s, width 0.25s;
+	}
+	.has-spinner {
+	color:white;
+	background-color:grey;
+	}
+	.has-spinner .active {
+	  cursor:progress;
+	}
+
+	input{ cursor:pointer;}
+
+</style>
   <body>  
   
   <div class="">
-		<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-		<input id="playback" type="button" data-toggle="tooltip" value="" title="Playback"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	<input id="reset" type="button" data-toggle="tooltip" value="" title="Reset the story" onclick="" ><i class="glyphicon glyphicon-refresh"></i></input>
+	<input id="sound" type="button" data-toggle="tooltip" value="" title="Start/stop the audio recording" onclick=""><i class="glyphicon glyphicon-volume-up"></i></input>
+	<input id="dolly" type="button" data-toggle="tooltip" value="" title="Start/stop moving the camera" onclick=""><i class="glyphicon glyphicon-facetime-video"></i></input>
+	<input id="playback" type="button" data-toggle="tooltip" value="" title="Start/stop the animation" onclick=""><i class="glyphicon glyphicon-play-circle"></i></input>
 	
 	</div>
-	<audio id="danny" src="assets/danny.wav"></audio>
+	<div id="loading" class="has-spinner">
+    <span class="spinner"><i class="icon-spin">Loading...</i></span>
+    
+    </div>
+	<!--<audio id="danny" src="assets/danny_narration.wav"></audio>-->
 </body>
 
 
@@ -250,7 +309,7 @@ WebAudioAPISound.prototype = {
  	var camera, scene, expScene, renderer,orbitcamera,light;
     var geometry, material, mesh;
     var controls, minicamera;
-    var effects, vrmanager;
+    var effect, vrmanager;
     var defaultControls, orientControls, transformControls;
     var transGeo, transMat;
  	var context = null;
@@ -264,44 +323,30 @@ WebAudioAPISound.prototype = {
 	var countVertices = 0;
 	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
-var grid ;
+	var grid ;
 	var mouse = new THREE.Vector2();
-	var mouseXOFFSET = 1.01;
-	var mouseYOFFSET = .975;
-	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
-	var lastLineIntersection = null;
-	
-	
-	var ORBITMODE = 0;  //when not drawing
-	var FREEHANDMODE = 1;  //when drawing
-	var SNAPMODE = 0;		//snap to pre-existing line/objects	
+
 	var DRAWMODE = 0;//ORBITMODE;
 	var MOVEMODE=0;
 	var CURRENTLINEWIDTH = 2;
 	var PLANEROTATIONCOLOR = 0xff000;
 	var PLANELOCK = 0;  //lock currentIntersection
 	var STEREOSCOPIC = 0;
-	
-	var SNAPPLANETOGRID = 0;
-	
-	var cameraAngle = 0;
-	var pivotRadius = 1;
-	var pivotPoint;
-	var initCamRotPos =0;
 	var squareAngle = 90 * Math.PI/180;
-	var plane, planegeo, planemat,planeBoundsMat, planeBounds;
-	var PLANEROTATE = 0;
-	var COLOR = 0;
-	var linematerial = null;
-	var dollyAngle = 700;
 
+	var linematerial = null;
+	var dollyAngle = 690;
+	var DOLLY = 1;
+	var PER_MEDIA_INCREMENT = .125;
+	var pbclock ;
 	var edges, cameraHelp;
 	
 	var start = Date.now();
-	var clock = new THREE.Clock();
+
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-	var PLAYBACKSPEED = .0005;
+	var PLAYBACKSPEED = .0045;
+	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
 	
 	//audio stuff
 	var audioCtx ; // define audio context
@@ -325,11 +370,9 @@ var grid ;
 		container.style.zIndex = '1';
 		container.style.fontFamily = 'Monospace';
 		document.body.appendChild( container );
+	 	pbclock= new THREE.Clock();
 
-		sound1 = new WebAudioAPISound("assets/danny.wav", null, 
-			function(){
-				sound1.play();
-			});
+		
 		renderer = new THREE.WebGLRenderer({antialias: true});
 		renderer.setPixelRatio(window.devicePixelRatio);
 		// Append the canvas element created by the renderer to document body element.
@@ -338,9 +381,10 @@ var grid ;
 		scene = new THREE.Scene();
 		// Create a three.js camera.
 		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
-		camera.position.set(0,.5,5);
+		camera.position.set(0,.5,10);
 		// Apply VR headset positional data to camera.
-		orientControls = new THREE.VRControls(camera);
+		defaultControls = new THREE.OrbitControls(camera, renderer.domElement);
+		
 		// Apply VR stereo rendering to renderer.
 		var effect = new THREE.VREffect(renderer);
 		effect.setSize(window.innerWidth, window.innerHeight);
@@ -350,57 +394,82 @@ var grid ;
 		objContainer.geometry = null;
 
   		scene.add(objContainer);
-  		
-  		//sketchContainer.add(camera);
-		//sketchContainer.lookAt(0,5,0);
-  		
-  		
-		//setupGrid();
-	
-	
-	 	 var params = {
-		  hideButton: false, // Default: false.
-		  isUndistorted: false // Default: false.
-		};
-		vrmanager = new WebVRManager(renderer, effect, params);
-  		    
-   		vrmanager.button.vrButton.style.width = '25px';
-   		vrmanager.button.vrButton.style.height ='25px';
+
+
+		if (inMobileMode()){
+		
+			orientControls = new THREE.VRControls(camera);
+			 var params = {
+			  hideButton: false, // Default: false.
+			  isUndistorted: false // Default: false.
+			};
+			vrmanager = new WebVRManager(renderer, effect, params);
+			
+			vrmanager.button.vrButton.style.width = '25px';
+			vrmanager.button.vrButton.style.height ='25px';
+		}
   		
 			
 		
 		window.addEventListener('resize', onWindowResize, false);
-		document.getElementById("playback").onclick = togglePlayBackMode;
+		//document.getElementById("playback").onclick = togglePlayBackMode;
 
-
-window.addEventListener('touchstart', function(){
-	sound1.play();
-	toggleSound();
-	togglePlayBackMode();
-	});
+		$("#reset, i.glyphicon-refresh").on('click touchend', reset);
+		$("#dolly, i.glyphicon-facetime-video").on('click touchend', toggleDolly);
+		$("#sound, i.glyphicon-volume-up").on('click touchend', toggleSound);
+		$("#playback, i.glyphicon-play-circle").on('click touchend', togglePlayBackMode);
+		
+		
 
 
 		
 		$(document).ready(function(){
 
-			if (inMobileMode())
+			if (inMobileMode()){
+				 PER_MEDIA_INCREMENT = .125;
 				 toggleStereoscopic();
-				 
-		
-				
-	
- 
+			}
+			else{
+				PER_MEDIA_INCREMENT = .065;
+				PLAYBACKCOUNT = 25;//slower, bigger screen
+				if (orientControls !== undefined) orientControls.enabled = false;
+				loadInitialImages();
+				defaultControls.autoRotate = true;
+				defaultControls.autoRotateSpeed = -.075
+			}
+			dollyAngle = getDollyOrigin();
 	  });
 	
 	   
 
 	}
+	
+	function getDollyOrigin() {
+	
+		if (inMobileMode()) return 690;
+		else return 450;
+	}
+	
+	function reset(evt ){ 
+		if (evt !== undefined) evt.preventDefault();
+		dollyAngle = getDollyOrigin();
+		playBackCount=0;
+		sound1.stop();
+		sound1.play();
+		raycastGazeForDollyCam();
+		setPlayBack(1);
+	}
+	
 
-	function toggleSound(){
-		if (sound1.playbackState ===sound1.PLAYING_STATE )	
+	function toggleSound(evt){  //reset also??? stop rotation??
+		if (evt !== undefined) evt.preventDefault();
+		if (sound1.playbackState == "playing")	{
+		
 			sound1.stop();
-		else
-			sound1.start();
+		}else{
+			sound1.play();
+			PLAYBACK = togglePlayBackMode();
+			}
 		
 	}
 	
@@ -433,8 +502,14 @@ window.addEventListener('touchstart', function(){
 						//	sound1.start(0); //start audio when images load	
 						
 				  		raycastGazeForDollyCam();
-				  		                   
-						
+				  		//PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount();                 
+						sound1 = new WebAudioAPISound("assets/danny_narration.wav", null, 
+						function(){
+							$("#loading").removeClass("has-spinner");
+							$("#loading").css("display","none");
+							if (sound1.hasOwnProperty("url"))
+				 				toggleSound();
+						}); 
 				  	}
 				}else{
 					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
@@ -449,7 +524,9 @@ window.addEventListener('touchstart', function(){
 			else
 				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
 	 
-			xhrImg.send();  
+			xhrImg.send(); 
+			
+			
 
     	}
 	function loadImages(imgArray){
@@ -612,12 +689,24 @@ window.addEventListener('touchstart', function(){
 	
 	
 	function onWindowResize() {
-		  effect.setSize(window.innerWidth, window.innerHeight);
+		  if (effect) effect.setSize(window.innerWidth, window.innerHeight);
 		  camera.aspect = window.innerWidth / window.innerHeight;
 		  camera.updateProjectionMatrix();
 	}
 
 
+      function setOrientationControls(e) {
+        if (e && !e.alpha) {
+          return;
+        }
+        //orientControls.update();
+      
+        if (mostRecentDrawnLine() == null)
+        	loadInitialImages();
+        
+        
+        //window.removeEventListener('deviceorientation', setOrientationControls, true);
+      }
 
 	
 	function toggleStereoscopic(){
@@ -654,18 +743,6 @@ window.addEventListener('touchstart', function(){
 	}
 
 
-      function setOrientationControls(e) {
-        if (e && !e.alpha) {
-          return;
-        }
-        orientControls.update();
-      
-        if (mostRecentDrawnLine() == null)
-        	loadInitialImages();
-        
-        
-        //window.removeEventListener('deviceorientation', setOrientationControls, true);
-      }
       
 
     
@@ -779,43 +856,61 @@ window.addEventListener('touchstart', function(){
 		return null;
 	}
 
+	function toggleDolly(evt){
+		if (evt !== undefined) evt.preventDefault();
+		DOLLY = DOLLY?0:1;
+		defaultControls.autoRotate = DOLLY;
+	}
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
 		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
 
-		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
-		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .15;
+		//camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
+		//camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
+		dollyAngle +=  PER_MEDIA_INCREMENT;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
 		//tell dolly to move along the path from camera origin at increments 
-	
+		/*if (defaultControls.target.equals(new THREE.Vector3(0,0,0)))
+			defaultControls.target.set(camera.position.x - .2, .5, camera.position.z - .2);
+		else{
+		
+			//defaultControls.target.set(;
+				
+		}//let user operate camera...
+			*/
+		//camera.target = camera.position;
 	}	
-	function togglePlayBackMode(){
 	
-		PLAYBACK = PLAYBACK?0:1;
-		if (PLAYBACK) {
-			clock.start();
-			clearLines();
-			//dollyPath = makeDollyPlaybackPath();
-			
-			
-		}else{
-			clock.stop();
-			for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
-			}
-		}
-		return PLAYBACK;
 	
-	}
+
+	/*not sure i'd want to do this as then the camera could end off the grid..function gaze() {
+  
+    raycaster.setFromCamera(center, camera);
+    var intersects = raycaster.intersectObjects([bit]);
+
+    if (intersects.length > 0) {
+      
+     
+        camera.position.z = -.4
+       //or could reset camera or limit camera to 50/-50
+    }
+
+}
+
+*/
 	
 	
 	function clearLines(){
 		var count = 0;
-		for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, 1);
+		
+		if (drawnline && drawnline.length > 0){
+			for (var i=0;i< drawnline.length;i++){
+					drawnline[i].geometry.setDrawRange( 0, 1);
+					drawnline[i].geometry.attributes.position.needsUpdate = true; 
+			}
 		}
+
 		return count;				
 		
 	}
@@ -823,8 +918,10 @@ window.addEventListener('touchstart', function(){
 	
 	function aggregateVertexCount(){
 		var count = 0;
-		for (var i=0;i< drawnline.length;i++){
+		if (drawnline && drawnline.length > 0){
+			for (var i=0;i< drawnline.length;i++){
 				count += drawnline[i].geometry.attributes.position.count;
+			}
 		}
 		return count;				
 		
@@ -832,9 +929,9 @@ window.addEventListener('touchstart', function(){
 	
 		
 	function pb_drawOneAtATime(){
-		console.log("aggCount is " +  aggregateVertexCount());
 		
 		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
+	
 		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
 		
 		var linesLeftToDraw = playBackCount;
@@ -854,6 +951,7 @@ window.addEventListener('touchstart', function(){
 			}
 			linesLeftToDraw -=  thisLineDrawn; //take this line off
 			}
+		
 	}
 	function pb_drawAllAtOnce(){
 		for (var i=0;i< drawnline.length;i++){
@@ -887,29 +985,56 @@ window.addEventListener('touchstart', function(){
 	
 	}
 	
+	function setPlayBack(mode){ //on, off
+		PLAYBACK = mode;
+		if (mode) {
+			pbclock.start(); //pbclock = setInterval(updatePB, 500);
+			clearLines();
+
+			//dollyPath = makeDollyPlaybackPath();
+			
+			
+		}else{
+
+			pbclock.stop(); //clearInterval(pbtimer);
+			for (var i=0;i< drawnline.length;i++){
+				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
+			}
+		}
+		return mode;
+	
+	}
+	
+	
+	function togglePlayBackMode(evt){
+		if (evt !== undefined) evt.preventDefault();
+		PLAYBACK = PLAYBACK?0:1;
+		setPlayBack(PLAYBACK);
+		return PLAYBACK;
+	
+	}
+	
+
 	function runPlayBack(){
 	
 		if (PLAYBACK){
+		
 			drawBack();
+			
+			if (pbclock.getDelta() > PLAYBACKSPEED){
+				playBackCount+= PLAYBACKCOUNT;
 
-			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount+= 100;
-				//start = Date.now(); //not relevant
-				
-				
-				console.log("playbackcount "+ playBackCount);
 			}
 			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX){	
+			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX >0){
+	
 				playBackCount = 0;
 				clearLines();
-				if (sound1){
+				/*if (sound1){
 					sound1.stop(); 
 					sound1.play(); 
-				}		
-			
-			//document.getElementById("danny").stop();
-			//document.getElementById("danny").play();
+				}	*/	
+
 			}
 		}	
 		
@@ -932,13 +1057,16 @@ window.addEventListener('touchstart', function(){
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 		
+		
+		render(timestamp);	
+		
 		runPlayBack();
 			
 			//TODO add ability to draw while moving plane backwards or forwards
 		
 	
 	
-		render(timestamp);	 
+		 
 		  
 	
 	
@@ -952,16 +1080,21 @@ window.addEventListener('touchstart', function(){
 
 		if (STEREOSCOPIC){
 	 	
-			 orientControls.update();
-			 vrmanager.render(scene, camera, timestamp);
- 			raycastGazeForDollyCam();
+			orientControls.update();
+			vrmanager.render(scene, camera, timestamp);
+ 			
   
 
 			//renderer.render( scene, camera );
   		}else{
-  			
+  			defaultControls.update(pbclock.getDelta());
+  			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);
 			renderer.render( scene, camera );
+			
+			
   		}
+  		if (DOLLY)
+				raycastGazeForDollyCam();
 	}
 		
 	init();

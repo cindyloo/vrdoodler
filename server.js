@@ -115,7 +115,7 @@ function getOBJFiles(path, sendBack){
 }
 
 function writeOBJ(path, data){
-		  if (data == null)
+		/*  if (data == null)
 		  	console.log('There has been an error getting your data.');
 	
 		//probably shoudl do some kind of checking here...
@@ -128,7 +128,7 @@ function writeOBJ(path, data){
 			  return;
 			}
 			console.log('OBJ saved successfully.')
-		  });
+		  });*/
 		}		
 		
 		

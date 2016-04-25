@@ -620,14 +620,14 @@
 		
 		saveFileLocally(result, "myDrawing.obj");
 		
-		var xmlhttp = new XMLHttpRequest();
+		/*var xmlhttp = new XMLHttpRequest();
 		xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
 		xmlhttp.onreadystatechange = function () {
 		  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
 			//Handle response
 		  }
 		};
-		 xmlhttp.send(result);				
+		 xmlhttp.send(result);	*/			
 	}
 	
 	
@@ -751,7 +751,7 @@
 						var texture = new THREE.Texture( image );
 						texture.name=f.name;
 						texture.needsUpdate = true;
-						var psphere = makePhotoSphere(texture,25, 100);
+						var psphere = makePhotoSphere(texture,15, 100);
 						
 						$("a.imgclose").css("visibility","visible");
 					});
@@ -933,7 +933,7 @@
   		planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
 
   		controls.target =pivotPoint;
-		camera.target = pivotPoint;
+		//camera.target = pivotPoint;
 		camera.lookAt(pivotPoint);
 		
 		if (SNAPPLANETOGRID){
@@ -1197,7 +1197,7 @@
 			 		
 		}
 		controls.target = lastIntersectedPoint;
-		camera.lookAt(lastIntersectedPoint);
+		if (!PLAYBACK) camera.lookAt(lastIntersectedPoint);
 	
 		camera.updateProjectionMatrix();
         colorCameraOrientation();
@@ -1976,6 +1976,7 @@
 			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
 			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
 			mesh.name="photosphere";
+			mesh.position.set(0,8,0);
 			objContainer.add(mesh);
 			
 			return mesh;
@@ -2117,9 +2118,11 @@
 		//camera.position.z += Math.cos(dollyAngle) * 5;
 		camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
 		camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
-		dollyAngle += .01;
+		dollyAngle += .20;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
+		var gazeAt = new THREE.Vector3(camera.position.x + .5,camera.position.y,camera.position.z );
+		camera.lookAt(gazeAt);
 		//tell dolly to move along the path from camera origin at increments 
 	
 	}	
