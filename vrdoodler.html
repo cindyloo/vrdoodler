@@ -96,51 +96,8 @@
 	ga('send', 'pageview');
 </script>
 
- <script id="vertexShader" type="x-shader/x-vertex">  
-      
-	varying vec2 vUv;
-	uniform float color;
-	varying float noise;
-	uniform float time;
-	
-	
-	
-	
-	void main() {
-	
-		vUv = uv;
-	
-		// add time to the noise parameters so it's animated
-		//noise = 15.0 *  -.10 * turbulence( .2 * normal + time );
-		//float b = 2.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 2.0 ) );
-		//float displacement = noise/.5;
-		//- noise + b;
-		//sin(fTimer+Tex.x*10)*0.01f;
-		//	float newXPosition = sin(time + position.x * 2.)  ;
-		
-		gl_Position = projectionMatrix * modelViewMatrix * vec4( position,1.0 );
-	
-	}
-               
-    </script>
+<script src="js/shaders/LineDisplacementShader.js"></script>
 
-    <script id="fragmentShader" type="x-shader/x-fragment">
-
-    varying vec2 vUv;
-	uniform float color;
-	void main() {
-
-    // colour is RGBA: u, v, 0, 1
-	//gl_FragColor = vec4( vec3(color), 1. );
-
-	}
-    </script>
-    
-    <script src="js/shaders/LineDisplacementShader.js"></script>
-
-    
-    
-    
   <body>  
   	<p id="browserError"></p>   
 	<div class="top-unit">
