@@ -1,7 +1,7 @@
  <!DOCTYPE html>
 <head>
     <meta charset="utf-8">
-    <title>Doodleverse!!!-beta</title>
+    <title>The Doodleverse- featuring Haven -beta</title>
  <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -27,7 +27,11 @@
 		// Blink engine detection
 		isBlink = (isChrome || isOpera) && !!window.CSS;
 		
-		if(isChrome || isFirefox){
+		isChromeIOS = navigator.userAgent.match('CriOS');
+
+		isFFIOS = navigator.userAgent.match('Firefox');
+		
+		if(isChrome || isFirefox || isChromeIOS || isFFIOS){
 		   // is Google Chrome on IOS
 		} else { 
 		  alert("VRDoodler requires Chrome or FF on Mac OS. For mobile devices you must have ios 9.3.1");
@@ -315,7 +319,7 @@ input[type=button] {
 </style>
   <body>  
   
-  <div class="">
+  <div class="navButtons">
 	<input id="reset" type="button" data-toggle="tooltip" value="" title="Reset the story" onclick="" ><i class="glyphicon glyphicon-refresh"></i></input>
 	<input id="sound" type="button" data-toggle="tooltip" value="" title="Start/stop the audio recording" onclick=""><i class="glyphicon glyphicon-volume-up"></i></input>
 	<input id="dolly" type="button" data-toggle="tooltip" value="" title="Start/stop moving the camera" onclick=""><i class="glyphicon glyphicon-facetime-video"></i></input>
@@ -431,8 +435,7 @@ input[type=button] {
 			  hideButton: false, // Default: false.
 			  isUndistorted: false // Default: false.
 			};
-			vrmanager = new WebVRManager(renderer, effect, params);
-			
+			vrmanager = new WebVRManager(renderer, effect, params);			
 			vrmanager.button.vrButton.style.width = '25px';
 			vrmanager.button.vrButton.style.height ='25px';
 		}
@@ -456,6 +459,14 @@ input[type=button] {
 			if (inMobileMode()){
 				 PER_MEDIA_INCREMENT = .125;
 				 toggleStereoscopic();
+				 
+				 //is ipad or phone?
+				 if (!navigator.userAgent.match(/iPad/i)){
+				 	//hide buttons
+				 	$("div.navButtons input[type='button']").css("display","none");
+				 }
+				 defaultControls.autoRotate = true;
+				defaultControls.autoRotateSpeed = -.095
 			}
 			else{
 				PER_MEDIA_INCREMENT = .125;
