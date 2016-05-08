@@ -179,7 +179,7 @@
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var lastLineIntersection = null;
 	var currentMouseRay;
-	var axisHelper;
+	var horizonMesh;
 	var bIsDrawing = false;
 	var bShowInfo = true;
 
@@ -307,7 +307,7 @@
   		
   		var horizonPlane = new THREE.PlaneGeometry(50,50); //semi-opaque to help with orientation
 		var horizonMat = new THREE.MeshLambertMaterial( {color: 0x222222, side: THREE.DoubleSide, transparent:true, opacity:.5, depthWrite: false} );
-		var horizonMesh = new THREE.Mesh( horizonPlane, horizonMat );
+		horizonMesh = new THREE.Mesh( horizonPlane, horizonMat );
 		
   		sketchContainer.add(horizonMesh);
   		horizonMesh.position.setY(-.001);
@@ -1024,6 +1024,7 @@
 			if (grid){
 				grid.visible = grid.visible?false:true;
 				axisHelper.visible = axisHelper.visible?false:true;
+				horizonMesh.visible = grid.visible;
 			}else{
 				setupGrid();
 			}
