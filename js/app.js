@@ -139,8 +139,13 @@
 						var texture = new THREE.Texture( image );
 						texture.name=f.name;
 						texture.needsUpdate = true;
-						var psphere = makePhotoSphere(texture,105, 200);
 						
+						if ($("#photosphere").val() ==1){
+							var psphere = makePhotoSphere(texture,15, 100);
+						}
+						else{
+							var pplane = makePhotoPlane(texture,10,10);
+						}
 						$("a.imgclose").css("visibility","visible");
 					});
 			

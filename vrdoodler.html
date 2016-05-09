@@ -17,59 +17,6 @@
 
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-<script>
-	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-	// Firefox 1.0+
-	isFirefox = typeof InstallTrigger !== 'undefined';
-	// At least Safari 3+: "[object HTMLElementConstructor]"
-	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-	// At least IE6
-	isIE = /*@cc_on!@*/false || !!document.documentMode;
-	// Edge 20+
-	isEdge = !isIE && !!window.StyleMedia;
-	// Chrome 1+
-	isChrome = !!window.chrome && !!window.chrome.webstore;
-	// Blink engine detection
-	isBlink = (isChrome || isOpera) && !!window.CSS;
-	
-	if (isChrome || isFirefox) {
-	}
-	else {
-		alert("VRDoodler requires Chrome or FF");
-	} 
-
-	function isMobBrowser() {
-		if ( navigator.userAgent.match(/Android/i)
-			|| navigator.userAgent.match(/webOS/i)
-			|| navigator.userAgent.match(/iPhone/i)
-			|| navigator.userAgent.match(/iPad/i)
-			|| navigator.userAgent.match(/iPod/i)
-			|| navigator.userAgent.match(/BlackBerry/i)
-			|| navigator.userAgent.match(/Windows Phone/i)
-			) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	var getParams = (function() {
-		var _get = {};
-		var re = /[?&]([^=&]+)(=?)([^&]*)/g;
-		while (m = re.exec(location.search))
-			_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
-		return _get;
-	})();
-
-	function inMobileMode() {
-		if (isMobBrowser() || getParams["mobile"] == 1)
-			return true;
-		else
-			return false;
-	}
-</script>
 
 <script src="js/three.js"></script>
 <script src="js/controls/OrbitControls.js"></script>
@@ -81,6 +28,7 @@
 
 <script src="js/webvr-polyfill.js"></script>
 <script src="js/webvr-manager.js"></script>
+<script src="js/app.js"></script>
 
 <script>
 	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -121,9 +69,25 @@
 					<div>
 						<div id="preview">
 							<input type="file" name="file" id="import" class="inputfile tt" />
-							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ or an image: JPG/PNG file">Load...</label>
+							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Image</label>
 						</div>
+						<form class="load_mode">
+							<input id="photoplane" class="mytt" type="radio" name="loadmode" value="1" data-toggle="tooltip" title="Load image as a plane" /><span class="input_label">Photoplane</span>
+							<input id="photosphere" type="radio"  name="loadmode" value="0"/><span class="input_label">Photosphere</span>
+							<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+						</form>
 						<a class="imgclose" id="imgclose"></a>
+						
+					</div>
+				</li>
+				<li>
+					<div>
+						<div id="previewObj">
+							<input type="file" name="file" id="importObj" class="inputfile tt" />
+							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load OBJ</label>
+						</div>
+						
+						
 					</div>
 				</li>
 
@@ -210,7 +174,7 @@
 	var edges, cameraHelp;
 
 	var start = Date.now();
-	var clock = new THREE.Clock();
+	var pbclock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
 
@@ -381,6 +345,7 @@
 		//document.getElementById('move').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById("import").onchange = handleImport;
+		document.getElementById("importObj").onchange = handleImport;
 		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
@@ -439,7 +404,11 @@
 		
 			$("a.imgclose").click(function(e,preview, image){
 				$(this).parent().find("img").remove();
-				objContainer.remove(scene.getObjectByName("photosphere"));
+				
+				if ($("#photosphere").val()==1)
+					objContainer.remove(scene.getObjectByName("photosphere"));
+				else
+					objContainer.remove(scene.getObjectByName("photoplane"));
 				objContainer.remove(scene.getObjectByName(f.name));
 				$("#preview").css("margin-bottom",10);
 				$(this).css("visibility","hidden");
@@ -561,192 +530,6 @@
 		 xmlhttp.send(result);	*/			
 	}
 	
-	
-	/*if URL params say load the doodleverse */
-	function loadInitialImages(dir){
-		    var xhrImg = new XMLHttpRequest();
- 
-       		xhrImg.onreadystatechange=function() {
-				if (xhrImg.readyState==4 && xhrImg.status==200) {	
-				
-					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
-						
-						
-						dir = "assets/doodleverse/";
-						var images = [dir + "armymen.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
-						 handleImport(images);
-					}
-					else{
-						var objects =  xhrImg.responseText.split('EOF');    
-						
-						objects.forEach(function(object){
-							var cleanedobj = object.replace(/EOF/,'');
-							obj = new THREE.OBJLoader().parse(cleanedobj);
-						
-			
-							obj.name = "linedoodleverse";
-							importScene(obj);
-						});					
-				  		
-				  	}
-				}else{
-					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
-							console.log("can't get file for loadInitialImages");			
-						
-					}
-				}
-			} 
-			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
-			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "/getObjFiles");//easier to use node to get all the files in there even for debugging..);					
-			else
-				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
-	 
-			xhrImg.send();  
-
-    	}
-	function loadImages(imgArray){
-	
-			loadedImages = imgArray;
-			//create filelist or something to hand to handleImport
-			
-		}
-	
-	function handleImport() {
-  			var fileList = this.files; /* now you can work with the file list */
-  			
-  			for (var i = 0; i < fileList.length; i++) {
-  			
-  				f = fileList[i];		 
-				var reader  = new FileReader();
-				var extension;
-				if (f.name)
-					extension = f.name.split( '.' ).pop().toLowerCase();
-				else
-					extension = f.split( '.' ).pop().toLowerCase();
-
-				
-				switch(extension){
-					case 'json':
-					case '3geo':
-					case '3mat':
-					case '3obj':
-					case '3scn':
-	
-					reader.addEventListener( 'load', function ( event ) {
-						
-						var contents = event.target.result;
-						try {
-							data = JSON.parse( contents );
-						} catch ( error ) {
-							alert( error );
-							return;
-						}
-						importJSONObject( f.name, data );
-	
-					}, false );
-					reader.readAsText( f );	
-					break;
-	
-				case 'obj':
-				case 'txt':
-	
-					reader.addEventListener( 'load', function ( event ) {
-						var contents = event.target.result;
-						var object = new THREE.OBJLoader().parse( contents );
-						object.name = f.name;
-						importScene(object);					
-					}, false );
-					reader.readAsText( f );
-						
-					
-					break;
-					
-				case 'jpg':
-				case 'png':
-					var photo;
-					var preview = document.querySelector('#preview');
-					
-				 	reader.addEventListener("load", function () {
-						var image= new Image();
-						var image2 = new Image();
-						image.height = 1000;
-						image.title = f.name;
-						image.src = this.result;
-						image2.height = 100;
-						image2.title = f.name;
-						image2.src = this.result;
-						preview.appendChild( image2);
-						$("#preview").css("margin-bottom",120);
-	
-						var texture = new THREE.Texture( image );
-						texture.name=f.name;
-						texture.needsUpdate = true;
-						var psphere = makePhotoSphere(texture,15, 100);
-						
-						$("a.imgclose").css("visibility","visible");
-					});
-			
-				  	reader.readAsDataURL(f);
-					break;
-				}	
-  			} //for
-		}
-	
-	
-	function importScene(object){  //if in a group, we want to preserve it... have to change initNewLine...
-	
-				object.traverse( function ( child ) {						
-						if ( child instanceof THREE.Line ) { //THREE.Line
-									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
-									initNewLine(null, null, child);
-						}
-					 });
-				
-
-	}
-
-	
-	/* right outta the three.js editor. thanks @mrdoob! */
-	function importJSONObject(fn,data){
-		var material;
-				
-	    var loader = new THREE.JSONLoader();
-		var result = loader.parse( data );
-		if ( result.materials !== undefined ) {
-
-				if ( result.materials.length > 1 ) {
-					material = new THREE.MultiMaterial( result.materials );
-				} else {
-					material = result.materials[ 0 ];
-				}
-		} else {
-			material = new THREE.MeshStandardMaterial();
-		}
-
-		var geo = result.geometry;
-		geo.sourceType = "ascii";
-		geo.sourceFile = fn;
-
-		var mesh;
-
-		if ( geo.animation && geo.animation.hierarchy ) {
-			mesh = new THREE.SkinnedMesh( geo, material );
-		} else {
-			mesh = new THREE.Mesh( geo, material );
-		}
-		
-		var pos = new THREE.Vector3(0,0,0);	
-		if (currentIntersected)
-			pos = currentIntersected.position.copy();
-		mesh.position.set(pos);
-	
-		mesh.userData.name = "fromjson";		
-		objContainer.add( mesh );
-	
-	}
-
-
 
 	var onProgress = function ( xhr ) {
 					if ( xhr.lengthComputable ) {
@@ -1630,117 +1413,6 @@
 	
 
 
-	/* setup buffer geometry to store drawn vertices*/
-	function initDrawnLine(lineImported,mv){
-		
-		var linename;
-		var newOrImportedLine;
-		if (!lineImported){  //freehand or snap, doesn't matter, init the line
-			geometry = new THREE.BufferGeometry();
-			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-			countVertices = 0;
-			if (mv){
-				positions[0] = mv.x;
-				positions[1] = mv.y;
-				positions[2] = mv.z;
-				countVertices = 1;
-			}
-			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
-			geometry.setDrawRange( 0, 1 );	
-			linename = "line";
-			
-			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
-			newOrImportedLine = new THREE.Line( geometry,  linematerial );
-            newOrImportedLine.planeTransform = plane.matrixWorld;
-			drawnline.push(newOrImportedLine); //to store line	
-		mostRecentDrawnLine().position = mv; //for later...
-		
-		}else{ //loaded from OBJ file
-			
-			//lineImported.geometry.addAttribute( 'position', positions )
-			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
-			linename = "lineimported";
-
-            // we've lost the original transform, use bounding box center and ignore rotation
-            var box = new THREE.Box3().setFromObject(lineImported);
-            lineImported.geometry.computeBoundingBox();
-            var center = box.min.lerp(box.max, .5);
-            for (var i=0, child; child = lineImported.parent.children[i]; i++) {
-                child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
-            }
-
-			newOrImportedLine = lineImported;//.clone();
-			drawnline.push(newOrImportedLine); //to store line
-            
-			//if (currentIntersected)
-			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
-			//this doesn't work so well if the line is then copied and pasted...
-		}
-	
-		
-		
-		
-		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
-		mostRecentDrawnLine().name = linename;
-		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
-		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
-	
-	
-	console.log("init new Line");
-	}
-	
-
-	function addToContainer(newline, group){
-	
-		//create new group or add to pre-existing 
-		var lineGroup; 
-		if (group != null){
-            if (group.parent.name != "linegroup") {
-			    group.parent.name="linegroup";
-			    objContainer.add(group.parent);
-            }
-		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
-			lastLineIntersection.parent.add(newline);
-            newline.planeTransform = lastLineIntersection.planeTransform;
-			lastLineIntersection = null;
-		
-		}else{
-		
-			lineGroup = new THREE.Object3D();
-			lineGroup.add(newline);  
-			lineGroup.name="linegroup";
-			objContainer.add(lineGroup);
-			
-			
-		}
-	
-	
-	
-	}
-	
-		
-	//called from mouseDown
-	//works for importing from file or if using mouse to start line
-	function initNewLine(mouseVec, bUnproject, lineImported){
-
-		
-		if (!lineImported){
-			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
-			 if (bUnproject)
-				vNow.unproject(camera);
-		
-			initDrawnLine(null, vNow);
-
-		}else //from import
-		 	initDrawnLine(lineImported);
-		
-		addToContainer( mostRecentDrawnLine(), lineImported );
-		
-		
-	
-	}
-
-
 
 	function onSketchStart(evt){
 		
@@ -1911,6 +1583,19 @@
 			return mesh;
 	}
 	
+	function makePhotoPlane( tex, w, h){
+	
+	
+			var mesh;
+			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
+			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
+			mesh.name="photoplane";
+			mesh.position.set(0,8,0);
+			objContainer.add(mesh);
+			
+			return mesh;
+	}
+	
 	
 	/*function makeCube( w,h,d){
 			var mesh;
@@ -2066,136 +1751,8 @@
 		return count;				
 		
 	}
-	
-	
-	function aggregateVertexCount(){
-		var count = 0;
-		if (drawnline && drawnline.length > 0){
-			for (var i=0;i< drawnline.length;i++){
-				count += drawnline[i].geometry.attributes.position.count;
-			}
-		}
-		return count;				
-		
-	}
-	
-		
-	function pb_drawOneAtATime(){
-		
-		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
-	
-		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
-		
-		var linesLeftToDraw = playBackCount;
-		for (var i=0;i< drawnline.length;i++){
-			
-			
-			var howManyLinesToDraw = linesLeftToDraw;
-			var thisLineDrawn = (howManyLinesToDraw > drawnline[i].geometry.attributes.position.count)? drawnline[i].geometry.attributes.position.count:howManyLinesToDraw;
-			
-			
-			
-			//count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
-			for (var vertex=0;vertex< thisLineDrawn;vertex++){  //either the full lenght of the line or partial
-				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
-				drawnline[i].geometry.attributes.position.needsUpdate = true; 
-				
-			}
-			linesLeftToDraw -=  thisLineDrawn; //take this line off
-			}
-		
-	}
-	function pb_drawAllAtOnce(){
-		for (var i=0;i< drawnline.length;i++){
-				if (drawnline[i] === undefined){  //if any weirdness, clean it up
-					drawnline.splice(i,1);
-					continue;
-				}
-				if ((drawnline[i].geometry.attributes.position.count/3) > PB_LINE_VERTEX_COUNT_MAX) 
-					PB_LINE_VERTEX_COUNT_MAX = (drawnline[i].geometry.attributes.position.count/3);
-				var count = playBackCount;
-				//determine what should be drawn
-				//count from 0 to length vertices of line..
-				//right now we are just going to animate each line at the same time....
-				
-				//truncate the count b/c playBackCount is the long pole
-				if (playBackCount > drawnline[i].geometry.attributes.position.count)  //what?
-					count =	drawnline[i].geometry.attributes.position.count;
-				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
-				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
-			}
-	
-	}
-	
-	function drawBack(){
-		//if (){
-		//	pb_drawAllAtOnce();
-		//} else {
-		if (drawnline && drawnline.length > 0)
-			pb_drawOneAtATime();
-		//}
-	
-	}
-	
-	function setPlayBack(mode){ //on, off
-		PLAYBACK = mode;
-		if (mode) {
-			clock.start(); //pbclock = setInterval(updatePB, 500);
-			clearLines();
-			controls.autoRotate = true;
-			
-		}else{
 
-			clock.stop(); //clearInterval(pbtimer);
-			for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
-			}
-			controls.autoRotate = false;
-		}
-		return mode;
-	
-	}
-	
-	
-	function togglePlayBackMode(evt){
-		if (evt !== undefined) evt.preventDefault();
-		PLAYBACK = PLAYBACK?0:1;
-		setPlayBack(PLAYBACK);
-		return PLAYBACK;
-	
-	}
-	
-
-	function runPlayBack(){
-	
-		if (PLAYBACK){
 		
-			drawBack();
-			
-			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount+= PLAYBACKCOUNT;
-
-			}
-			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX >0){
-	
-				playBackCount = 0;
-				clearLines();
-				/*if (sound1){
-					sound1.stop(); 
-					sound1.play(); 
-				}	*/	
-
-			}
-		}	
-		
-		
-		return PLAYBACK;
-		
-	}
-	
-	
-	
 
 	function animate(timestamp) {
 
@@ -2246,7 +1803,7 @@
     
   		}else{
   			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update(clock.getDelta());
+  			controls.update(pbclock.getDelta());
   		
 			minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
