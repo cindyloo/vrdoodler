@@ -30,14 +30,16 @@ my_http.createServer(function(request, response) {
 		if (request.method === 'POST' && request.url === '/writeObj') {
     		writeOBJ(".", body);
     	}
-		
-		if (request.url === '/getObjFiles') {
-			sys.puts("getpics received");
+		sys.puts("urlparts are" + JSON.stringify(url_parts));
+		if (request.url === '/getObjFiles' || url_parts.href.indexOf('/getUserFiles') > -1) {   //this is only used for my local server.  php for web server
 			
-			var files = getOBJFiles("/assets/doodleverse/",function(files){
+			
+			var files = getOBJFiles("assets/doodleverse/naomi/obj" ,function(files){ //should get real dir
 					 console.log("length " + files.length);
 						 for (f = 0; f< files.length; f++){
 						 	var file = files[f];
+						 	
+						 	//what is this local drive name?? read local file else write file from path assets/doodleverse
 							 filesys.readFile("/Users/csbishop/Sites/360/vrdoodler/" + file, "binary", function(err, file) {  
 								 if(err) {  
 									 response.writeHeader(500, {"Content-Type": "text/plain"});  
@@ -60,6 +62,42 @@ my_http.createServer(function(request, response) {
 			});
 			return;
 		}
+		if(url_parts.href.indexOf("/getImageFiles") >-1){
+		
+			sys.puts("getImageFiles received");
+			var files = getImageFiles("assets/doodleverse/wendi",function(files){
+					 console.log("length " + files.length);
+						 for (f = 0; f< files.length; f++){
+						 	var file = files[f];
+						 	
+						 	//what is this local drive name?? read local file else write file from path assets/doodleverse
+							 filesys.readFile("/Users/csbishop/Sites/360/vrdoodler/" + file, function(err, file) {  
+								 if(err) {  
+									 response.writeHeader(500, {"Content-Type": "image/jpg"});  
+									 response.write(err + "\n");  
+									 response.end();  
+									 console.log("error " + f);
+					
+								 }  
+								 else{
+								  response.contentType = 'image/jpg';
+								 
+
+									response.writeHeader(200);  
+								//	response.write(); 
+									//response.write("EOF"); 
+									response.end(file, 'binary');
+									console.log("file " + file.length);
+								}
+							
+							});	 
+							 
+						}
+			});
+        return;
+    
+    
+    }
 		  
 		response.on('error', function(err) {
 		  console.error(err);
@@ -105,13 +143,24 @@ my_http.createServer(function(request, response) {
 }).listen(8080);
 sys.puts("yay, Server Running on 8080");  
 
+function getImageFiles(path, sendBack){
+	// options is optional
+	sys.puts("path is " + path + "/*.jpg");
+	return glob(path + "/*.jpg", function (er, files) {
+  		sys.puts("files are " + files);
+  		sendBack(files);
+  	});
+}
+
+
 function getOBJFiles(path, sendBack){
 	// options is optional
-	return glob("assets/doodleverse/*.obj", function (er, files) {
+	sys.puts("path is " + path + "/*.obj");
+	return glob(path + "/*.obj", function (er, files) {
   	
   		sys.puts("files are " + files);
   		sendBack(files);
-  		})
+  		});
 }
 
 function writeOBJ(path, data){

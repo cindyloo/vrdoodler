@@ -1,7 +1,14 @@
+
+
 /* imports ************/
 
-/*if URL params say load the doodleverse */
-	function loadInitialImages(dir){
+var MINIMUM_OBJ_LENGTH = 10;
+
+
+
+
+/*load user's objs and narration */
+	function loadUserStory(userDir){
 		    var xhrImg = new XMLHttpRequest();
  
        		xhrImg.onreadystatechange=function() {
@@ -10,27 +17,31 @@
 					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
 						
 						
-						dir = "assets/doodleverse/";
-						var images = [dir + "armymen.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						user = "assets/doodleverse/" + userDir + "/obj";
+						var images = [dir + "cindarella.obj"];// + dir +"house.jpg",dir +"sun.jpg" ];
 						 handleImport(images);
 					}
 					else{
 						var objects =  xhrImg.responseText.split('EOF');    
-						
+						var objectsReduced = objects.reduce(function(obj){
+							if (obj.length > MINIMUM_OBJ_LENGTH)
+								return obj;
+						});
+						var cameraPathVectors = setupCameraDolly(objects.length); //setup camera path
+						var i = 1;
 						objects.forEach(function(object){
 							var cleanedobj = object.replace(/EOF/,'');
-							obj = new THREE.OBJLoader().parse(cleanedobj);
-						
+							obj = new THREE.OBJLoader().parse(cleanedobj);				
 			
 							obj.name = "linedoodleverse";
-							importScene(obj);
+							importScene(obj, cameraPathVectors[i++]);
 						});		
 						//if (sound && sound1.buffer) //how bad is this to do?
 						//	sound1.start(0); //start audio when images load	
 						
 				  		raycastGazeForDollyCam();
-				  		//PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount();                 
-						sound1 = new WebAudioAPISound("assets/danny_narration.wav", null, 
+				  		var pathToSound =  "assets/doodleverse/" + userDir + "/narration.wav";               
+						sound1 = new WebAudioAPISound(pathToSound, null, 
 						function(){
 							$("#loading").removeClass("has-spinner");
 							//$("#loading").css("display","none");
@@ -46,22 +57,82 @@
 				  	}
 				}else{
 					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
-							console.log("can't get file for loadInitialImages");			
+							console.log("can't get file for loadUserStory");			
 						
 					}
 				}
 			} 
 			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
 			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "/getObjFiles");//easier to use node to get all the files in there even for debugging..);					
+				xhrImg.open("GET", "/getUserFiles?q=" + userDir);//easier to use node to get all the files in there even for debugging..);					
 			else
-				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
+				xhrImg.open("GET", "phpsessions/getObjFiles.php?q=" + "../assets/doodleverse/" + userDir + "/obj");
 	 
 			xhrImg.send(); 
 			
 			
 
     	}
+
+/*load user's objs and narration */
+	function loadUserImages(userDir){
+		    var xhrImg = new XMLHttpRequest();
+ 
+       		xhrImg.onreadystatechange=function() {
+				if (xhrImg.readyState==4 && xhrImg.status==200) {	
+				
+					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
+						
+						
+						user = "assets/doodleverse/" + userDir;
+						var images = [dir + "image.jpg"];// + dir +"house.jpg",dir +"sun.jpg" ];
+						 handleImport(images);
+					}
+					else{
+							//loadImages();
+						var image= new Image();
+						var image2 = new Image();
+						image.height = 1000;
+						//image.title = f.name;
+						
+						image.src = location.origin + "/assets/doodleverse/" + userDir + "/" + xhrImg.responseText;
+						image2.height = 100;
+						//image2.title = f.name;
+						image2.src = location.origin + "/assets/doodleverse/" + userDir + "/" + xhrImg.responseText;
+						$("#preview").append( image2);
+						//$("#preview").css("margin-bottom",120);
+	
+						var texture = new THREE.Texture( image );
+						//texture.name=f.name;
+						texture.needsUpdate = true;
+						
+						if (isPhotosphereStory()){
+							var psphere = makePhotoSphere(texture,15, 300);
+						}
+						else{
+							var pplane = makePhotoPlane(texture,10,10);
+						}
+						$("a.imgclose").css("visibility","visible");
+				  	}
+				}else{
+					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
+							console.log("can't get file for loadUserImages");			
+						
+					}
+				}
+			} 
+			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
+			if (location.hostname == "localhost") //debugging
+				xhrImg.open("GET", "/getImageFiles?q=" + userDir);//easier to use node to get all the files in there even for debugging..);					
+			else
+				xhrImg.open("GET", "phpsessions/getImageFiles.php?q=" + "../assets/doodleverse/" + userDir);
+	 
+			xhrImg.send(); 
+			
+			
+
+    	}
+
 	function loadImages(imgArray){
 	
 			loadedImages = imgArray;
@@ -140,7 +211,7 @@
 						texture.name=f.name;
 						texture.needsUpdate = true;
 						
-						if ($("#photosphere").val() ==1){
+						if ($("#photosphere").prop("checked")){
 							var psphere = makePhotoSphere(texture,15, 100);
 						}
 						else{
@@ -156,12 +227,12 @@
 		}
 	
 	
-	function importScene(object){  //if in a group, we want to preserve it... have to change initNewLine...
-	
+	function importScene(object, cameraPathVector){  //if in a group, we want to preserve it... have to change initNewLine...
+			
 				object.traverse( function ( child ) {						
 						if ( child instanceof THREE.Line ) { //THREE.Line
 									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
-									initNewLine(null, null, child);
+									initNewLine(cameraPathVector, null, child);
 						}
 					 });
 					 
@@ -234,11 +305,60 @@
 
 
 
-/*  line creation *********/
+/*  camera path creation *********/
 
+	function makePathGeo( pathGeo, color ) {
+	
+				// 3d shape
+	
+		pathMesh = THREE.SceneUtils.createMultiMaterialObject( pathGeo, [
+			new THREE.MeshLambertMaterial({
+				color: 0x0000ff,
+				wireframe: true,
+				transparent: false
+			}),
+		new THREE.MeshBasicMaterial({
+				color: 0x0000ff,
+				wireframe: true,
+				transparent: false
+		})]);
+		pathMesh.scale = 1
+		pathMesh.name="cameraPath";
+		pathMesh.visible = false;
+		scene.add( pathMesh );
+		return pathMesh;		
+	}
+	
+
+
+function makePath(howManyObjects){  //will use path later
+	
+		var neighborhoodcurve = new THREE.CatmullRomCurve3([
+			new THREE.Vector3(0, 0, 15 ),
+
+			new THREE.Vector3(0, 0, -15 )
+		
+		] );
+		var segments = howManyObjects ; // see if this helps
+		
+		if (segments > 0){
+			var radiusSegments = 1;  //just a single line, no volume needed
+			tube = new THREE.TubeGeometry(neighborhoodcurve	, segments, 2, radiusSegments, false);
+			makePathGeo(tube, 0xff00ff);
+		}
+		var ptsPos = neighborhoodcurve.getPoints(segments);
+		return ptsPos;
+	}
+	
+	function setupCameraDolly(howManyObjects){
+
+		cameraDollyPathVecArray = makePath(howManyObjects);
+		//playback should follow cameraPath ...
+		return cameraDollyPathVecArray;
+	}
 
   
-
+/*  line creation *********/
 	/* setup buffer geometry to store drawn vertices*/
 	function initDrawnLine(lineImported,mv){
 		
@@ -260,19 +380,27 @@
 			
 			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
 			newOrImportedLine = new THREE.Line( geometry,  linematerial );
+            newOrImportedLine.planeTransform = plane.matrixWorld;
 			drawnline.push(newOrImportedLine); //to store line	
-		mostRecentDrawnLine().position = mv; //for later...
+			mostRecentDrawnLine().position = mv; //for later...
 		
 		}else{ //loaded from OBJ file
 			
 			//lineImported.geometry.addAttribute( 'position', positions )
 			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
 			linename = "lineimported";
+            // we've lost the original transform, use bounding box center and ignore rotation
+            var box = new THREE.Box3().setFromObject(lineImported);
+            lineImported.geometry.computeBoundingBox();
+            var center = box.min.lerp(box.max, .5);
+            for (var i=0, child; child = lineImported.parent.children[i]; i++) {
+                child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
+            }
 			newOrImportedLine = lineImported;//.clone();
-			drawnline.push(newOrImportedLine); //to store line	
-			//if (currentIntersected)
-			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
-			//this doesn't work so well if the line is then copied and pasted...
+			newOrImportedLine.material.linewidth = 2;
+			drawnline.push(newOrImportedLine); //to store line
+			if (mv) 
+				mostRecentDrawnLine().position.copy(mv); 
 		}
 	
 		
@@ -331,7 +459,7 @@
 			initDrawnLine(null, vNow);
 
 		}else //from import
-		 	initDrawnLine(lineImported);
+		 	initDrawnLine(lineImported, mouseVec);
 		
 		addToContainer( mostRecentDrawnLine(), lineImported );
 		
@@ -463,7 +591,7 @@
 		return count;				
 		
 	}
-	function runPlayBack(){
+	function runLinesPlayBack(){
 	
 		if (PLAYBACK){
 		
@@ -471,9 +599,7 @@
 			
 			if (pbclock.getDelta() > PLAYBACKSPEED){
 				playBackCount+= PLAYBACKCOUNT;
-
-			}
-			
+			}		
 			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX >0){
 	
 				playBackCount = 0;
@@ -492,6 +618,30 @@
 	}
 	
 	
+	function updateSimpleCameraPath(ctrls, cameraSpeed){
+	
+		camera.position.setZ(camera.position.z - cameraSpeed);
+		var tgt = new THREE.Vector3(camera.position.x,camera.position.y,camera.position.z - .002);
+		if (DOLLY){
+			camera.lookAt(tgt);
+			ctrls.target = tgt;
+		}
+		if (camera.position.z < -20)
+			camera.position.setZ(20);
+	}
+	
+	function runCameraPlayBack(ctrls, cameraSpeed){
+		//what kind of camera playback is it?
+		if (PLAYBACK){
+			if (isPhotosphereStory()){
+				raycastGazeForDollyCam();
+			}else if (isPhotoplaneStory()){
+				updateSimpleCameraPath(ctrls, cameraSpeed);
+			}
+		}
+	}
+	
+	
 	
 	
 	
@@ -500,70 +650,118 @@
 
 /* browser checks ********/
 // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-		isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-		// Firefox 1.0+
-		isFirefox = typeof InstallTrigger !== 'undefined';
-		// At least Safari 3+: "[object HTMLElementConstructor]"
-		isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-		// At least IE6
-		isIE = /*@cc_on!@*/false || !!document.documentMode;
-		// Edge 20+
-		isEdge = !isIE && !!window.StyleMedia;
-		// Chrome 1+
-		isChrome = !!window.chrome && !!window.chrome.webstore;
-		// Blink engine detection
-		isBlink = (isChrome || isOpera) && !!window.CSS;
-		
-		isChromeIOS = navigator.userAgent.match('CriOS');
-
-		isFFIOS = navigator.userAgent.match('Firefox');
-		
-		if(isChrome || isFirefox || isChromeIOS || isFFIOS){
-		   // is Google Chrome on IOS
-		} else { 
-		  alert("VRDoodler requires Chrome or FF on Mac OS. For mobile devices you must have ios 9.3.1");
-		 } 
-		 
-		 
-		 
-		 function isMobBrowser() { 
-			 if( navigator.userAgent.match(/Android/i)
-			 || navigator.userAgent.match(/webOS/i)
-			 || navigator.userAgent.match(/iPhone/i)
-			 || navigator.userAgent.match(/iPad/i)
-			 || navigator.userAgent.match(/iPod/i)
-			 || navigator.userAgent.match(/BlackBerry/i)
-			 || navigator.userAgent.match(/Windows Phone/i)
-			 ){
-			 
-				return true;
-			  }
-			 else {
-				return false;
-			  }
-		}
-		 
-		var getParams = (function() {
+	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+	// Firefox 1.0+
+	isFirefox = typeof InstallTrigger !== 'undefined';
+	// At least Safari 3+: "[object HTMLElementConstructor]"
+	isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+	// At least IE6
+	isIE = /*@cc_on!@*/false || !!document.documentMode;
+	// Edge 20+
+	isEdge = !isIE && !!window.StyleMedia;
+	// Chrome 1+
+	isChrome = !!window.chrome && !!window.chrome.webstore;
+	// Blink engine detection
+	isBlink = (isChrome || isOpera) && !!window.CSS;
 	
-			var _get = {};
-			var re = /[?&]([^=&]+)(=?)([^&]*)/g;
-			while (m = re.exec(location.search))
-				_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
-			return _get;
-		})();
-		
-		
-		function inMobileMode(){
-		
-			if (isMobBrowser() || getParams["mobile"] == 1)
-				return true;
+	isChromeIOS = navigator.userAgent.match('CriOS');
+
+	isFFIOS = navigator.userAgent.match('Firefox');
+	
+	isIPAD = navigator.userAgent.match(/iPad/i); //necessary it seems
+	
+	if(isChrome || isFirefox || isChromeIOS || isFFIOS || isIPAD){
+	   // is Google Chrome on IOS
+	} else { 
+	  alert("VRDoodler requires Chrome or FF on Mac OS. For mobile devices you must have ios 9.3.1");
+	 } 
+	 
+	 
+	 
+	 function isMobBrowser() { 
+		 if( navigator.userAgent.match(/Android/i)
+		 || navigator.userAgent.match(/webOS/i)
+		 || navigator.userAgent.match(/iPhone/i)
+		 || navigator.userAgent.match(/iPad/i)
+		 || navigator.userAgent.match(/iPod/i)
+		 || navigator.userAgent.match(/BlackBerry/i)
+		 || navigator.userAgent.match(/Windows Phone/i)
+		 ){
+		 
+			return true;
+		  }
+		 else {
+			return false;
+		  }
+	}
+	 
+	var getParams = (function() {
+
+		var _get = {};
+		var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+		while (m = re.exec(location.search))
+			_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+		return _get;
+	})();
+	
+	
+	function inMobileMode(){
+	
+		if (isMobBrowser() || getParams["mobile"] == 1)
+			return true;
+		else
+			return false;
+	
+	}
+	
+	function isPhotosphereStory(){
+		return (getParams["photosphere"] == 1);
+	}
+	
+	function isPhotoplaneStory(){
+		return (getParams["photoplane"] == 1);
+	}		
+	
+	function whichUser(){
+		return (getParams["user"]);
+	}
+	
+	
+	function makePhotoSphere( tex, w, h){
+	
+	
+			var mesh;
+			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
+			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
+			mesh.name="photosphere";
+			mesh.position.set(0,8,0);
+			if (objContainer)
+				objContainer.add(mesh);	
 			else
-				return false;
-		
-		}
-		
-		
-		
+				scene.add(mesh);	
+			
+			return mesh;
+	}
+	
+
+	
+	
+	
+	function makePhotoPlane( tex, w, h){
+			var mesh;
+			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
+			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
+			mesh.name="photoplane";
+			mesh.position.set(0,0,0);
+			if (objContainer)
+				objContainer.add(mesh);	
+			else
+				scene.add(mesh);	
+			return mesh;
+	}
+	
+	
+	
 		
 /* web audio *************/
 try {

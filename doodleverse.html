@@ -421,11 +421,11 @@ input[type=button] {
 			}
 			else{
 				$("div#blocker").css('display','-webkit-box');
-				PER_MEDIA_INCREMENT = .155;
-				PLAYBACKSPEED = .002;
+				PER_MEDIA_INCREMENT = .155;  //this is all too slow, tbd
+				PLAYBACKSPEED = .002;  
 				PLAYBACKCOUNT = 45;//slower, bigger screen
 				if (orientControls !== undefined) orientControls.enabled = false;
-				loadInitialImages();
+				loadUserStory("amira");
 				//defaultControls.enabled = true;
 				instructions.addEventListener( 'click', function ( event ) {
 					instructions.style.display = 'none';
@@ -434,7 +434,7 @@ input[type=button] {
 				});
 				
 				defaultControls.autoRotate = true;
-				defaultControls.autoRotateSpeed = -.095
+				defaultControls.autoRotateSpeed = -.095; //too slow
 			}
 			dollyAngle = getDollyOrigin();
 	  });
@@ -481,7 +481,7 @@ input[type=button] {
         //orientControls.update();
       
         if (mostRecentDrawnLine() == null)
-        	loadInitialImages();
+        	loadUserStory("amira");
         
      }
 
@@ -531,7 +531,7 @@ input[type=button] {
 	function raycastGazeForDollyCam(){
 		//TODO: should only run when in playback mode
 		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
-		if (inMobileMode()){
+		if (inMobileMode()){ //because we don't have orbitcontrols in mobile mode, so have to orbit manually
 			camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
 			camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
 		}
@@ -580,7 +580,7 @@ input[type=button] {
 		//camera.updateProjectionMatrix();
 			
 		render(timestamp);			
-		runPlayBack();
+		runLinesPlayBack();
 	
 	   } 
 	   

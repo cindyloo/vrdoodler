@@ -28,7 +28,7 @@ html,
 	  
 	#infoPanel{ visibility:hidden;}
 	
-	input[type='button'], div#preview input, div#preview, input[type='checkbox'], input[type='radio'] {
+	input[type='button'], input[type='checkbox'], input[type='radio'] {
 	
 		padding:5px;
 		border:none;
@@ -38,7 +38,7 @@ html,
 	padding:5px;
 		transform: scale(2); 
 		}
-	input[type='button'], div#preview input, div#preview, div label	{
+	input[type='button'], div.loadFiles input, div label	{
 		font-family: Oswald;
 		font-size: 18px;
 		font-style: normal;
@@ -50,7 +50,7 @@ html,
 		width:80px;
 		height:35px;
 	}
-	input[type='button'], div#preview input, div#preview, div#previewObj{
+	input[type='button'], div.loadFiles label{
 		
 		background-color:rgba(240,240,240,1);
 
@@ -87,13 +87,15 @@ html,
 		margin-left:0px;
     }
     
-	div#preview, div#previewObj{
+	div.loadFiles,div.loadFiles label{
 		vertical-align:middle;
-		width:90px;
+		width:100px;
 		box-shadow: 2px 2px #aaa;
+		margin:0;
+		padding:0;
 		
 	}
-	div#preview input,div#previewObj input{
+	div.loadFiles input{
 		opacity: 0;
 		text-align:center;
 		width: 0.1px;

@@ -1,0 +1,575 @@
+ <!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>The Doodleverse- featuring Haven -beta</title>
+ <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+		
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script   src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"   integrity="sha256-DI6NdAhhFRnO2k51mumYeDShet3I8AKCQf/tf7ARNhI="   crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/black-tie/jquery-ui.css"></link>
+		
+	 
+	</script>
+
+   <script src="js/three.js"></script>
+
+	<!--
+	  VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
+	   -->
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
+
+	<!--
+	  VREffect.js handles stereo camera setup and rendering.
+	  -->
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+
+	<!--
+	  A polyfill for WebVR using the Device{Motion,Orientation}Event API.
+	  -->
+	<script src="js/webvr-polyfill.js"></script>
+
+	<!--
+	  Helps enter and exit VR mode, provides best practices while in VR.
+	  -->
+	<script src="js/webvr-manager.js"></script>
+
+	<script src="js/loaders/OBJLoader.js"></script>
+ 	<script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+ 	<script src="http://threejs.org/examples/js/controls/PointerLockControls.js"></script>
+	
+
+	
+	<script src="js/app.js"></script>
+	
+	
+	
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-75274623-1', 'auto');
+	  ga('send', 'pageview');
+	
+	</script>
+
+<script>
+
+
+</script>
+<style>
+input[type=button] {
+		position:relative;
+		float:left;
+		width:50px;
+		height:50px;
+		z-index:3;
+		padding:10px;
+		border-radius:10px;
+		font-family: Oswald;
+		font-size: 18px;
+		font-style: normal;
+		font-variant: normal;
+		font-weight: 100;
+		line-height: 20px;
+		
+		background-color:white;
+	}
+	i, i.glyphicon{
+		position: relative;
+		float: left;
+		left: -32px;
+		top:20px;
+		width:10px;
+		height:10px;
+		z-index:3;
+		cursor:pointer;
+	}
+	i.icon-spin{
+		left:0;
+
+	}
+	.spinner {
+		  display: inline-block;
+		  -webkit-transition: opacity 0.25s, width 0.25s;
+		  -moz-transition: opacity 0.25s, width 0.25s;
+		  -o-transition: opacity 0.25s, width 0.25s;
+		  transition: opacity 0.25s, width 0.25s;
+	}
+	.has-spinner {
+	
+	}
+	.has-spinner .active {
+	  cursor:progress;
+	}
+
+	input{ cursor:pointer;}
+	
+	
+	#blocker {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(1,1,1,0.5);
+		z-index:5;
+	}
+	#instructions {
+				width: 100%;
+				height: 100%;
+				display: -block;
+				display: -moz-box;
+				display: box;
+				-webkit-box-orient: horizontal;
+				-moz-box-orient: horizontal;
+				box-orient: horizontal;
+				-webkit-box-pack: center;
+				-moz-box-pack: center;
+				box-pack: center;
+				-webkit-box-align: center;
+				-moz-box-align: center;
+				box-align: center;
+				color: #ffffff;
+				text-align: center;
+				cursor: pointer;
+			}
+			#instructions h2, #instructions h3{width:100%;}
+	.ui-dialog-osx {
+    -moz-border-radius: 0 0 8px 8px;
+    -webkit-border-radius: 0 0 8px 8px;
+    border-radius: 0 0 8px 8px; border-width: 0 8px 8px 8px; 
+}
+
+ div.center {
+position: absolute;
+
+  transform: translate(50%, 50%);
+  
+  /*
+  This doesn't work
+  margin-left: -25%;
+  margin-top: -25%;
+  */
+  
+  width: 40%;
+  height: 50%;
+
+  padding: 20px;  
+  text-align: center;
+
+  }
+</style>
+  <body> 
+  <div> 
+  <input id="reset" type="button" data-toggle="tooltip" value="" title="Reset the story" onclick="" ><i class="glyphicon glyphicon-refresh"></i></input>
+	</div>
+  <div id="blocker">
+
+		<div id="instructions">
+			<div>
+				<h2 data-toggle="tooltip" value="" title="Click to Enter">Welcome to Journalverse...</h2>
+				<h3 data-toggle="tooltip" value="" title="Click to Enter">a prototyping platform for storytelling (in beta)<a href"faq.html">Go to VRDoodler.com for FAQ</a></h3>
+			</div>
+
+			<div id="loading" class="has-spinner">
+				<span class="spinner"><i class="icon-spin">Loading...</i></span>  
+			</div>
+  	</div>
+  </div>
+
+  
+  <div class="navButtons">
+		<input id="sound" type="button" data-toggle="tooltip" value="" title="Start/stop the audio recording" onclick=""><i class="glyphicon glyphicon-volume-up"></i></input>
+	<input id="dolly" type="button" data-toggle="tooltip" value="" title="Start/stop moving" onclick=""><i class="glyphicon glyphicon-facetime-video"></i></input>
+	<input id="playback" type="button" data-toggle="tooltip" value="" title="Show all or playback the animation" onclick=""><i class="glyphicon glyphicon-play-circle"></i></input>	
+  </div>
+  
+  
+<div class="center">
+<div id="tools-message" class="" title="Helpful Hints">
+    <span class="glyphicon glyphicon-facetime-video" style="float:left; margin:0 7px 0 0;"></span>
+    <p>Click the camera button to stop/re-start camera dolly.
+            <br />
+            Use your touch pad or mouse to look around the journalverse<br /><br />
+     </p>
+</div>
+</div>
+	<div id="preview" style="display:none;"></div>
+	<!--<audio id="danny" src="assets/danny_narration.wav"></audio>-->
+</body>
+
+
+
+<script>
+ 
+ 
+ 	var camera, scene, expScene, renderer,orbitcamera,light;
+    var geometry, material, mesh;
+    var controls, minicamera;
+    var effect, vrmanager;
+    var defaultControls, orientControls, pointerLockControls;
+    var transGeo, transMat;
+ 	var context = null;
+	var currentPlane = 0;
+	var drawnline = [];
+	var container, canvas;
+
+
+	var MAX_POINTS = 2000;
+	var MINIMUM_OBJ_LENGTH = 10;
+	var PB_LINE_VERTEX_COUNT_MAX= 0; //change this once we get our first line...
+	var countVertices = 0;
+	var sketchContainer,objContainer ;
+	var CURRENTspline = -1; //incremented at initNewLine
+	var grid ;
+	var mouse = new THREE.Vector2();
+
+	var DRAWMODE = 0;//ORBITMODE;
+
+	var CURRENTLINEWIDTH = 2;
+	
+	var STEREOSCOPIC = 0;
+	var squareAngle = 90 * Math.PI/180;
+
+	var linematerial = null;
+	var dollyAngle = 690;
+	var DOLLY = 1;
+	var PER_MEDIA_INCREMENT = .125;
+	var pbclock ;
+	var edges, cameraHelp;
+	
+	var start = Date.now();
+
+	var PLAYBACK = 0;
+	var playBackCount = 0;
+	var PLAYBACKSPEED = .005;
+	var PLAYBACKCOUNT = 100; //mobile, smaller screen, needs to go faster vs 
+	
+	//audio stuff
+	var audioCtx ; // define audio context
+	var sound1 = {};  //sound object
+	// Webkit/blink browsers need prefix, Safari won't work without window.
+	var bufferLoader;
+	var analyser ,distortion,mainVolume ,biquadFilter, panner ;
+
+	var moveForward = false;
+	var moveBackward = false;
+	var moveLeft = false;
+	var moveRight = false;
+	var canJump = false;
+	var prevTime = performance.now();
+	var velocity = new THREE.Vector3();
+	
+	var state ={};
+	var PHOTOSPHERE = 0;
+	var PHOTOPLANE = 1;
+	var typesOfStories = {PHOTOSPHERE,PHOTOPLANE};
+	var cameraDollyPath,cameraDollyPathVecArray;
+	
+	
+
+	function init(){	
+		container = document.createElement( 'div' );
+		container.style.position = 'absolute';
+		container.style.top = '0';
+		container.style.width = '100%';
+		container.style.textAlign = 'center';
+		container.style.color = '#000';
+		container.style.fontWeight = 'bold';
+		container.style.backgroundColor = '#000';
+		container.style.zIndex = '1';
+		container.style.fontFamily = 'Monospace';
+		document.body.appendChild( container );
+	 	pbclock= new THREE.Clock();
+
+		
+		renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.setPixelRatio(window.devicePixelRatio);
+		// Append the canvas element created by the renderer to document body element.
+		container.appendChild( renderer.domElement );
+		// Create a three.js scene.
+		scene = new THREE.Scene();
+		// Create a three.js camera.
+		camera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
+		camera.position.set(0,.5,20);
+		// Apply VR headset positional data to camera.
+		defaultControls = new THREE.OrbitControls(camera, renderer.domElement);
+		//defaultControls = new THREE.PointerLockControls(camera, renderer.domElement);
+		// Apply VR stereo rendering to renderer.
+		var effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
+			   		   
+		objContainer = new THREE.Object3D();
+		objContainer.name = "objContainer";
+		objContainer.geometry = null;
+
+  		scene.add(objContainer);
+
+		if (inMobileMode()){		
+			orientControls = new THREE.VRControls(camera);
+			var params = {
+			  hideButton: false, // Default: false.
+			  isUndistorted: false // Default: false.
+			};
+			vrmanager = new WebVRManager(renderer, effect, params);			
+			vrmanager.button.vrButton.style.width = '25px';
+			vrmanager.button.vrButton.style.height ='25px';
+		}
+  		
+			
+		
+		window.addEventListener('resize', onWindowResize, false);
+		//document.getElementById("playback").onclick = togglePlayBackMode;
+
+		$("#reset, i.glyphicon-refresh").on('click touchend', reset);
+		$("#dolly, i.glyphicon-facetime-video").on('click touchend', toggleDolly);
+		$("#sound, i.glyphicon-volume-up").on('click touchend', toggleSound);
+		$("#playback, i.glyphicon-play-circle").on('click touchend', togglePlayBackMode);
+		
+		
+		var blocker = document.getElementById( 'blocker' );
+		var instructions = document.getElementById( 'instructions' );
+		
+		state.user = whichUser();
+		if (whatKindOfStory() == PHOTOSPHERE){
+			//load photosphere manually
+			loadUserImages(state.user);
+			
+			//camera orbit
+		}else{
+			//setup camera line path
+		}
+		
+	
+		$(document).ready(function(){
+
+			if (inMobileMode()){
+				//$("div#blocker").css('display','none');
+				 PER_MEDIA_INCREMENT = .125;
+				 PLAYBACKSPEED = .001;  //how quickly we playback
+				PLAYBACKCOUNT = 30;
+				 toggleStereoscopic();
+				loadUserStory(state.user);
+				 //is ipad or phone?
+				 if (!navigator.userAgent.match(/iPad/i)){
+				 	//hide buttons
+				 	$("div.navButtons").css("display","none");
+				 }
+				loadUserHelper();
+			}
+			else{
+				$("div#blocker").css('display','-webkit-box');
+				PER_MEDIA_INCREMENT = .005;  //this is all too slow, tbd
+				PLAYBACKSPEED = .001;  //how quickly we playback
+				PLAYBACKCOUNT = 30;//how many lines to playback at a time
+				if (orientControls !== undefined) orientControls.enabled = false;
+				
+				loadUserStory(state.user);
+				
+				//defaultControls.enabled = true;
+				instructions.addEventListener( 'click', function ( event ) {
+					instructions.style.display = 'none';
+					$("div#blocker").css('display','none');
+					
+				});
+				
+				loadUserHelper();
+				//defaultControls.autoRotate = false;
+				defaultControls.autoRotateSpeed = -.095; //too slow
+			}
+			dollyAngle = getDollyOrigin();
+	  });
+
+	   
+
+	}
+	
+	function loadUserHelper(){
+	
+		if (!inMobileMode() || navigator.userAgent.match(/iPad/i)){
+			$("#tools-message").dialog({
+					modal: true,
+					draggable: false,
+					resizable: false,
+					position: ['center', 'center'],
+					show: 'blind',
+					hide: 'blind',
+					width: 400,
+					dialogClass: 'ui-dialog-osx',
+					buttons: {
+						"Got it": function() {
+							$(this).dialog("close");
+						}
+					}//maybe load more info if the user asks for it
+				}).position({my:"center", at:"center", of:"center"});
+		}
+
+	}
+	
+	function whatKindOfStory(){
+		if (isPhotosphereStory()) 
+			state.storyType = PHOTOSPHERE;
+		if (isPhotoplaneStory())
+			state.storyType = PHOTOPLANE;
+		return state.storyType;
+	}
+	
+	function getDollyOrigin() {
+	
+		if (inMobileMode()) return 690;
+		else return 450;
+	}
+	
+	function reset(evt ){ 
+		if (evt !== undefined) evt.preventDefault();
+		dollyAngle = getDollyOrigin();
+		playBackCount=0;
+		sound1.stop();
+		sound1.play();
+		
+		
+		resetDollyCam();
+		setPlayBack(1);
+	}
+	
+
+	function toggleSound(evt){  //reset also??? stop rotation??
+		if (evt !== undefined) evt.preventDefault();
+		if (sound1.playbackState == "playing")	{
+		
+			sound1.stop();
+		}else{
+			sound1.play();
+			PLAYBACK = togglePlayBackMode();
+			}
+		
+	}
+	
+	
+
+      function setOrientationControls(e) {
+        if (e && !e.alpha) {
+          return;
+        }
+        //orientControls.update();
+      
+       // if (mostRecentDrawnLine() == null)
+        	//loadInitialImages();
+        
+     }
+
+	
+	function toggleStereoscopic(){
+		STEREOSCOPIC = STEREOSCOPIC?0:1;
+	 	
+	 	if (STEREOSCOPIC){
+	 		orientControls.enabled=true;
+	 		setOrientationControls();	 		
+	 	}
+		
+	}
+	
+	
+	function setupGrid(){
+		if (!grid){grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );
+		}
+		grid.visible = true;	
+	}
+	
+	
+	function toggleGrid(){
+		if (userSettings.userLevel >0){
+			if (grid){
+				grid.visible = grid.visible?false:true;
+				axisHelper.visible = axisHelper.visible?false:true;
+			}else{
+				setupGrid();
+			}
+		}
+		$("#grid").prop("checked",grid.visible);
+	}
+
+
+  
+	function toggleDolly(evt){
+		if (evt !== undefined) evt.preventDefault();
+		DOLLY = DOLLY?0:1;
+		defaultControls.autoRotate = DOLLY;
+		
+		
+	}
+	
+	function raycastGazeForDollyCam(){
+		//TODO: should only run when in playback mode
+		var vGaze = new THREE.Vector3(0,0,5);  //for now, let's make the gaze static
+		if (inMobileMode()){ //because we don't have orbitcontrols in mobile mode, so have to orbit manually
+			camera.position.z = Math.cos(dollyAngle * Math.PI/360) *10 ;
+			camera.position.x = Math.sin(dollyAngle * Math.PI/360) *10 ;
+		}
+		dollyAngle +=  PER_MEDIA_INCREMENT;
+		if (dollyAngle >720) 
+			dollyAngle = 0;	
+	}	
+	
+	
+
+	
+
+	function runPlayBack(){
+	   	runLinesPlayBack();
+	   	runCameraPlayBack(defaultControls, (DOLLY)?.005:0); //cameraspeed
+	}
+
+	function animate(timestamp) {
+
+		requestAnimationFrame(animate);
+		
+		render(timestamp);			
+		runPlayBack();
+	
+	   } 
+
+	   
+	function render(timestamp) {
+		
+
+		renderer.setClearColor( 0x000000);
+
+
+		if (STEREOSCOPIC){
+	 	
+			orientControls.update();
+			vrmanager.render(scene, camera, timestamp);
+ 			
+  
+
+			//renderer.render( scene, camera );
+  		}else{
+  			defaultControls.update(pbclock.getDelta());
+  			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);
+			renderer.render( scene, camera );
+			
+			
+  		}
+  		if (DOLLY)
+				raycastGazeForDollyCam();
+	}
+		
+	init();
+
+	animate();
+	
+	
+</script>
+
+</html>

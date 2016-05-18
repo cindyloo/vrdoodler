@@ -1,6 +1,6 @@
 <?PHP
 
-$dir = "../assets/doodleverse"; //$_GET["q"];
+$dir = $_GET["q"];
     // add trailing slash if missing
     if(substr($dir, -1) != "/") $dir .= "/";
 	
@@ -9,7 +9,10 @@ $files = scandir($dir);
 $total = count($files); 
 
 $images = array(); 
-for($x = 0; $x <= $total; $x++): if ($files[$x] != '.' && $files[$x] != '..' ) { $images[] = $files[$x]; }	
+for($x = 0; $x <= $total; $x++): 
+	$file_parts = pathinfo($files[$x]);
+	if ($files[$x] != '.' && $files[$x] != '..' && $file_parts['extension'] == "obj" ) { 
+	$images[] = $files[$x]; }	
 endfor;
 
 $fcount = count($images);

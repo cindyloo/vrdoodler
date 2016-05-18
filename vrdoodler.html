@@ -67,7 +67,7 @@
 
 				<li>
 					<div>
-						<div id="preview">
+						<div id="preview" class="loadFiles">
 							<input type="file" name="file" id="import" class="inputfile tt" />
 							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Image</label>
 						</div>
@@ -82,9 +82,20 @@
 				</li>
 				<li>
 					<div>
-						<div id="previewObj">
+						<div id="previewObj" class="loadFiles">
 							<input type="file" name="file" id="importObj" class="inputfile tt" />
-							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load OBJ</label>
+							<label for="importObj" data-toggle="tooltip" title="Click to import an object: OBJ ">Load OBJ</label>
+						</div>
+						
+						
+					</div>
+				</li>
+				
+				<li>
+					<div>
+						<div id="previewAudio" class="loadFiles">
+							<input type="file" name="file" id="importAudio" class="inputfile tt" />
+							<label for="importAudio" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Audio</label>
 						</div>
 						
 						
@@ -345,6 +356,9 @@
 		//document.getElementById('move').onclick = toggleDrawMode;
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById("import").onchange = handleImport;
+		document.getElementById('photoplane').onclick = toggleLoadMode;
+		document.getElementById('photosphere').onclick = toggleLoadMode;
+		
 		document.getElementById("importObj").onchange = handleImport;
 		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
@@ -743,16 +757,7 @@
 	}
 	
 	
-	function makeDollyPlaybackPath(){
-		var dollyPath = new THREE.CatmullRomCurve3();
-	
-	//or get bounding box of all lines? or something?
-	
-		for (var line =0;line < drawnlines.length; line++){	
-			curve.push(drawnlines[l][0]);
-		}
-		return dollyPath;
-	}
+
 	
 	
 	function toggleStereoscopic(){
@@ -946,6 +951,12 @@
      
 		changeControls(true);		
     	return DRAWMODE;
+	}
+	
+	function toggleLoadMode(e){
+		//var LOADTOG = $("#photoplane").prop("checked");
+		//$("#photosphere").val(!LOADTOG);
+	 	//$("#photosphere").val(!LOADTOG);
 	}
 	
 
@@ -1583,16 +1594,17 @@
 			return mesh;
 	}
 	
+
+	
+	
+	
 	function makePhotoPlane( tex, w, h){
-	
-	
 			var mesh;
 			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
 			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
 			mesh.name="photoplane";
-			mesh.position.set(0,8,0);
-			objContainer.add(mesh);
-			
+			mesh.position.set(0,0,0);
+			objContainer.add(mesh);		
 			return mesh;
 	}
 	
@@ -1727,14 +1739,29 @@
 		DOLLY = DOLLY?0:1;
 		defaultControls.autoRotate = DOLLY;
 	}
-	function raycastGazeForDollyCam(){
+	
+	
+	
+	function raycastForOrbitDollyCam(){
 
 		dollyAngle +=  PER_MEDIA_INCREMENT;
 		if (dollyAngle >720) 
 			dollyAngle = 0;
 		
 	}	
-	
+	function updateDollyCamPath(){
+		if (PLAYBACK){
+			//move dolly along "cameraPath"
+			//if not orbiting
+			if ($("#photosphere").val()==1){ //best way to determine camera path... if radio button 
+			//raycast for OrbitDolly?
+				controls.autoRotate = true;
+				controls.autoRotateSpeed = -.075
+			}else{
+				updateSimpleCamPath();
+			}
+		}
+	}	
 
 	
 	
@@ -1752,6 +1779,11 @@
 		
 	}
 
+	function runPlayBack(){
+	
+		runLinesPlayBack();
+		updateDollyCamPath(); //orbit or straight path
+	}
 		
 
 	function animate(timestamp) {
@@ -1803,9 +1835,9 @@
     
   		}else{
   			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update(pbclock.getDelta());
+  			controls.update(pbclock.getDelta()); //this should do the autoRotate for photosphere/playback
   		
-			minicamera.position.set(5,5,5);
+			/*minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 				
 			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
@@ -1814,7 +1846,7 @@
 						//renderer.setScissorTest( true );
 						//renderer.setClearColor( view.background );
 			minicamera.updateProjectionMatrix();
-			renderer.render( scene, minicamera );
+			//renderer.render( scene, minicamera );*/
 				
 					
 			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
