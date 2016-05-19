@@ -15,7 +15,8 @@
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 	<script>
-	// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+/* browser checks ********/
+// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
 	isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
 	// Firefox 1.0+
 	isFirefox = typeof InstallTrigger !== 'undefined';
@@ -30,11 +31,19 @@
 	// Blink engine detection
 	isBlink = (isChrome || isOpera) && !!window.CSS;
 	
-	if(isChrome || isFirefox){
+	isChromeIOS = navigator.userAgent.match('CriOS');
+
+	isFFIOS = navigator.userAgent.match('Firefox');
+	
+	isIPAD = navigator.userAgent.match(/iPad/i); //necessary it seems
+	
+	if(isChrome || isFirefox || isChromeIOS || isFFIOS || isIPAD){
 	   // is Google Chrome on IOS
 	} else { 
-	  alert("VRDoodler requires Chrome or FF");
+	  alert("VRDoodler requires Chrome or FF on Mac OS. For mobile devices you must have ios 9.3.1");
 	 } 
+	 
+	 
 	  
 	</script>
 
