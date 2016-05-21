@@ -394,7 +394,7 @@ function makePath(howManyObjects){  //will use path later
             lineImported.geometry.computeBoundingBox();
             var center = box.min.lerp(box.max, .5);
             for (var i=0, child; child = lineImported.parent.children[i]; i++) {
-                child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
+                //child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
             }
 			newOrImportedLine = lineImported;//.clone();
 			newOrImportedLine.material.linewidth = 2;
@@ -424,12 +424,16 @@ function makePath(howManyObjects){  //will use path later
 		//create new group or add to pre-existing 
 		
 		var lineGroup; 
-		if (group != null){
-			group.parent.name="linegroup";
-			objContainer.add(group.parent);
-		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
-			lastLineIntersection.parent.add(newline);
-			lastLineIntersection = null;
+		if (group != null && group.parent.name != "linegroup") {
+			    group.parent.name="linegroup";
+			    objContainer.add(group.parent);
+            }
+        else if (lastLineIntersection && lastLineIntersection.name == "line"){
+			newline.planeTransform = lastLineIntersection.planeTransform;
+			
+			lastLineIntersection.parent.add(newline);  //drew off of a pre-existing line, effectively adding to a group here...
+			lastLineIntersection.parent.name="linegroup";
+		    lastLineIntersection = null;
 		
 		}else{
 		
@@ -456,7 +460,7 @@ function makePath(howManyObjects){  //will use path later
 			 if (bUnproject)
 				vNow.unproject(camera);
 		
-			initDrawnLine(null, vNow);
+			initDrawnLine(null, vNow);  //freehand or snap...
 
 		}else //from import
 		 	initDrawnLine(lineImported, mouseVec);

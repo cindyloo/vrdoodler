@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!--  <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">VRDoodler</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="www.vrdoodler.com" property="cc:attributionName" rel="cc:attributionURL">VRDoodler</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="github.com/cindyloo/vrdoodler" rel="dct:source">github.com/cindyloo/vrdoodler</a>
+-->
 <head>
 	<meta charset="utf-8">
 	<title>VRDoodler!!!-beta</title>
@@ -8,6 +10,8 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
+
+
 <link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -188,7 +192,7 @@
 	var pbclock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
-
+	var DOLLY = 1;
 	var PLAYBACKSPEED = .0045;
 	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
 
@@ -1138,7 +1142,8 @@
                                         var originalTransform = copiedObj.children[l].planeTransform;
                                         if (originalTransform) { 
     										var newLine = copiedObj.children[l].clone();
-    										newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
+    										//newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
+    										newLine.planeTransform = originalTransform;
     										newLine.geometry= newLine.geometry.clone();
     										
     										var attribute = newLine.geometry.attributes.position;
@@ -1758,7 +1763,7 @@
 				controls.autoRotate = true;
 				controls.autoRotateSpeed = -.075
 			}else{
-				updateSimpleCamPath();
+				updateSimpleCameraPath();
 			}
 		}
 	}	
