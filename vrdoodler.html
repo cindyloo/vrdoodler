@@ -1433,8 +1433,13 @@
 	function onSketchStart(evt){
 		
 		evt.preventDefault();
-		if (evt.target.nodeName == 'CANVAS')
+		if (evt.target.nodeName == 'CANVAS'){
+			//what we need for touch is to raycast the mouse touch coord to the grid
+			if (evt.targetTouches)
+				planeLockOutline.position.add(evt.targetTouches);
 			onSketchMouseDown(evt);
+			
+		}
 		//else
 		//	event.target.click();
 	}
@@ -1612,20 +1617,6 @@
 			objContainer.add(mesh);		
 			return mesh;
 	}
-	
-	
-	/*function makeCube( w,h,d){
-			var mesh;
-			var planeGeo = new THREE.BoxGeometry(w,h,d);				
-			mesh = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({color:0x000fff, side:THREE.DoubleSide}));
-			mesh.position.x = 5;
-			mesh.position.y = 1;
-			mesh.position.z = 3;
-			sketchContainer.add(mesh);
-					
-			}
-*/
-
 
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
 	//shader code currently commented out...
@@ -1746,49 +1737,28 @@
 	}
 	
 	
-	
-	function raycastForOrbitDollyCam(){
-
-		dollyAngle +=  PER_MEDIA_INCREMENT;
-		if (dollyAngle >720) 
-			dollyAngle = 0;
-		
-	}	
-	function updateDollyCamPath(){
+	/* this... is not really right yet.  The camera dolly is a made-up thing for now- either orbiting or moving towards - z */
+	/*dupe function also...in app.js    to be figured out... */
+	function runCameraPlayBack(ctrls, cameraSpeed){
+		//what kind of camera playback is it?
 		if (PLAYBACK){
-			//move dolly along "cameraPath"
-			//if not orbiting
-			if ($("#photosphere").val()==1){ //best way to determine camera path... if radio button 
+			if (isPhotosphereStory()){
 			//raycast for OrbitDolly?
 				controls.autoRotate = true;
 				controls.autoRotateSpeed = -.075
 			}else{
-				updateSimpleCameraPath();
+				updateSimpleCameraPath(controls, .075);
 			}
 		}
-	}	
-
-	
-	
-	function clearLines(){
-		var count = 0;
-		
-		if (drawnline && drawnline.length > 0){
-			for (var i=0;i< drawnline.length;i++){
-					drawnline[i].geometry.setDrawRange( 0, 1);
-					drawnline[i].geometry.attributes.position.needsUpdate = true; 
-			}
-		}
-
-		return count;				
-		
 	}
+	
+
 
 	function runPlayBack(){
-	
 		runLinesPlayBack();
-		updateDollyCamPath(); //orbit or straight path
+		runCameraPlayBack(controls, .075); //orbit or straight path
 	}
+
 		
 
 	function animate(timestamp) {

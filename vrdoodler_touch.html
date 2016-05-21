@@ -1584,9 +1584,10 @@
 				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
 				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
 			}else if (evt.targetTouches) {   //for touch events
-				mouse.x= evt.targetTouches[0].clientX; 
-				mouse.y = evt.targetTouches[0].clientY; 
-			 }             var vNow = new THREE.Vector3();
+				mouse.x= ( evt.targetTouches[0].clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.targetTouches[0].clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			 }              
+			 var vNow = new THREE.Vector3();
             vNow.set(
 					mouse.x,
 					mouse.y,
@@ -1600,9 +1601,6 @@
             			var snapToThis = rayPointIndSphere.position;
 						//if (!rayPointIndSphere)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
 							//snapToThis = lastIntersectedPoint;
-						var projectedMouse = new THREE.Vector3();
-						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
-											
 						
 						unprojectedAndTransformedMouse = rayPointIndSphere.position;
 						
@@ -1829,9 +1827,10 @@
 	function onSketchStart(evt){
 		
 		evt.preventDefault();
-		if (evt.target.nodeName == 'CANVAS')
+		if (evt.target.nodeName == 'CANVAS'){
+			
 			onSketchMouseDown(evt);
-		else
+		}else
 			event.target.click();
 	}
 
@@ -1851,8 +1850,8 @@
 				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
 				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
 			}else if (evt.targetTouches) {   //for touch events
-				mouse.x= evt.targetTouches[0].clientX; 
-				mouse.y = evt.targetTouches[0].clientY; 
+				mouse.x= ( evt.targetTouches[0].clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.targetTouches[0].clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
 			 } 
           	
           	
@@ -1870,6 +1869,7 @@
 				
 					//ok, now raycast the plane.  it's here b/c this event happens before the animate event
 					planeLockOutline.geometry.computeBoundingSphere(); 
+					
 					var intersects = raycaster.intersectObjects([planeLockOutline], true); //doesn't work for touch btw. bounding box is origin 0
 					currentIntersectedPoint = handleRayIntersections(intersects);
 				
