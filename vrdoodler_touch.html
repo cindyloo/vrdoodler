@@ -17,85 +17,23 @@
 	
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-	<script>
-		// Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
-		isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-		// Firefox 1.0+
-		isFirefox = typeof InstallTrigger !== 'undefined';
-		// At least Safari 3+: "[object HTMLElementConstructor]"
-		isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-		// At least IE6
-		isIE = /*@cc_on!@*/false || !!document.documentMode;
-		// Edge 20+
-		isEdge = !isIE && !!window.StyleMedia;
-		// Chrome 1+
-		isChrome = !!window.chrome && !!window.chrome.webstore;
-		// Blink engine detection
-		isBlink = (isChrome || isOpera) && !!window.CSS;
-		
-		if(isChrome || isFirefox){
-		   // is Google Chrome on IOS
-		} else { 
-		  alert("VRDoodler requires Chrome or FF");
-		 } 
-		 
-		 
-		 
-		 function isMobBrowser() { 
-			 if( navigator.userAgent.match(/Android/i)
-			 || navigator.userAgent.match(/webOS/i)
-			 || navigator.userAgent.match(/iPhone/i)
-			 || navigator.userAgent.match(/iPad/i)
-			 || navigator.userAgent.match(/iPod/i)
-			 || navigator.userAgent.match(/BlackBerry/i)
-			 || navigator.userAgent.match(/Windows Phone/i)
-			 ){
-				return true;
-			  }
-			 else {
-				return false;
-			  }
-		}
-		 
-		var getParams = (function() {
-	
-			var _get = {};
-			var re = /[?&]([^=&]+)(=?)([^&]*)/g;
-			while (m = re.exec(location.search))
-				_get[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
-			return _get;
-		})();
-		
-		
-		function inMobileMode(){
-		
-			if (isMobBrowser() || getParams["mobile"] == 1)
-				return true;
-			else
-				return false;
-		
-		}
-	 
-	</script>
 
-
-	
 	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
 	<!--	<script src="js/controls/TransformControls.js"></script>-->
   	<!--<script src="js/effects/StereoEffect.js"></script>-->
 
     <script src="js/three.js"></script>
    
-    <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/controls/OrbitControls.js"></script>
     <script src="js/exporters/OBJExporter.js"></script>
 	<script src="js/loaders/OBJLoader.js"></script>
 	
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
+	<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
 
      <script src="js/webvr-polyfill.js"></script>
       <script src="js/webvr-manager.js"></script>
-	
+	<script src="js/app.js"></script>
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -286,7 +224,7 @@
 	var edges, cameraHelp;
 	
 	var start = Date.now();
-	var clock = new THREE.Clock();
+	var pbclock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
 
@@ -395,7 +333,7 @@
   		horizonMesh.rotation.x = 90 * Math.PI / 180;	
   		
 		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
-		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
+		  //new THREE.DeviceControls(camera);
 		
 		/* not using right now 
 		transformControls = new THREE.TransformControls( camera, renderer.domElement );
@@ -405,18 +343,7 @@
 			
 		controls = defaultControls;
 
-		/*WebVR boilerplate implmentation */
-	 	effect = new THREE.VREffect(renderer);
-		effect.setSize(window.innerWidth, window.innerHeight);
 		
-	 	 var params = {
-		  hideButton: false, // Default: false.
-		  isUndistorted: false // Default: false.
-		};
-		vrmanager = new WebVRManager(renderer, effect, params);
-  		    
-   		vrmanager.button.vrButton.style.width = '50px';
-   		vrmanager.button.vrButton.style.height ='50px';
   		raycaster = new THREE.Raycaster();
 		raycaster.linePrecision = .055;
 		
@@ -442,15 +369,15 @@
 		planeBoundsMat2 = new THREE.MeshBasicMaterial( {color: 0x00ff00, side: THREE.DoubleSide, transparent:true, opacity:.4} );
 
 
-		lastIntersectedPoint = new THREE.Vector3(0,0,0);		
+		lastIntersectedPoint = new THREE.Vector3(0,0,0);
+		currentIntersectedPoint = new THREE.Vector3(0,0,0);
 
 
 		window.addEventListener('resize', onWindowResize, false);
 
 		//document.addEventListener('mousedown', onSketchStart, false);
-	document.addEventListener('touchstart', onSketchStart, false);
-		
-		document.addEventListener( 'touchmove', onDocumentMouseMove, false );		
+		document.addEventListener('touchstart', onSketchStart, false);
+		document.addEventListener( 'touchmove', onDocumentMouseMove, false );	//take this off when we start drawing	
 		
 		
 		//document.getElementById('instructions').onclick = advanceInstructions;
@@ -476,15 +403,10 @@
 		//get prefs but for now
 		setTutorialLevel(0);
 		
-        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
-				light.position.set( 1, 1, 1 ).normalize();
-				scene.add( light );
-		
-		
-		window.addEventListener('deviceorientation', setOrientationControls, true);
+      	
+		//window.addEventListener('deviceorientation', setOrientationControls, true);
             
-         document.addEventListener( 'touchstart', onVRDoodlerKeyDown, false );
-		 document.addEventListener( 'touchend', onVRDoodlerKeyUp, false );
+        
 		 manager = new THREE.LoadingManager();
 				manager.onProgress = function ( item, loaded, total ) {
 				console.log( item, loaded, total );
@@ -530,43 +452,28 @@
 					advanceInstructions()
 				  });
 				  
-			  
+			  	grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );  //why was this necessary? a double toggle or something?
 		
-			if (inMobileMode()){
-				 toggleStereoscopic();
-				 PER_MEDIA_INCREMENT = .125;
-				PLAYBACKCOUNT = 55;//slower, bigger screen
-			}else{
+			grid.visible = true;
+		
+			
 				PER_MEDIA_INCREMENT = .065;
 				PLAYBACKCOUNT = 25;//slower, bigger screen
-				
-				controls.autoRotate = false;
-				controls.autoRotateSpeed = -.075
-			}
- 
+				if (orientControls !== undefined) orientControls.enabled = false;
+				defaultControls.enabled = true;
+				defaultControls.autoRotate = false;
+				defaultControls.autoRotateSpeed = -.075
+			
 	  });
 	
 	   
 
 	}
-	
-	/*not yet implemented*/
-	var getWhatYouCanDoMode = (function() {
 
-		/*var whatyoucando = {};
-		
-		if (input.straightline is checked)
-		
-		else if
-		
-		if (usersettings...)
-		...
-		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
-		//eval usersettings, button states, return an array of can-dos
-		
-		*/
-	})();
-	
 	
 	function onTabClick( event ) {
 		select( event.target.textContent );
@@ -643,202 +550,9 @@
 	}
 	
 	
-	/*if URL params say load the doodleverse */
-	function loadInitialImages(dir){
-		    var xhrImg = new XMLHttpRequest();
- 
-       		xhrImg.onreadystatechange=function() {
-				if (xhrImg.readyState==4 && xhrImg.status==200) {	
-				
-					if (xhrImg.responseText.indexOf("?PHP")> -1){  //in case we don't have php on the localhost
-						
-						
-						dir = "assets/doodleverse/";
-						var images = [dir + "armymen.txt"];// + dir +"house.jpg",dir +"sun.jpg" ];
-						 handleImport(images);
-					}
-					else{
-						var objects =  xhrImg.responseText.split('EOF');    
-						
-						objects.forEach(function(object){
-							var cleanedobj = object.replace(/EOF/,'');
-							obj = new THREE.OBJLoader().parse(cleanedobj);
-						
-			
-							obj.name = "linedoodleverse";
-							importScene(obj);
-						});					
-				  		
-				  	}
-				}else{
-					if (xhrImg.responseText== ""){  //in case we don't have php on the localhost
-							console.log("can't get file for loadInitialImages");			
-						
-					}
-				}
-			} 
-			//var fatcowhostpath = "/home/users/web/b285/moo.vrdoodlercom/";
-			if (location.hostname == "localhost") //debugging
-				xhrImg.open("GET", "/getObjFiles");//easier to use node to get all the files in there even for debugging..);					
-			else
-				xhrImg.open("GET", "phpsessions/getObjFiles.php");//?q=" + fatcowhostpath + "assets/doodleverse");//"vrdoodler.html?loaddoodleverse=1");
-	 
-			xhrImg.send();  
-
-    	}
-	function loadImages(imgArray){
-	
-			loadedImages = imgArray;
-			//create filelist or something to hand to handleImport
-			
-		}
-	
-	function handleImport() {
-  			var fileList = this.files; /* now you can work with the file list */
-  			
-  			for (var i = 0; i < fileList.length; i++) {
-  			
-  				f = fileList[i];		 
-				var reader  = new FileReader();
-				var extension;
-				if (f.name)
-					extension = f.name.split( '.' ).pop().toLowerCase();
-				else
-					extension = f.split( '.' ).pop().toLowerCase();
-
-				
-				switch(extension){
-					case 'json':
-					case '3geo':
-					case '3mat':
-					case '3obj':
-					case '3scn':
-	
-					reader.addEventListener( 'load', function ( event ) {
-						
-						var contents = event.target.result;
-						try {
-							data = JSON.parse( contents );
-						} catch ( error ) {
-							alert( error );
-							return;
-						}
-						importJSONObject( f.name, data );
-	
-					}, false );
-					reader.readAsText( f );	
-					break;
-	
-				case 'obj':
-				case 'txt':
-	
-					reader.addEventListener( 'load', function ( event ) {
-						var contents = event.target.result;
-						var object = new THREE.OBJLoader().parse( contents );
-						object.name = f.name;
-						importScene(object);					
-					}, false );
-					reader.readAsText( f );
-						
-					
-					break;
-					
-				case 'jpg':
-				case 'png':
-					var photo;
-					var preview = document.querySelector('#preview');
-					
-				 	reader.addEventListener("load", function () {
-						var image= new Image();
-						var image2 = new Image();
-						image.height = 1000;
-						image.title = f.name;
-						image.src = this.result;
-						image2.height = 100;
-						image2.title = f.name;
-						image2.src = this.result;
-						preview.appendChild( image2);
-						$("#preview").css("margin-bottom",120);
-	
-						var texture = new THREE.Texture( image );
-						texture.name=f.name;
-						texture.needsUpdate = true;
-						var psphere = makePhotoSphere(texture,15, 100);
-						
-						$("a.imgclose").css("visibility","visible");
-					});
-			
-				  	reader.readAsDataURL(f);
-					break;
-				}	
-  			} //for
-		}
-	
-	
-	function importScene(object){  //if in a group, we want to preserve it... have to change initNewLine...
-	
-				object.traverse( function ( child ) {						
-						if ( child instanceof THREE.Line ) { //THREE.Line
-									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
-									initNewLine(null, null, child);
-						}
-					 });
-				
-
-	}
 
 	
-	/* right outta the three.js editor. thanks @mrdoob! */
-	function importJSONObject(fn,data){
-		var material;
-				
-	    var loader = new THREE.JSONLoader();
-		var result = loader.parse( data );
-		if ( result.materials !== undefined ) {
 
-				if ( result.materials.length > 1 ) {
-					material = new THREE.MultiMaterial( result.materials );
-				} else {
-					material = result.materials[ 0 ];
-				}
-		} else {
-			material = new THREE.MeshStandardMaterial();
-		}
-
-		var geo = result.geometry;
-		geo.sourceType = "ascii";
-		geo.sourceFile = fn;
-
-		var mesh;
-
-		if ( geo.animation && geo.animation.hierarchy ) {
-			mesh = new THREE.SkinnedMesh( geo, material );
-		} else {
-			mesh = new THREE.Mesh( geo, material );
-		}
-		
-		var pos = new THREE.Vector3(0,0,0);	
-		if (currentIntersected)
-			pos = currentIntersected.position.copy();
-		mesh.position.set(pos);
-	
-		mesh.userData.name = "fromjson";		
-		objContainer.add( mesh );
-	
-	}
-
-
-
-	var onProgress = function ( xhr ) {
-					if ( xhr.lengthComputable ) {
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( Math.round(percentComplete, 2) + '% downloaded' );
-					}
-				};
-
-	var onError = function ( xhr ) {
-	};
-	
 
 
 	
@@ -852,7 +566,7 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             
-           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
+           //if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
             render();
 	}
 
@@ -895,32 +609,6 @@
 		return initCamRotPos;
 	}
 	
-	function colorCameraOrientation(){
-	
-		var vX = new THREE.Vector3(1,0,0);
-  		var vZ = new THREE.Vector3(0,0,1);
-  		
-  		var orientation = camera.getWorldDirection().normalize();
-  		
-  		var offsetToX = orientation.clone().dot(vX);  //should be z, right?
-  		var offsetToZ = orientation.clone().dot(vZ);
-  		//which offset is closer to one?
-  		PLANEROTATIONCOLOR = 0x00ffff;
-  		/*if (Math.abs(offsetToX) > Math.abs(offsetToZ)){  //closer to x
-  			
-  			if (offsetToX < 0) //x is negative
-  				PLANEROTATIONCOLOR =0xff0000;
-  			else	//x is positive
-  				PLANEROTATIONCOLOR =0xff3300;
-  		}
-  		else if (Math.abs(offsetToX) < Math.abs(offsetToZ)){   //closer to z
-  			if (offsetToZ < 0)
-  				PLANEROTATIONCOLOR = 0x0033ff;
-  			else
-  				PLANEROTATIONCOLOR = 0x00ffff;
-  		}*/
-	}
-
 	
 	function horizontalRotation(){
 		var angle = null; //for later when user could specify...
@@ -965,19 +653,6 @@
 	
 	
 	
-	function advanceInstructions(){
-		if (userSettings.userLevel == "0"){
-			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
-			if (tuteBegCount > tuteBegPhrases.length -1)
-				tuteBegCount = 0;
-			}
-		else{
-			document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
-			if (tuteAdvCount > tuteAdvPhrases.length -1)
-				tuteAdvCount = 0;
-			}
-	}
-	
 	function setTutorialLevel(level){
 	
 			if (level == "0"){ //beginner
@@ -1004,6 +679,8 @@
 				camera.lookAt(lastIntersectedPoint);
 				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","visible");
+				
+				
 				
 			}else if (level =="1"){
 			
@@ -1056,22 +733,12 @@
 	function toggleStereoscopic(){
 		STEREOSCOPIC = STEREOSCOPIC?0:1;
 	 	
-	 	if (STEREOSCOPIC){
-	 		$(".hero-unit").css("visibility","hidden");
-	 		$(".top-unit").css("background-color","black");
-	 		if (window.screen.width < 500)
-	 			$("#stereoView").css("visibility","hidden");
-	 		setDrawMode(0);
-	 		//setSnapMode(0);
-	 		orientControls.enabled=true;
-	 		setOrientationControls();
-	 		
-	 	}
-	 	else{
+	 	//do nothing..
+	 	
 	 		$(".hero-unit").css("visibility","visible");		
-	 		controls.enabled = true;
+	 		defaultControls.enabled = true;
        		orientControls.enabled=false;
-	 	}
+	 	
 	
 		
 	
@@ -1099,12 +766,12 @@
 		}
 		grid.visible = true;
 		
+		
 	}
 	function toggleGrid(){
 		if (userSettings.userLevel >0){
 			if (grid){
 				grid.visible = grid.visible?false:true;
-				axisHelper.visible = axisHelper.visible?false:true;
 				horizonMesh.visible = grid.visible;
 			}else{
 				setupGrid();
@@ -1126,13 +793,11 @@
         if (e && !e.alpha) {
           return;
         }
-		controls.enabled =false;
+		//controls.enabled =false;
+      //  orientControls.update();
 
- 
-        orientControls.update();
-
-        if (mostRecentDrawnLine() == null)
-        	loadInitialImages();
+        //if (mostRecentDrawnLine() == null)
+        //	loadInitialImages();
         
         
         //window.removeEventListener('deviceorientation', setOrientationControls, true);
@@ -1155,56 +820,26 @@
 			camera.rotation.copy( prevCamera.rotation );
 		}
 	
-			if(STEREOSCOPIC) return;
+		if(STEREOSCOPIC) return;
 	
-			if (DRAWMODE == 2){ //MOVEMODE){
-			document.removeEventListener('mousedown', onSketchStart, false);
-			
-			document.removeEventListener('mousemove', onDocumentMouseMove, false);
-			//document.removeEventListener('touchdown', onSketchStart, false);
-			
-			scene.remove(plane);
-			scene.remove(planeLockOutline);
-			scene.remove( transformControls );
-			scene.remove(scene.getObjectByName("transform"));
-			controls.enabled = false;
-				
-				
-				controls = transformControls;
-				
-			
-				
-				controls.addEventListener( 'change', render );
-				//controls.detach( mesh );
-
-				//var mesh = new THREE.Mesh( transGeo, transMat );
-				//mesh.name = "transform";
-				//scene.add( mesh );
-				//mesh.position.set(0,0,0);
-				controls.attach( lastIntersected );
-				scene.add( controls );
+		if (DRAWMODE ==0){
+		
+				document.addEventListener('touchstart', onSketchStart, false);
+				//document.addEventListener('touchdown', onSketchStart, false);
+		
+				document.addEventListener('touchmove', onDocumentMouseMove, false);
+				controls = defaultControls;
 				controls.enabled = true;
-				//controls.setMode( "translate" );
-				//controls.gizmo["translate"].show();
-				
-
-		}else if (DRAWMODE ==0){
-		document.addEventListener('mousedown', onSketchStart, false);
-		//document.addEventListener('touchdown', onSketchStart, false);
-			document.addEventListener('mousemove', onDocumentMouseMove, false);
-
-			controls = defaultControls;
-			controls.enabled = true;
-			controls.object = camera;
+				controls.object = camera;
 			  
 					
 			
 		}else{ //
 		//document.addEventListener('mousedown', onSketchStart, false);
-		document.addEventListener('touchstart', onSketchStart, false);
-		document.addEventListener('touchmove', onDocumentMouseMove, false);
+			document.addEventListener('touchstart', onSketchStart, false);
+			document.addEventListener('touchmove', onDocumentMouseMove, false);
 
-		controls = defaultControls;
+			controls = defaultControls;
 			controls.object = camera;
 			controls.enabled = false;
 			 		
@@ -1213,7 +848,7 @@
 		if (!PLAYBACK) camera.lookAt(lastIntersectedPoint);
 	
 		camera.updateProjectionMatrix();
-        colorCameraOrientation();
+       // colorCameraOrientation();
 	}
 	
 
@@ -1306,219 +941,7 @@
 	
 	}
 			
-	function onVRDoodlerKeyDown(evt) {
 
-                switch (evt.keyCode) {
-
-                   case 68: //d draw mode
-                   		toggleDrawMode();
-                   			 					  	
-                   break;
-                    /*case 65: // a for axis 
-                    
-                        PLANEROTATE = PLANEROTATE?0:1;
-                        edges.update();
-                  
-                        break;
-                     */   
-                   case 16: //shift 
-                   planeLockOutline.material.wireframe = false;
-				  	PLANELOCK =true;
-				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
-				   	planeLockOutline.material.opacity = .3;
-					break;     
-                     
-                    case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
-                    planeLockOutline.material.wireframe = false;
-                    	planeLockOutline.material.opacity = .3;  
-                       if (evt.shiftKey && (evt.ctrlKey || evt.metaKey)){  //d
-                   			//will draw straight vertical line parallel to x axis
-                   			snapPlane(4);
-              
-                   		}else if ((evt.ctrlKey || evt.metaKey) && evt.altKey){
-                   			//will draw straight horizontal line parallel to x axis
-                   			snapPlane(5); 
-                   			planeLockOutline.rotation.z = squareAngle;
-                   		
-                   		}else if (evt.altKey){
-                   			//draw along z
-                   			snapPlane(6); 
-                   			planeLockOutline.rotation.y = squareAngle;
-                   		
-                   		}else if (evt.shiftKey){
-							//draws at fixed 'squared' plane  No x, y z rotation	
-							
-                   			snapPlane(2);  
-                   			
-                   		}else if (evt.ctrlKey || evt.metaKey){  //draw on horizontal plane
-                   			//Draw at fixed y with x.rotation = 90 degrees
-                   		
-                   			snapPlane(3);  
-                   			planeLockOutline.rotation.x = squareAngle;
-                   			
-                   		}else {
-                   			toggleGrid();
-                   		}
-                   		
-                  
-                        break;
-                        
-                        
-                     case 82: //r for rotate panel 90
-						
-						horizontalRotation();
-							
-						break;
-                    case 83: //snap to s	
-						snapTo();
-						break;
-					/* case 80: //p audio
-                    	if (CURRENTCOLLISION){
-                    		if(CURRENTCOLLISION.userData.audio)
-                    			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
-                    	
-                    	}
-                     */   
-                    break;
-                 
-                     
-     
-                   	
-                   case 67: //ctrl-c  copy! 
-                   	if (evt.ctrlKey || evt.metaKey){
-                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
-                   			var id = currentIntersected.uuid;                			
-                   			
-                   			//TODO getParent, copy all lines
-                   			
-                   			
-                   			function findUUID(line) { 
-								return line.uuid == id;
-							}
-							
-                   		    lineToCopyIndex = drawnline.findIndex(findUUID);
-                   		    if (drawnline[lineToCopyIndex].parent.name == "linegroup")
-                   		    	copiedObj = drawnline[lineToCopyIndex].parent;
-                   		    	//else what.. what else would be copied if every line now is in a group
-                   		   // elscopiedObj = drawnline[lineToCopyIndex].clone();
-                   		    //copiedLine.position.set( 0, 0, 0 );
-                   			
-                   		}	
-                   		
-                   		
-                   	}
-                   	break;
-                   	
-                   case 86: //ctrl-v  paste! 
-                   
-                   evt.preventDefault();  
-                   	if (evt.ctrlKey || evt.metaKey){
-                   		if (currentIntersectedPoint && copiedObj){
-                   		
-							//if userSettings.userLevel == 'advanced'), use plane?		
-							var copiedObj2;
-							if (copiedObj.name == "linegroup"){
-								
-									copiedObj2 = new THREE.Object3D();
-									for (l = 0;l<copiedObj.children.length;l++){
-									
-                                        var originalTransform = copiedObj.children[l].planeTransform;
-                                        if (originalTransform) { 
-    										var newLine = copiedObj.children[l].clone();
-    										newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
-    										newLine.geometry= newLine.geometry.clone();
-    										
-    										var attribute = newLine.geometry.attributes.position;
-                                            newLine.geometry.applyMatrix(
-                                                plane.matrixWorld.clone().multiply(
-                                                    new THREE.Matrix4().getInverse(originalTransform)
-                                                )
-                                            )
-                                            
-    										newLine.geometry.attributes.position = attribute;
-    										newLine.geometry.attributes.position.needsUpdate = true;
-    										drawnline.push(newLine);
-    										mostRecentDrawnLine();
-    										copiedObj2.name="linegroup";
-    										copiedObj2.add(newLine);	
-					                    }									
-									}
-									objContainer.add(copiedObj2);
-							
-									console.log("drawn lines " + drawnline.length);
-								}
-	
-                   			
-                   			
-                   		}	
-                   		
-                   		
-                   	}
-                   	break;
-                   	
-                   	
-                   	
-                   	
-                   	case 90: //control-z to erase last
-                   	if (evt.ctrlKey || evt.metaKey){
-                   		if (mostRecentDrawnLine()){
-                   			var deletedLineToBe = mostRecentDrawnLine();
-                   			deletedLineToBe.geometry.attributes.position.array = [];
-                   			deletedLineToBe.geometry.dispose();
-                   			drawnline.pop();
-                   			deletedLineToBe.parent.remove(deletedLineToBe);
-                   			mostRecentDrawnLine();
-                   			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
-                   		}
-                   	}
-                 
-                   	break;
-                   	case 8: //backspace  
-                   		evt.preventDefault();  //otherwise loses drawing by going to past page!
-                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
-                   		 	
-                   			var id = currentIntersected.uuid;                			
-                   			
-                   			function findUUID(line) { 
-								return line.uuid == id;
-							}
-							console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
-                   			var lineToEraseIndex = drawnline.findIndex(findUUID);
-                   			var deletedLineToBe =drawnline[lineToEraseIndex];
-                   			deletedLineToBe.geometry.attributes.position.array = [];
-                   			deletedLineToBe.geometry.dispose();
-                   			
-                   			drawnline.splice(lineToEraseIndex,1);
-                   			deletedLineToBe.parent.remove(deletedLineToBe);
-                   			mostRecentDrawnLine();
-                   			//get it out of drawnline
-                   			
-                   		}
-                   	break;
-               
-                }
-            }
-            
-            
-     function onVRDoodlerKeyUp(evt) {
-      	switch (evt.keyCode) {
-      		case 71: //g to erase last             	
-				//make plane 'snapped' to grid, so to speak
-				SNAPPLANETOGRID = false;
-				 $("#infoPanel").text("SNAPPLANETOGRID OFF");	
-            break;
-                   	
-			case 16: //shift 
-			  SNAPPLANETOGRID =false;
-			  PLANELOCK =false;
-			  planeLockOutline.material.wireframe = true;
-			  	planeLockOutline.material.opacity = 1;
-			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
-			break;
-        }
-     }
-     
-     
      
      /* with camera position and the object with which we want to align a line, transform
      where the projection thinks the mouse is to where we want it to be */
@@ -1708,122 +1131,6 @@
 	
 	
 
-
-	/* setup buffer geometry to store drawn vertices*/
-	function initDrawnLine(lineImported,mv){
-		
-		var linename;
-		var newOrImportedLine;
-		if (!lineImported){  //freehand or snap, doesn't matter, init the line
-			geometry = new THREE.BufferGeometry();
-			positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
-			countVertices = 0;
-			if (mv){
-				positions[0] = mv.x;
-				positions[1] = mv.y;
-				positions[2] = mv.z;
-				countVertices = 1;
-			}
-			geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );	
-			geometry.setDrawRange( 0, 1 );	
-			linename = "line";
-			
-			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
-			newOrImportedLine = new THREE.Line( geometry,  linematerial );
-            newOrImportedLine.planeTransform = plane.matrixWorld;
-			drawnline.push(newOrImportedLine); //to store line	
-		mostRecentDrawnLine().position = mv; //for later...
-		
-		}else{ //loaded from OBJ file
-			
-			//lineImported.geometry.addAttribute( 'position', positions )
-			//lineImported.setDrawRange( 0, geometry.attributes.position.count-1 );
-			linename = "lineimported";
-
-            // we've lost the original transform, use bounding box center and ignore rotation
-            var box = new THREE.Box3().setFromObject(lineImported);
-            lineImported.geometry.computeBoundingBox();
-            var center = box.min.lerp(box.max, .5);
-            for (var i=0, child; child = lineImported.parent.children[i]; i++) {
-                child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
-            }
-
-			newOrImportedLine = lineImported;//.clone();
-			drawnline.push(newOrImportedLine); //to store line
-            
-			//if (currentIntersected)
-			//		mostRecentDrawnLine().position.copy(currentIntersectedPoint); //for later...
-			//this doesn't work so well if the line is then copied and pasted...
-		}
-	
-		
-		
-	    //linematerial = new THREE.ShaderMaterial(THREE.LineDisplacementShader); 
-	    
-		
-		
-		//mostRecentDrawnLine().position.copy(mv); //do I need this? hm no..
-		mostRecentDrawnLine().name = linename;
-		//mostRecentDrawnLine().geometry.attributes.position.slice(0, countVertices *3);
-		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
-	
-	
-	console.log("init new Line");
-	}
-	
-
-	function addToContainer(newline, group){
-	
-		//create new group or add to pre-existing 
-		var lineGroup; 
-		if (group != null){
-            if (group.parent.name != "linegroup") {
-			    group.parent.name="linegroup";
-			    objContainer.add(group.parent);
-            }
-		}else if (lastLineIntersection && lastLineIntersection.name == "line"){
-			lastLineIntersection.parent.add(newline);
-            newline.planeTransform = lastLineIntersection.planeTransform;
-			lastLineIntersection = null;
-		
-		}else{
-		
-			lineGroup = new THREE.Object3D();
-			lineGroup.add(newline);  
-			lineGroup.name="linegroup";
-			objContainer.add(lineGroup);
-			
-			
-		}
-	
-	
-	
-	}
-	
-		
-	//called from mouseDown
-	//works for importing from file or if using mouse to start line
-	function initNewLine(mouseVec, bUnproject, lineImported){
-
-		
-		if (!lineImported){
-			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
-			 if (bUnproject)
-				vNow.unproject(camera);
-		
-			initDrawnLine(null, vNow);
-
-		}else //from import
-		 	initDrawnLine(lineImported);
-		
-		addToContainer( mostRecentDrawnLine(), lineImported );
-		
-		
-	
-	}
-
-
-
 	function onSketchStart(evt){
 		
 		evt.preventDefault();
@@ -1878,26 +1185,22 @@
 					
 					if (snapTo){
 						initNewLine(snapTo , false);
+						
 						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
 					}
 				}else { //freehand draw
+					alert("Freehand mode");
 						initNewLine(mouseVec, true);									
 				} 			
 				//set up for drawing line
 				document.addEventListener("touchmove",onSketchMove,false);
 				document.addEventListener("touchend",onSketchMouseUp,false);
-				//document.addEventListener("touchmove",onSketchMove,false);
+
 				//document.addEventListener("touchup",onSketchTouchUp,false);				
 			}
         }
     }
-    
-    
-// animate
-	function printVerts(){		
-		
-	}
-		
+   	
 	
 	function makeDrawingPlane(planePos, name){
 			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.5,side: THREE.DoubleSide } );
@@ -1922,6 +1225,13 @@
 			return planeLockOutline;
 
 	}
+	 
+    
+// animate
+	function printVerts(){		
+		
+	}
+	
 	
 	function lockPlanesParallelToYAxis(inner, outer){
 	
@@ -1939,7 +1249,7 @@
 		 return planeObj;
 	
 	}
-	
+		
 	
 /* the little plane indicates location and direction
    the outline plane is the canvas/plane on which to draw... I guess it could be a vertical grid
@@ -1995,19 +1305,19 @@
 			return mesh;
 	}
 	
-	
-	/*function makeCube( w,h,d){
-			var mesh;
-			var planeGeo = new THREE.BoxGeometry(w,h,d);				
-			mesh = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({color:0x000fff, side:THREE.DoubleSide}));
-			mesh.position.x = 5;
-			mesh.position.y = 1;
-			mesh.position.z = 3;
-			sketchContainer.add(mesh);
-					
-			}
-*/
 
+	
+	
+	
+	function makePhotoPlane( tex, w, h){
+			var mesh;
+			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
+			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
+			mesh.name="photoplane";
+			mesh.position.set(0,0,0);
+			objContainer.add(mesh);		
+			return mesh;
+	}
 
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
 	//shader code currently commented out...
@@ -2126,160 +1436,31 @@
 		DOLLY = DOLLY?0:1;
 		defaultControls.autoRotate = DOLLY;
 	}
-	function raycastGazeForDollyCam(){
-
-		dollyAngle +=  PER_MEDIA_INCREMENT;
-		if (dollyAngle >720) 
-			dollyAngle = 0;
-		
-	}	
-	
-
 	
 	
-	function clearLines(){
-		var count = 0;
-		
-		if (drawnline && drawnline.length > 0){
-			for (var i=0;i< drawnline.length;i++){
-					drawnline[i].geometry.setDrawRange( 0, 1);
-					drawnline[i].geometry.attributes.position.needsUpdate = true; 
+	/* this... is not really right yet.  The camera dolly is a made-up thing for now- either orbiting or moving towards - z */
+	/*dupe function also...in app.js    to be figured out... */
+	function runCameraPlayBack(ctrls, cameraSpeed){
+		//what kind of camera playback is it?
+		if (PLAYBACK){
+			if (isPhotosphereStory()){
+			//raycast for OrbitDolly?
+				controls.autoRotate = true;
+				controls.autoRotateSpeed = -.075
+			}else{
+				updateSimpleCameraPath(controls, .075);
 			}
 		}
+	}
+	
 
-		return count;				
-		
-	}
-	
-	
-	function aggregateVertexCount(){
-		var count = 0;
-		if (drawnline && drawnline.length > 0){
-			for (var i=0;i< drawnline.length;i++){
-				count += drawnline[i].geometry.attributes.position.count;
-			}
-		}
-		return count;				
-		
-	}
-	
-		
-	function pb_drawOneAtATime(){
-		
-		PB_LINE_VERTEX_COUNT_MAX =aggregateVertexCount(); 
-	
-		var verticesYetToBeDrawn = PB_LINE_VERTEX_COUNT_MAX - playBackCount;
-		
-		var linesLeftToDraw = playBackCount;
-		for (var i=0;i< drawnline.length;i++){
-			
-			
-			var howManyLinesToDraw = linesLeftToDraw;
-			var thisLineDrawn = (howManyLinesToDraw > drawnline[i].geometry.attributes.position.count)? drawnline[i].geometry.attributes.position.count:howManyLinesToDraw;
-			
-			
-			
-			//count = verticesYetToBeDrawn > (drawnline[i].geometry.attributes.position.count/3)? drawnline[i].geometry.attributes.position.count/3:verticesYetToBeDrawn;
-			for (var vertex=0;vertex< thisLineDrawn;vertex++){  //either the full lenght of the line or partial
-				drawnline[i].geometry.setDrawRange( 0, vertex * 3);
-				drawnline[i].geometry.attributes.position.needsUpdate = true; 
-				
-			}
-			linesLeftToDraw -=  thisLineDrawn; //take this line off
-			}
-		
-	}
-	function pb_drawAllAtOnce(){
-		for (var i=0;i< drawnline.length;i++){
-				if (drawnline[i] === undefined){  //if any weirdness, clean it up
-					drawnline.splice(i,1);
-					continue;
-				}
-				if ((drawnline[i].geometry.attributes.position.count/3) > PB_LINE_VERTEX_COUNT_MAX) 
-					PB_LINE_VERTEX_COUNT_MAX = (drawnline[i].geometry.attributes.position.count/3);
-				var count = playBackCount;
-				//determine what should be drawn
-				//count from 0 to length vertices of line..
-				//right now we are just going to animate each line at the same time....
-				
-				//truncate the count b/c playBackCount is the long pole
-				if (playBackCount > drawnline[i].geometry.attributes.position.count)  //what?
-					count =	drawnline[i].geometry.attributes.position.count;
-				drawnline[i].geometry.setDrawRange( 0, (count) * 3);
-				drawnline[i].geometry.attributes.position.needsUpdate = true; // required after the first render
-			}
-	
-	}
-	
-	function drawBack(){
-		//if (){
-		//	pb_drawAllAtOnce();
-		//} else {
-		if (drawnline && drawnline.length > 0)
-			pb_drawOneAtATime();
-		//}
-	
-	}
-	
-	function setPlayBack(mode){ //on, off
-		PLAYBACK = mode;
-		if (mode) {
-			clock.start(); //pbclock = setInterval(updatePB, 500);
-			clearLines();
-			controls.autoRotate = true;
-			
-		}else{
-
-			clock.stop(); //clearInterval(pbtimer);
-			for (var i=0;i< drawnline.length;i++){
-				drawnline[i].geometry.setDrawRange( 0, drawnline[i].geometry.attributes.position.count-1);
-			}
-			controls.autoRotate = false;
-		}
-		return mode;
-	
-	}
-	
-	
-	function togglePlayBackMode(evt){
-		if (evt !== undefined) evt.preventDefault();
-		PLAYBACK = PLAYBACK?0:1;
-		setPlayBack(PLAYBACK);
-		return PLAYBACK;
-	
-	}
-	
 
 	function runPlayBack(){
-	
-		if (PLAYBACK){
-		
-			drawBack();
-			
-			if (clock.getDelta() > PLAYBACKSPEED){
-				playBackCount+= PLAYBACKCOUNT;
-
-			}
-			
-			if (playBackCount > PB_LINE_VERTEX_COUNT_MAX >0){
-	
-				playBackCount = 0;
-				clearLines();
-				/*if (sound1){
-					sound1.stop(); 
-					sound1.play(); 
-				}	*/	
-
-			}
-		}	
-		
-		
-		return PLAYBACK;
-		
+		runLinesPlayBack();
+		runCameraPlayBack(controls, .075); //orbit or straight path
 	}
-	
-	
-	
+
+		
 
 	function animate(timestamp) {
 
@@ -2323,16 +1504,16 @@
 
 		if (STEREOSCOPIC){
 		
-			 orientControls.update();
-			 vrmanager.render(scene, camera, timestamp);
+			// orientControls.update();
+			// vrmanager.render(scene, camera, timestamp);
 			
 		
     
   		}else{
-  			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update(clock.getDelta());
+  			//if (controls.gizmo) controls.gizmo["translate"].show();
+  			defaultControls.update(); //this should do the autoRotate for photosphere/playback
   		
-			minicamera.position.set(5,5,5);
+			/*minicamera.position.set(5,5,5);
 			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 				
 			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
@@ -2341,7 +1522,7 @@
 						//renderer.setScissorTest( true );
 						//renderer.setClearColor( view.background );
 			minicamera.updateProjectionMatrix();
-			renderer.render( scene, minicamera );
+			//renderer.render( scene, minicamera );*/
 				
 					
 			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
