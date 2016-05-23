@@ -424,18 +424,19 @@ function makePath(howManyObjects){  //will use path later
 		//create new group or add to pre-existing 
 		
 		var lineGroup; 
-		if (group != null && group.parent.name != "linegroup") {
+
+		if (group != null ) {  //for imported lines
 			    group.parent.name="linegroup";
 			    objContainer.add(group.parent);
-            }
-        else if (lastLineIntersection && lastLineIntersection.name == "line"){
+        }
+        else if (lastLineIntersection && lastLineIntersection.name == "line"){ //for snapping new lines to prev
 			newline.planeTransform = lastLineIntersection.planeTransform;
 			
 			lastLineIntersection.parent.add(newline);  //drew off of a pre-existing line, effectively adding to a group here...
 			lastLineIntersection.parent.name="linegroup";
 		    lastLineIntersection = null;
 		
-		}else{
+		}else{ //for free-hand lines
 		
 			lineGroup = new THREE.Object3D();
 			lineGroup.add(newline);  
