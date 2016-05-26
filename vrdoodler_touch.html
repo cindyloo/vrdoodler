@@ -13,8 +13,8 @@
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
-	<link rel="stylesheet" href="css/style.css">
-	
+
+	<link rel="stylesheet" href="css/style-responsive.css">
     <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
@@ -94,20 +94,20 @@
   	<p id="browserError"></p>   
 	<div class="top-unit">
 		<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-		<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view: not fully implemented"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
-	
+			
 	</div>
 	
 	<div class="hero-unit">
 		<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
-	
+		
 	
 		<section>
 		<ul>
-	
+	<li><input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view: not fully implemented"></input>
+</li>
 			<li><form class="draw_mode">
-				<input id="draw" class="mytt" type="radio" name="drawmode" value="1" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span>
-				<input id="orbit" type="radio"  name="drawmode" value="0"/><span class="input_label">orbit</span>
+				<input id="draw" class="mytt" type="button" name="drawmode" value="1" data-toggle="tooltip" title="drawing mode" /><label for="draw" class="input_label">Draw</label>
+				<input id="orbit" type="button"  name="drawmode" value="0" alt="Flat Icon"/><label for="orbit" class="input_label">Orbit</label>
 				<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
 				</form></li>
 
@@ -115,9 +115,9 @@
 	
 			<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
 	
-			<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."><i class="glyphicon glyphicon-repeat"></i></input>
-			<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: use ctrl-c"><i class="glyphicon glyphicon-copy"></i></input>
-			<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: use ctrl-v"><i class="glyphicon glyphicon-paste"></i></input>
+			<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."></input>
+			<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: use ctrl-c"></input>
+			<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: use ctrl-v"></input>
 			</li>
 	
 		
@@ -135,25 +135,10 @@
 
 			<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
 		
-			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Show Grid</label></li>
+			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid" class="input_label">Show Grid</label></li>
 		</ul>
 		</section>
-		<section>
-			<i id="help" class="glyphicon glyphicon-info-sign"></i>
-			<div id="tuteInstructions"></div
-			<p>Help and Quick Keys</p><br/>
-			<ul>
-				<li>To lock plane to selection while drawing: {HOLD shift}</li>
-				<li>To draw along ground: <br/>{HOLD ctrl-g}</li>
-				<li>To draw straight vertical line: <br/>{HOLD ctrl-shift-g} </li>
-				<li>To draw straight horizontal line: <br/>{HOLD ctrl-alt-g} </li>
-				<li>To draw flat along world z axis: <br/>{HOLD alt-g}</li>
-			</ul>
-		</section>
-		<div id="infoPanel" >
-				 <h3>Log:</h3>
-				</div>
-		<label id="mousecoords" value=""></label>
+		
 			<!--
 					<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
 				
@@ -375,9 +360,11 @@
 
 		window.addEventListener('resize', onWindowResize, false);
 
-		//document.addEventListener('mousedown', onSketchStart, false);
+		document.addEventListener('mousedown', onSketchStart, false);
 		document.addEventListener('touchstart', onSketchStart, false);
 		document.addEventListener( 'touchmove', onDocumentMouseMove, false );	//take this off when we start drawing	
+		//document.getElementById('copy').touchstart = copySelectedLine;
+		document.getElementById('paste').onclick = pasteCopied;
 		
 		
 		//document.getElementById('instructions').onclick = advanceInstructions;
@@ -387,13 +374,14 @@
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('orbit').onclick = toggleDrawMode;
 		//document.getElementById('move').onclick = toggleDrawMode;
+		
 		document.getElementById('snapTo').onclick = snapTo;
 		document.getElementById("import").onclick = handleImport;
 		document.getElementById('exportLine').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
 		document.getElementById('rotateX').onclick = horizontalRotation;
 
-
+document.getElementById("copy").onclick = copySelectedLine;
 		
 		document.getElementById("playback").onclick = togglePlayBackMode;
 
@@ -418,7 +406,7 @@
 		
 			$('input').tooltip(); 	
 			$('input').click(function() {
-			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
+			 //$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
 				
 			});	
 			
@@ -452,7 +440,7 @@
 					advanceInstructions()
 				  });
 				  
-			  	grid = new THREE.GridHelper( 20, .5 );
+			grid = new THREE.GridHelper( 20, .5 );
 			grid.name="grid";
 			grid.setColors( 0x0000ff, 0x808080 );
 			grid.position.y = 0;
@@ -461,12 +449,17 @@
 			grid.visible = true;
 		
 			
-				PER_MEDIA_INCREMENT = .065;
-				PLAYBACKCOUNT = 25;//slower, bigger screen
-				if (orientControls !== undefined) orientControls.enabled = false;
-				defaultControls.enabled = true;
-				defaultControls.autoRotate = false;
-				defaultControls.autoRotateSpeed = -.075
+			PER_MEDIA_INCREMENT = .065;
+			PLAYBACKCOUNT = 25;//slower, bigger screen
+			if (orientControls !== undefined) orientControls.enabled = false;
+			defaultControls.enabled = true;
+			defaultControls.autoRotate = false;
+			defaultControls.autoRotateSpeed = -.075
+			
+			if (!inMobileMode()){
+				document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
+				document.addEventListener( 'keyup', onVRDoodlerKeyUp, false );
+			}
 			
 	  });
 	
@@ -628,7 +621,7 @@
   		
   		
   		/* help user with color coded orientation */
-  		colorCameraOrientation();
+  		//colorCameraOrientation();
   			
   		planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
 
@@ -677,7 +670,6 @@
 				$("#grid").prop("disabled",true);			
 				
 				camera.lookAt(lastIntersectedPoint);
-				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","visible");
 				
 				
@@ -704,8 +696,7 @@
 				setupGrid();
 				$("#grid").prop("disabled",false);	
 
-				tuteBegCount = 0;
-				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
+				
 				//take off all restraints
 				//don't set draw mode, snap or grid, etc
 			}
@@ -789,7 +780,7 @@
 	}
 	
 	
-      function setOrientationControls(e) {
+      function setOrientationControls(e) { //for mobile ipad
         if (e && !e.alpha) {
           return;
         }
@@ -858,14 +849,17 @@
 	 	$("#draw").prop("checked",(DRAWMODE ==1));
 	 	$("#orbit").prop("checked",(DRAWMODE==0));
 	 	$("#move").prop("checked",(DRAWMODE==2));
-	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
-		console.log("draw mode is " + DRAWMODE);
+	 	console.log("draw mode is " + DRAWMODE);
 	
-		if (DRAWMODE)
+		if (DRAWMODE){
         	$('html,body').css('cursor','pointer');
-        else 
+        	$('#draw').addClass("innershadow");
+        	$('#orbit').removeClass("innershadow");
+       } else {
         	$('html,body').css('cursor','move');
-        	
+        	$('#draw').removeClass("innershadow");
+        	$('#orbit').addClass("innershadow");
+        }	
         return DRAWMODE;
 	}
 	
@@ -888,8 +882,7 @@
 
 		SNAPMODE = onoroff;
 		$("#snapTo").prop("checked",SNAPMODE);
-		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
-	
+		
 		return SNAPMODE;
 	}
 	
@@ -936,7 +929,7 @@
 	
 	function snapPlane(mode, keepOrientation){
 		SNAPPLANETOGRID = mode;  
-        $("#infoPanel").text("SNAPPLANETOGRID ON:" + SNAPPLANETOGRID);
+       
         snapPlanesToLocal(keepOrientation); 
 	
 	}
@@ -972,9 +965,7 @@
 
 
 	function onDocumentMouseMove( evt ) {
-
-		
-		
+	
 		if ((evt.clientX)&(evt.clientY)){
 			var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
 			mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
@@ -1074,6 +1065,7 @@
 
 		evt.preventDefault();
 		document.removeEventListener("touchmove",onSketchTouchMove,false);
+		document.removeEventListener("touchend",onSketchTouchUp,false);
 		if (evt.target.nodeName == 'CANVAS')
 			onSketchMouseUp(evt);
 		else
@@ -1085,6 +1077,7 @@
     */
     function onSketchMouseUp(evt) {
     	document.removeEventListener("mousemove",onSketchMouseMove,false);
+    	document.removeEventListener("mouseup",onSketchMouseUp,false);
   	
     	if (DRAWMODE ==1){
     	
@@ -1128,6 +1121,7 @@
 			
 		}
 	}
+	
 	
 	
 
@@ -1194,7 +1188,9 @@
 				} 			
 				//set up for drawing line
 				document.addEventListener("touchmove",onSketchMove,false);
+				document.addEventListener("mousemove",onSketchMove,false);
 				document.addEventListener("touchend",onSketchMouseUp,false);
+				document.addEventListener("mouseup",onSketchMouseUp,false);
 
 				//document.addEventListener("touchup",onSketchTouchUp,false);				
 			}
@@ -1225,8 +1221,234 @@
 			return planeLockOutline;
 
 	}
+	
+	
+	function copySelectedLine(evt){
+		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+			var id = currentIntersected.uuid;                			
+			
+			//TODO getParent, copy all lines
+			
+			
+			function findUUID(line) { 
+				return line.uuid == id;
+			}
+			
+			lineToCopyIndex = drawnline.findIndex(findUUID);
+			if (drawnline[lineToCopyIndex].parent.name == "linegroup")
+				copiedObj = drawnline[lineToCopyIndex].parent;
+			
+		}	
+	
+	}
+	
+	function pasteCopied(evt){
+	  
+			if (currentIntersectedPoint && copiedObj){
+			
+				//if userSettings.userLevel == 'advanced'), use plane?		
+				var copiedObj2;
+				if (copiedObj.name == "linegroup"){
+					
+						copiedObj2 = new THREE.Object3D();
+						for (l = 0;l<copiedObj.children.length;l++){
+						
+							var originalTransform = copiedObj.children[l].planeTransform;
+							if (originalTransform) { 
+								var newLine = copiedObj.children[l].clone();
+								//newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
+								newLine.planeTransform = originalTransform;
+								newLine.geometry= newLine.geometry.clone();
+								
+								var attribute = newLine.geometry.attributes.position;
+								newLine.geometry.applyMatrix(
+									plane.matrixWorld.clone().multiply(
+										new THREE.Matrix4().getInverse(originalTransform)
+									)
+								)
+								
+								newLine.geometry.attributes.position = attribute;
+								newLine.geometry.attributes.position.needsUpdate = true;
+								drawnline.push(newLine);
+								mostRecentDrawnLine();
+								copiedObj2.name="linegroup";
+								copiedObj2.add(newLine);	
+							}									
+						}
+						objContainer.add(copiedObj2);
+				
+						console.log("drawn lines " + drawnline.length);
+				}
+
+				
+				
+			}	
+                   		
+                   		
+                
+	
+	}
 	 
-    
+    function onVRDoodlerKeyDown(evt) {
+
+                switch (evt.keyCode) {
+
+                   case 68: //d draw mode
+                   		toggleDrawMode();
+                   			 					  	
+                   break;
+                    /*case 65: // a for axis 
+                    
+                        PLANEROTATE = PLANEROTATE?0:1;
+                        edges.update();
+                  
+                        break;
+                     */   
+                   case 16: //shift 
+                   planeLockOutline.material.wireframe = false;
+				  	PLANELOCK =true;
+				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
+				   	planeLockOutline.material.opacity = .3;
+					break;     
+                     
+                    case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
+                    planeLockOutline.material.wireframe = false;
+                    	planeLockOutline.material.opacity = .3;  
+                       if (evt.shiftKey && (evt.ctrlKey || evt.metaKey)){  //d
+                   			//will draw straight vertical line parallel to x axis
+                   			snapPlane(4);
+              
+                   		}else if ((evt.ctrlKey || evt.metaKey) && evt.altKey){
+                   			//will draw straight horizontal line parallel to x axis
+                   			snapPlane(5); 
+                   			planeLockOutline.rotation.z = squareAngle;
+                   		
+                   		}else if (evt.altKey){
+                   			//draw along z
+                   			snapPlane(6); 
+                   			planeLockOutline.rotation.y = squareAngle;
+                   		
+                   		}else if (evt.shiftKey){
+							//draws at fixed 'squared' plane  No x, y z rotation	
+							
+                   			snapPlane(2);  
+                   			
+                   		}else if (evt.ctrlKey || evt.metaKey){  //draw on horizontal plane
+                   			//Draw at fixed y with x.rotation = 90 degrees
+                   		
+                   			snapPlane(3);  
+                   			planeLockOutline.rotation.x = squareAngle;
+                   			
+                   		}else {
+                   			toggleGrid();
+                   		}
+                   		
+                  
+                        break;
+                        
+                        
+                     case 82: //r for rotate panel 90
+						
+						horizontalRotation();
+							
+						break;
+                    case 83: //snap to s	
+						snapTo();
+						break;
+					/* case 80: //p audio
+                    	if (CURRENTCOLLISION){
+                    		if(CURRENTCOLLISION.userData.audio)
+                    			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
+                    	
+                    	}
+                     */   
+                    break;
+                 
+                     
+     
+                   	
+                   case 67: //ctrl-c  copy! 
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   			copySelectedLine();
+                   			
+                   		}	
+                   		
+                   		
+                   	}
+                   	break;
+                   	
+                   case 86: //ctrl-v  paste! 
+                   
+                   
+                   evt.preventDefault();  
+					if (evt.ctrlKey || evt.metaKey){
+						pasteCopied();
+					}
+                  
+                   	break;
+                   	
+                   	
+                   	
+                   	
+                   	case 90: //control-z to erase last
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (mostRecentDrawnLine()){
+                   			var deletedLineToBe = mostRecentDrawnLine();
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
+                   			drawnline.pop();
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
+                   			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
+                   		}
+                   	}
+                 
+                   	break;
+                   	case 8: //backspace  
+                   		evt.preventDefault();  //otherwise loses drawing by going to past page!
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   		 	
+                   			var id = currentIntersected.uuid;                			
+                   			
+                   			function findUUID(line) { 
+								return line.uuid == id;
+							}
+							console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
+                   			var lineToEraseIndex = drawnline.findIndex(findUUID);
+                   			var deletedLineToBe =drawnline[lineToEraseIndex];
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
+                   			
+                   			drawnline.splice(lineToEraseIndex,1);
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
+                   			//get it out of drawnline
+                   			
+                   		}
+                   	break;
+               
+                }
+            }
+      function onVRDoodlerKeyUp(evt) {
+      	switch (evt.keyCode) {
+      		case 71: //g to erase last             	
+				//make plane 'snapped' to grid, so to speak
+				SNAPPLANETOGRID = false;
+				 $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+            break;
+                   	
+			case 16: //shift 
+			  SNAPPLANETOGRID =false;
+			  PLANELOCK =false;
+			  planeLockOutline.material.wireframe = true;
+			  	planeLockOutline.material.opacity = 1;
+			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+			break;
+        }
+     }
+             
+            
 // animate
 	function printVerts(){		
 		
