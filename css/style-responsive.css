@@ -8,7 +8,7 @@
 		
 	input[type='radio']{
 	padding:5px;
-		transform: scale(2); 
+		
 		}
 	input[type='button'], div.loadFiles input, div label	{
 		font-family: Oswald;
@@ -22,22 +22,44 @@
 		width:50px;
 		height:50px;
 	}
-	input[type='button'], div.loadFiles label{
+	input[type='button']{
 		background-color:rgba(240,240,240,1);
 
 	}
 	input[type='button']{
 		box-shadow: 2px 2px #aaa;
 	}
-	input#rotateX, #copy,#paste,input#stereoView{		
-		margin-right:14px;
-		width:50px;
+	input[type='button'].logReg {
+		width: 100px;
+		height:50px;
 	}
+	
 
+#navbar, .navbar { 
+	height: 50px;
+	background-color: rgba(0,0,0,1);
+	z-index:1040;
+	}
+.navbar-toggle {
+	top: 10px;
+	
+	border-radius:1px;
+	background: url("../assets/images/vrdoodler_icon.png") no-repeat center center;	
+	}
+.navbar-header {
+	width: 200px;
+}
+.navbar-inverse .navbar-toggle .icon-bar{
+	background-color: rgba(0,0,0,1);
+}
 
+#navbar li #userLogin {
+	float:right;
+	padding-left: 1024px;
+}	
 		
 @media screen and (max-width: 1024px) {		
-input[type='button'], div.loadFiles input, div label	{
+	input[type='button'], div.loadFiles input	{
 		font-family: Oswald;
 		font-size: 18px;
 		font-style: normal;
@@ -56,14 +78,15 @@ input[type='button'], div.loadFiles input, div label	{
 		width:40px;
 		height:40px;
 	}
+	
+	#navbar li #userLogin {
+	float:right;
+	padding-left: 1024px;
 }	
 
-#playback{
-			width:100px;
-		}	
+}	
 
 
-	
 	.top-unit i.glyphicon{
 		left:-38px;
 		top:-2px;
@@ -83,15 +106,8 @@ input[type='button'], div.loadFiles input, div label	{
 		margin-left:0px;
     }
     
-	div.loadFiles,div.loadFiles label{
-		vertical-align:middle;
-		width:100px;
-		box-shadow: 2px 2px #aaa;
-		margin:0;
-		padding:0;
-		
-	}
-	div.loadFiles input{
+
+	div.loadFiles input[type=file]{
 		opacity: 0;
 		text-align:center;
 		width: 0.1px;
@@ -99,10 +115,31 @@ input[type='button'], div.loadFiles input, div label	{
 		opacity: 0;
 		overflow: hidden;
 		position: absolute;
-		z-index: -1;
-	
+		z-index: -1;	
+	}
+
+@media screen and (max-width: 1024px) {		
+	div.loadFiles,div.loadFiles label{
+		vertical-align:middle;
+		width:100px;
+		
+		margin:0;
+		padding:0;
 		
 	}
+}
+@media screen and (max-width: 780px) {		
+	div.loadFiles,div.loadFiles label{	
+		box-shadow: none;
+		
+	}
+	#navbar li #userLogin {
+	float:right;
+	padding-left: 0;
+}	
+
+	
+}
 	div#previewObj{
 		margin-top:30px;
 	}
@@ -112,7 +149,7 @@ input[type='button'], div.loadFiles input, div label	{
 	
 	a.imgclose{
 		float:right;
-		margin-top:-30px;
+		margin-top:60px;
 		margin-right:-10px;
 		cursor:pointer;
 		color: #fff;
@@ -164,8 +201,8 @@ Left-hand control bar.
 	.top-unit, .hero-unit {
 		float:left;
 		position:absolute;
-		width:250px;
-		top:10px;
+		width:200px;
+		
 		z-index:10;
 		background-color:white;
 		color:black;
@@ -178,11 +215,12 @@ Left-hand control bar.
 	
 		
 .hero-unit {	
-		top:130px;
+		top:60px;
+		position:relative;
 	}
 	
 	.hero-unit h1, .top-unit h1{
-		padding: 10px;
+		
 		background-color: white;
 		margin-top: 0;
 	}
@@ -217,7 +255,7 @@ Left-hand control bar.
 		border-top: 1px groove white;
 		border-bottom: 1px groove white;
 		text-decoration: none;
-		padding: 10px 25px;
+		padding: 10px 20px;
 	}
 	.hero-unit #tabs a.selected, .top-unit #tabs a.selected {
 		color: #fff ;
@@ -235,7 +273,7 @@ Left-hand control bar.
 	
 	}
 	.hero-unit section ul li{
-	  margin: 5px 25px;
+	  margin: 0 10px;
 	}
 	
 	.hero-unit section ul li form {
@@ -243,7 +281,7 @@ Left-hand control bar.
 	}
 	
 	.hero-unit section ul li form.draw_mode {
-		margin: 35px 0;
+		margin: 15px 0;
 	}
 	
 	.hero-unit section ul li form span.input_label span.keyboard_shortcut {
@@ -254,8 +292,7 @@ Left-hand control bar.
 		font-size: 1.0em;
 		text-transform: uppercase;
 		font-weight: 300;
-		padding: 5px 5px 5px 0;
-		margin: 10px;
+		height:inherit;
 	}
 		
 @media screen and (max-width: 1024px) {	
@@ -282,7 +319,7 @@ Left-hand control bar.
 	  margin: 0;
 	}
 	
-.hero-unit img.logo, .top-unit img.logo {
+	.hero-unit img.logo, .top-unit img.logo {
 		/*margin-left: auto;*/
 		/*margin-right: auto;*/
 		/* FIXME: err, I couldn't center this! */
@@ -338,13 +375,7 @@ Left-hand control bar.
 		text-decoration: underline; 
 	}
 	
-	.hero-unit section ul li .input_label {
-		font-size: .8em;
-		text-transform: uppercase;
-		font-weight: 300;
-		padding: 0;
-		margin: 0;
-	}
+	
 	.hero-unit img.logo, .top-unit img.logo {
 		/*margin-left: auto;*/
 		/*margin-right: auto;*/
@@ -357,9 +388,7 @@ Left-hand control bar.
 	
 	}
 	
-		.hero-unit #tabs, .top-unit #tabs{
-		
-	
+	.hero-unit #tabs, .top-unit #tabs{
 		display:none;
 	}
 
@@ -377,47 +406,124 @@ Left-hand control bar.
 		top:-27px;
 		left:111px;
 	}
-	
-	#exportLine {
-		margin-top:50px;
-	}
+
 	#stereoView{
-		background: url("../assets/images/cardboard.png") no-repeat center left;	
+		background: url("../assets/images/cardboard.png") no-repeat center center;	
 	}
 
-	
 	#draw{
-		background: url("../assets/images/paint32x32.png") no-repeat center left;	
+		background: url("../assets/images/paint32x32.png") no-repeat center center;	
 	}
 
 	#orbit{
-		background: url("../assets/images/orbit.png") no-repeat center left;	
+		background: url("../assets/images/atom.png") no-repeat center center;	
+	}
+	#linkDrawMode{
+		background: url("../assets/images/link.png") no-repeat center center;	
+		width:40px;
+		height:40px;
 	}
 	#rotateX{
-		background: url("../assets/images/rotate.png") no-repeat center left;	
+		background: url("../assets/images/rotate.png") no-repeat center center;	
 	}
 
 	#copy{
-		background: url("../assets/images/copy.png") no-repeat center left;	
+		background: url("../assets/images/sign.png") no-repeat center center;	
 	}
 
 	#paste{
-		background: url("../assets/images/paste.png") no-repeat center left;	
+		background: url("../assets/images/line.png") no-repeat center center;	
+	}
+	#exportLine{
+		background: url("../assets/images/download.png") no-repeat center center;	
+	}
+	#importSphereButton{
+		background: url("../assets/images/photosphere.png") no-repeat center center;	
+	}
+	#importPlaneButton{
+		background: url("../assets/images/photoplane.png") no-repeat center center;	
+	}
+	#importObj{
+		background: url("../assets/images/arrows.png") no-repeat center center;	
+	}
+	#saveToServer {
+		background: url("../assets/images/arrow.png") no-repeat center center;	
+	}
+	#playback{
+		background: url("../assets/images/multimedia.png") no-repeat center center;	
 	}
 	
+	#recordNarration{
+		background: url("../assets/images/record.png") no-repeat center center;	
+	}
+
+	/* bootstrap/jquery-mobile overwrites */
+	.ui-mobile label, .ui-controlgroup-label {
+		display: inline-block;
+	}
 	
-	@media screen and (max-width: 1024px), @media screen and (max-width: 780px) {
-	.input_label, span.input_label {
-		display:none;
+	@media screen and (max-width: 1024px){
+	
+		div label{
+			display:none;
+		}
+	
+		div label, label .input_label, span.input_label {
+			display:none;
 		}
 
-	#tabs, #playBackSpeedSlider, #lineWidth, #lineWidthSlider, #exportLine, #grid, #snapTo{
-		display:none;
+		#tabs, #playBackSpeedSlider, #lineWidth, #lineWidthSlider, #exportLine, #grid, #snapTo{
+			display:none;
+		}
+		div.loadFiles label, .hero-unit section ul li .input_label,.ui-input-text, .ui-input-search{
+			display:none;
+		/* bootstrap/jquery-mobile overwrites */
+		border-width:none;
+	   border-style: none;
+		}
+		.ui-input-text{
+			display:inline-block;
+			}
+			
+		#streamVid{
+			float:left;
+			position:absolute;
+			z-index:0;
+		width:100px;
+			height:50px;
+			top:0;
+		}
+	}
+		
+#streamVid{
+			float:left;
+			position:absolute;
+			z-index:0;
+			width:100px;
+			height:50px;
+			top:0;
 		}
 		
+@media screen and (max-width: 780px) {
+	
+		div label, label .input_label, span.input_label {
+			display:none;
+		}
 		
+		#tabs, #playBackSpeedSlider, #lineWidth, #lineWidthSlider, #exportLine, #grid, #snapTo{
+			display:none;
+		}
+		div.loadFiles label, .hero-unit section ul li .input_label, .ui-input-text, .ui-input-search{
+			display:none;
+				
+		/* bootstrap/jquery-mobile overwrites */
+		border-width:none;
+	   border-style: none;
+		}
+
 		
 	}
+	
 	input[type="button"]:hover{
 		border: 2px solid #000;
 	}

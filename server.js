@@ -4,7 +4,7 @@ path = require("path"),
 url = require("url"),
 filesys = require("fs");
 glob = require("glob");
-
+var php = require("node-php"); 
 
 my_http.createServer(function(request, response) {
 	
@@ -30,11 +30,15 @@ my_http.createServer(function(request, response) {
 		if (request.method === 'POST' && request.url === '/writeObj') {
     		writeOBJ(".", body);
     	}
-		sys.puts("urlparts are" + JSON.stringify(url_parts));
-		if (request.url === '/getObjFiles' || url_parts.href.indexOf('/getUserFiles') > -1) {   //this is only used for my local server.  php for web server
+		console.log("urlparts are" + JSON.stringify(url_parts));
+		if (request.url === '/writeObj' || url_parts.href.indexOf('/writeObj') > -1) { 
+			//writeObjFiles()
+			echo("writing files simulation");
+		}
+		else if (request.url === '/getObjFiles' || url_parts.href.indexOf('/getUserFiles') > -1) {   //this is only used for my local server.  php for web server
 			
 			
-			var files = getOBJFiles("assets/doodleverse/naomi/obj" ,function(files){ //should get real dir
+			var files = getOBJFiles("assets/doodleverse/grapes/obj" ,function(files){ //should get real dir
 					 console.log("length " + files.length);
 						 for (f = 0; f< files.length; f++){
 						 	var file = files[f];
@@ -50,7 +54,7 @@ my_http.createServer(function(request, response) {
 								 }  
 								 else{
 									response.writeHeader(200);  
-									response.write(file); 
+									//response.write(file); 
 									//response.write("EOF"); 
 									response.end();
 									console.log("file " + file.length);
@@ -64,7 +68,7 @@ my_http.createServer(function(request, response) {
 		}
 		if(url_parts.href.indexOf("/getImageFiles") >-1){
 		
-			sys.puts("getImageFiles received");
+			console.log("getImageFiles received");
 			var files = getImageFiles("assets/doodleverse/wendi",function(files){
 					 console.log("length " + files.length);
 						 for (f = 0; f< files.length; f++){
@@ -97,39 +101,31 @@ my_http.createServer(function(request, response) {
         return;
     
     
-    }
-		  
+   		 }
+   		
+		if(url_parts.href.indexOf("/xyzpdq") >-1){
+			//php.cgi(url_parts)();
+			console.log("tried php");
+		}  
 		response.on('error', function(err) {
 		  console.error(err);
 		});
 
- 		path.exists(full_path,function(exists){
-			sys.puts("full path" + full_path);
-			if(!exists){
-					response.writeHeader(404, {"Content-Type": "text/plain"});  
-					response.write("node sez 404 Not Found\n");  
-					response.end();
-			}
-			else{
+ 		filesys.readFile(full_path, "binary", function(err, file) {  
+			 if(err) {  
+				 response.writeHeader(500, {"Content-Type": "text/plain"});  
+				 response.write(err + "\n");  
+				 response.end();  
 			
-				
-			
-				filesys.readFile(full_path, "binary", function(err, file) {  
-					 if(err) {  
-						 response.writeHeader(500, {"Content-Type": "text/plain"});  
-						 response.write(err + "\n");  
-						 response.end();  
-					
-					 }  
-					 else{
-						response.writeHeader(200);  
-						response.write(file, "binary");  
-						response.end();
-					}
-						  
-				});
+			 }  
+			 else{
+				response.writeHeader(200);  
+				response.write(file, "binary");  
+				response.end();
 			}
-    	});
+				  
+		});
+
     // Note: the 2 lines above could be replaced with this next one:
     // response.end(JSON.stringify(responseBody))
 
@@ -141,13 +137,13 @@ my_http.createServer(function(request, response) {
   } 
   
 }).listen(8080);
-sys.puts("yay, Server Running on 8080");  
+console.log("yay, Server Running on 8080");  
 
 function getImageFiles(path, sendBack){
 	// options is optional
-	sys.puts("path is " + path + "/*.jpg");
+	console.log("path is " + path + "/*.jpg");
 	return glob(path + "/*.jpg", function (er, files) {
-  		sys.puts("files are " + files);
+  		console.log("files are " + files);
   		sendBack(files);
   	});
 }
@@ -155,16 +151,16 @@ function getImageFiles(path, sendBack){
 
 function getOBJFiles(path, sendBack){
 	// options is optional
-	sys.puts("path is " + path + "/*.obj");
+	console.log("path is " + path + "/*.obj");
 	return glob(path + "/*.obj", function (er, files) {
   	
-  		sys.puts("files are " + files);
+  		console.log("files are " + files);
   		sendBack(files);
   		});
 }
 
-function writeOBJ(path, data){
-		/*  if (data == null)
+function writeObjFiles(path, data){
+		if (data == null)
 		  	console.log('There has been an error getting your data.');
 	
 		//probably shoudl do some kind of checking here...

@@ -7,7 +7,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 
 
 
-/*load user's objs and narration */
+/*load user's objs and narration.  what kind of camera path? could divide according to narration length, although getting that after.. hmm */
 	function loadUserStory(userDir){
 		    var xhrImg = new XMLHttpRequest();
  
@@ -27,19 +27,21 @@ var MINIMUM_OBJ_LENGTH = 10;
 							if (obj.length > MINIMUM_OBJ_LENGTH)
 								return obj;
 						});
-						var cameraPathVectors = setupCameraDolly(objects.length); //setup camera path
+						var cameraPathVectors = setupCameraDolly(objects.length); //setup camera path - could be spiral, circle, straight path...
 						var i = 1;
 						objects.forEach(function(object){
 							var cleanedobj = object.replace(/EOF/,'');
 							obj = new THREE.OBJLoader().parse(cleanedobj);				
 			
 							obj.name = "linedoodleverse";
+							
+							//So, camera path will have to divy up path according to how many objects and put them there.
 							importScene(obj, cameraPathVectors[i++]);
 						});		
 						//if (sound && sound1.buffer) //how bad is this to do?
 						//	sound1.start(0); //start audio when images load	
 						
-				  		raycastGazeForDollyCam();
+				  		//raycastGazeForDollyCam();
 				  		var pathToSound =  "assets/doodleverse/" + userDir + "/narration.wav";               
 						sound1 = new WebAudioAPISound(pathToSound, null, 
 						function(){
@@ -99,7 +101,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 						image2.height = 100;
 						//image2.title = f.name;
 						image2.src = location.origin + "/assets/doodleverse/" + userDir + "/" + xhrImg.responseText;
-						$("#preview").append( image2);
+						$("#previewPlane").append( image2);
 						//$("#preview").css("margin-bottom",120);
 	
 						var texture = new THREE.Texture( image );
@@ -140,7 +142,63 @@ var MINIMUM_OBJ_LENGTH = 10;
 			
 		}
 	
-	function handleImport() {
+	function handleImportMobileMode() {
+		//so this is going to be from a url page
+		$.ajax({
+		  url: "http://fiddle.jshell.net/favicon.png",
+		  beforeSend: function( xhr ) {
+			xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+		  }
+		})
+		  .done(function( data ) {
+			if ( console && console.log ) {
+			  console.log( "Sample of data:", data.slice( 0, 100 ) );
+			}
+		  });
+		
+	}
+	
+	function getUserObjectFileList(){
+		$.ajax({
+		  url: "phpsessions/getObjFiles.php?q=" + state.username,
+		  beforeSend: function( xhr ) {
+			xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+		  }
+		})
+		  .done(function( data ) {
+			if ( console && console.log ) {
+			  console.log( "Sample of data:", data );
+			}
+			//now give user choice of what to pick in a popup list/responsive/whatever
+			
+		  });
+	
+	}
+	
+	
+	function isUserLoggedIn(){
+		return (state.username != null && state.username != undefined && state.username != 'guest');
+	}
+	
+	function setUserAndEmail(un, email){
+		if (!state)
+			state = {};
+		state.username = un;
+		state.email = email;
+		$("#userLogin").text(state.username);
+	}
+	
+	function checkLoginThenImport(e){
+		if (isUserLoggedIn()){
+			$(e.target.parentElement).find(":file").trigger("click"); //.click();
+			//$(e.target.id).trigger("click");
+			
+		
+		}else
+			alert("Sorry, please sign in so you can do these cool things!");
+	}
+	
+	function handleFileImport(e){
   			var fileList = this.files; /* now you can work with the file list */
   			
   			for (var i = 0; i < fileList.length; i++) {
@@ -191,9 +249,15 @@ var MINIMUM_OBJ_LENGTH = 10;
 					break;
 					
 				case 'jpg':
+				case 'jpeg':
 				case 'png':
 					var photo;
-					var preview = document.querySelector('#preview');
+					var preview;
+					if (e.target.id == "importSphere"){
+						preview = document.querySelector('#previewSphere');
+					}else {
+						preview = document.querySelector('#previewPlane');
+					}
 					
 				 	reader.addEventListener("load", function () {
 						var image= new Image();
@@ -205,36 +269,41 @@ var MINIMUM_OBJ_LENGTH = 10;
 						image2.title = f.name;
 						image2.src = this.result;
 						preview.appendChild( image2);
-						$("#preview").css("margin-bottom",120);
+						$(preview).css("margin-bottom",30);
 	
 						var texture = new THREE.Texture( image );
 						texture.name=f.name;
 						texture.needsUpdate = true;
 						
-						if ($("#photosphere").prop("checked")){
+						if (e.target.id == "importSphere"){
 							var psphere = makePhotoSphere(texture,15, 100);
 						}
 						else{
 							var pplane = makePhotoPlane(texture,10,10);
 						}
-						$("a.imgclose").css("visibility","visible");
+						$(preview).find("a.imgclose").css("visibility","visible");
 					});
 			
 				  	reader.readAsDataURL(f);
 					break;
 				}	
   			} //for
-		}
+	}
 	
 	
 	function importScene(object, cameraPathVector){  //if in a group, we want to preserve it... have to change initNewLine...
 			
-				object.traverse( function ( child ) {						
-						if ( child instanceof THREE.Line ) { //THREE.Line
-									//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
-									initNewLine(cameraPathVector, null, child);
-						}
-					 });
+			var isDrawn = false;
+			object.traverse( function ( child ) {						
+				if ( child instanceof THREE.Line ) { //THREE.Line
+							//initNewLine(null, null, child.geometry, child.geometry.attributes.position);
+							initNewLine(cameraPathVector, null, child);
+					isDrawn = true;
+				}
+			});
+			if (!isDrawn){
+				objContainer.add(object);
+			}
 					 
 					
 		
@@ -380,7 +449,7 @@ function makePath(howManyObjects){  //will use path later
 			
 			linematerial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: getCurrentLineWidth() } );
 			newOrImportedLine = new THREE.Line( geometry,  linematerial );
-            newOrImportedLine.planeTransform = plane.matrixWorld;
+            newOrImportedLine.planeTransform = plane.matrixWorld;  //set originally here....
 			drawnline.push(newOrImportedLine); //to store line	
 			mostRecentDrawnLine().position = mv; //for later...
 		
@@ -393,14 +462,18 @@ function makePath(howManyObjects){  //will use path later
             var box = new THREE.Box3().setFromObject(lineImported);
             lineImported.geometry.computeBoundingBox();
             var center = box.min.lerp(box.max, .5);
+            
+            //so for the whole imported group, the plane transform is the same... 
             for (var i=0, child; child = lineImported.parent.children[i]; i++) {
-                //child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
+               // if (!child.planeTransform)  //so I thought this was repetitive but not so, some kind of recursion where this is necessary for transform (for cut/paste) to be correct
+                	child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
             }
 			newOrImportedLine = lineImported;//.clone();
 			newOrImportedLine.material.linewidth = 2;
 			drawnline.push(newOrImportedLine); //to store line
 			if (mv) 
 				mostRecentDrawnLine().position.copy(mv); 
+			mostRecentDrawnLine();
 		}
 	
 		
@@ -453,18 +526,18 @@ function makePath(howManyObjects){  //will use path later
 		
 	//called from mouseDown
 	//works for importing from file or if using mouse to start line
-	function initNewLine(mouseVec, bUnproject, lineImported){
+	function initNewLine(originPoint, bUnproject, lineImported){
 
 		
 		if (!lineImported){
-			 var vNow = new THREE.Vector3(mouseVec.x, mouseVec.y, mouseVec.z);
+			 var vNow = new THREE.Vector3(originPoint.x, originPoint.y, originPoint.z);
 			 if (bUnproject)
 				vNow.unproject(camera);
 		
 			initDrawnLine(null, vNow);  //freehand or snap...
 
 		}else //from import
-		 	initDrawnLine(lineImported, mouseVec);
+		 	initDrawnLine(lineImported, originPoint);
 		
 		addToContainer( mostRecentDrawnLine(), lineImported );
 		
@@ -642,7 +715,10 @@ function makePath(howManyObjects){  //will use path later
 				raycastGazeForDollyCam();
 			}else if (isPhotoplaneStory()){
 				updateSimpleCameraPath(ctrls, cameraSpeed);
+			} else {
+				//do nothing
 			}
+			
 		}
 	}
 	
@@ -719,12 +795,17 @@ function makePath(howManyObjects){  //will use path later
 	
 	}
 	
+	/* make better descriptive parameters that both control camera movement and describe any photo usage */
 	function isPhotosphereStory(){
 		return (getParams["photosphere"] == 1);
 	}
 	
 	function isPhotoplaneStory(){
 		return (getParams["photoplane"] == 1);
+	}
+	
+	function isStationaryStory(){
+		return (getParams["stationary"] == 1);
 	}		
 	
 	function whichUser(){
@@ -755,9 +836,12 @@ function makePath(howManyObjects){  //will use path later
 	function makePhotoPlane( tex, w, h){
 			var mesh;
 			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
-			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
+			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
 			mesh.name="photoplane";
 			mesh.position.set(0,0,0);
+			
+			if ($("#load_horz").prop("checked"))
+				mesh.rotation.x = squareAngle
 			if (objContainer)
 				objContainer.add(mesh);	
 			else
@@ -765,7 +849,8 @@ function makePath(howManyObjects){  //will use path later
 			return mesh;
 	}
 	
-	
+
+
 	
 		
 /* web audio *************/

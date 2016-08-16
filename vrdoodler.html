@@ -1,241 +1,370 @@
-<!DOCTYPE html>
-<!--  <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">VRDoodler</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="www.vrdoodler.com" property="cc:attributionName" rel="cc:attributionURL">VRDoodler</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="github.com/cindyloo/vrdoodler" rel="dct:source">github.com/cindyloo/vrdoodler</a>
--->
+ <!DOCTYPE html>
 <head>
-	<meta charset="utf-8">
-	<title>VRDoodler!!!-beta</title>
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8">
+    <title>VRDoodler!!!-beta</title>
+ <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 </head>
+	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
 
-<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+	
+    <script type="text/javascript" src="//code.jquery.com/jquery-latest.pack.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
-<link rel="stylesheet" href="css/style.css">
 
-<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
-<script src="js/three.js"></script>
-<script src="js/controls/OrbitControls.js"></script>
-<script src="js/exporters/OBJExporter.js"></script>
-<script src="js/loaders/OBJLoader.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+<script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+	<!--<script src="js/controls/DeviceOrientationControls.js"></script>-->
+	<!--	<script src="js/controls/TransformControls.js"></script>-->
+  	<!--<script src="js/effects/StereoEffect.js"></script>-->
 
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
-<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+    <script src="js/three.js"></script>
+  
+  
+  <link rel="stylesheet" href="css/style-responsive.css"> 
+    <script src="js/controls/OrbitControls.js"></script>
+    <script src="js/exporters/OBJExporter.js"></script>
+	<script src="js/loaders/OBJLoader.js"></script>
+	
+	<script src="node_modules/webvr-boilerplate/node_modules/controls/VRControls.js"></script>
+	<script src="node_modules/webvr-boilerplate/node_modules/effects/VREffect.js"></script>
+	
+     <script src="js/webvr-polyfill.js"></script>
+      <script src="js/webvr-manager.js"></script>
+	<script src="js/app.js"></script>
+	<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	
+	  ga('create', 'UA-75274623-1', 'auto');
+	  ga('send', 'pageview');
+	
+	</script>
 
-<script src="js/webvr-polyfill.js"></script>
-<script src="js/webvr-manager.js"></script>
-<script src="js/app.js"></script>
+ <script id="vertexShader" type="x-shader/x-vertex">  
+      
+	varying vec2 vUv;
+	uniform float color;
+	varying float noise;
+	uniform float time;
+	
+	
+	
+	
+	void main() {
+	
+		vUv = uv;
+	
+		// add time to the noise parameters so it's animated
+		//noise = 15.0 *  -.10 * turbulence( .2 * normal + time );
+		//float b = 2.0 * pnoise( 0.05 * position + vec3( 2.0 * time ), vec3( 2.0 ) );
+		//float displacement = noise/.5;
+		//- noise + b;
+		//sin(fTimer+Tex.x*10)*0.01f;
+		//	float newXPosition = sin(time + position.x * 2.)  ;
+		
+		gl_Position = projectionMatrix * modelViewMatrix * vec4( position,1.0 );
+	
+	}
+               
+    </script>
 
-<script>
-	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-	ga('create', 'UA-75274623-1', 'auto');
-	ga('send', 'pageview');
-</script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
 
-<body>
-	<p id="browserError"></p>
-	<div class="top-unit">
-		<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
-		<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view: not fully implemented"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
-	</div>
+    varying vec2 vUv;
+	uniform float color;
+	void main() {
 
+    // colour is RGBA: u, v, 0, 1
+	//gl_FragColor = vec4( vec3(color), 1. );
+
+	}
+    </script>
+    
+    <script src="js/shaders/LineDisplacementShader.js"></script>
+
+    
+    
+    
+  <body>  
+  	<p id="browserError"></p>   
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#"></a>
+        </div>
+        <div id="navbar" class="collapse navbar navbar-default ui-content" data-role="main">
+          <ul class="nav navbar-nav">
+
+ 			<li> <a href="index.html" target="_self">Home</a></li>
+            <li><a href="#faqPopup" data-rel="popup">FAQ</a></li>
+           
+			<li><a href="#login" data-rel="popup" class="">Login</a></li>
+			<li><a href="#register" data-rel="popup" class="">Register</a></li>
+			
+			<li><a id="userLogin" value="guest"></a>
+ 		  </ul>	
+		   <div data-role="popup" id="login" class="ui-content" style="min-width:250px;">
+				<h1>Member Login</h1>
+				<form method="post" name="loginform" id="loginform">
+					<fieldset>
+						<label for="username">Username:</label><input type="text" name="username" id="username" /><br />
+						<label for="password">Password:</label><input type="password" name="password" id="password" /><br />
+						<input type="button" onclick="runLogReg()" class="logReg" name="login" id="login" value="Login" />
+						<input type="button" onclick="$(document).click();" class="logReg" name="close" id="close" value="Close" />
+					</fieldset>
+				</form>
+				<p id="results"></p>
+			</div>
+
+			<div data-role="popup" id="register" class="ui-content" style="min-width:250px;">
+				<h1>Registration</h1>
+				<p>Welcome! Please enter below to register</a>.</p>
+				<form method="post"  name="registerform" id="registerform">
+					<fieldset>
+						<label for="username">Username:</label><input type="text" name="username" id="usernameR" /><br />
+						<label for="passwordR">Password:</label><input type="password" name="passwordR" id="passwordR" /><br />
+						<label for="email">Email Address:</label><input type="text" name="email" id="emailR" /><br />
+						<input type="button" onclick="runLogReg()" name="register" class="logReg"  id="register" value="Register" />
+						<input type="button" onclick="this.close()" class="logReg" name="close" value="Close" />
+					</fieldset>
+				</form>
+				<p id="resultsR"></p>
+			</div>
+			
+		</div><!--/.nav-collapse -->
+
+    </nav>
+ 
+	
 	<div class="hero-unit">
 		<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
+		
+	
 		<section>
-			<ul>
-				<li><form class="draw_mode">
-					<input id="draw" class="mytt" type="radio" name="drawmode" value="1" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span>
-					<input id="orbit" type="radio"  name="drawmode" value="0"/><span class="input_label">orbit</span>
-					<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+		<ul>
+			<li><input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view - need ipad or iphone"></input><label for="stereoview" class="input_label">Pre-/VR view</label></li>
+			<li><form class="draw_mode">
+				<input id="draw" class="mytt" type="button" data-role="none" name="drawmode" value="1" data-toggle="tooltip" title="drawing mode" /><label for="draw" class="input_label">Draw</label>
+				<input id="orbit" type="button"  name="drawmode" data-role="none" value="0" alt="Flat Icon"/><label for="orbit" class="input_label">Orbit</label>
+				<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+				<!--<input id="linkDrawMode" type="button" data-role="none" value="2"/><label for="orbit" class="input_label">Link</label>-->
 				</form></li>
 
-				<li><form><input id="snapTo" type="checkbox" class="mytt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
-
-				<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
-
-				<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."><i class="glyphicon glyphicon-repeat"></i></input>
-					<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: use ctrl-c"><i class="glyphicon glyphicon-copy"></i></input>
-					<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: use ctrl-v"><i class="glyphicon glyphicon-paste"></i></input>
-				</li>
-
-				<li>
-					<div>
-						<div id="preview" class="loadFiles">
-							<input type="file" name="file" id="import" class="inputfile tt" />
-							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Image</label>
-						</div>
-						<form class="load_mode">
-							<input id="photoplane" class="mytt" type="radio" name="loadmode" value="1" data-toggle="tooltip" title="Load image as a plane" /><span class="input_label">Photoplane</span>
-							<input id="photosphere" type="radio"  name="loadmode" value="0"/><span class="input_label">Photosphere</span>
-							<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
-						</form>
-						<a class="imgclose" id="imgclose"></a>
+			<li><input id="snapTo" type="checkbox" class="mytt" disabled name="mode" data-role="none" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><label for="snapTo" class="input_label">snap to grid</label></li>
+	
+			<!--<li><label for="lineWidthSlider" class="input_label">Line Width</label><div id="lineWidthSlider"></div></li>-->
+	
+			<!--<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."/><label for="rotateX" class="input_label">Rotate 90</label></li>-->
+			<li><input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line."/><label for="copy" class="input_label">Copy</label></li>
+			<li><input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line."/><label for="paste" class="input_label">Paste</label></li>
+	
+			<li>
+			
+					<div id="previewSphere" class="loadFiles">
 						
+						<input id="importSphereButton" name="forFile" class="mytt" type="button" data-toggle="tooltip" >
+						<input type="file" name="file" accept="image/*" id="importSphere" data-role="none" />
+						<label class="input_label" for="importSphere" data-toggle="tooltip" title="Click to import a picture into a photosphere ">Load Photosphere</label>
+						<a class="imgclose" id="imgcloseSphere"></a>
 					</div>
-				</li>
-				<li>
-					<div>
-						<div id="previewObj" class="loadFiles">
-							<input type="file" name="file" id="importObj" class="inputfile tt" />
-							<label for="importObj" data-toggle="tooltip" title="Click to import an object: OBJ ">Load OBJ</label>
-						</div>
+			</li>
+			<li>		
+					<div id="previewPlane" class="loadFiles">
+						<input type="file" name="file" accept="image/*" id="importPlane"  data-role="none"/>
 						
-						
+						<input id="importPlaneButton" name="forFile" class="mytt" type="button" data-toggle="tooltip" >
+						<label class="input_label" for="importPlane" data-toggle="tooltip" title="Click to import a picture">Load Pic</label>
+						<a class="imgclose" id="imgclosePlane"></a>
 					</div>
-				</li>
+					
+					
+					<form class="load_pos_mode">
+						<input id="load_vert" class="mytt" type="radio" checked name="loadposmode" data-role="none" value="1" data-toggle="tooltip" title="Load image vertically" /><label for="load_vert" class="input_label">Vertical</label>
+						<input id="load_horz" type="radio"  name="loadposmode" data-role="none" value="0"/><label label for="load_horz" class="input_label">Horizontal</label>
+						<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+					</form>
 				
-				<li>
-					<div>
-						<div id="previewAudio" class="loadFiles">
-							<input type="file" name="file" id="importAudio" class="inputfile tt" />
-							<label for="importAudio" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Audio</label>
-						</div>
-						
-						
+			
+				<div>
+					<div id="previewObj" class="loadFiles">
+						<input type="file" name="file" id="fileImportObj" class="inputfile tt" data-role="none"/>
+						<input id="importObj" name="forFile" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Import Obj"/>
+						<label class="input_label" for="fileImportObj" data-toggle="tooltip" title="Click to import a picture">Load Obj</label>
 					</div>
-				</li>
+				
+				
+				</div>
+			</li>
+			
+				<li><div >
+				<input id="streamWebCam" type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Record Narration"/><label for="recordNarration" class="input_label">Record</label>
+				<div>
+			</li>
 
-				<li><input id="exportLine" type="button" class="tt" value="Download" data-toggle="tooltip" title="Export drawing as an OBJ file"/></li>
+			<li><div id="savingObj">
+				<input id="exportLine" type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Save local OBJ file"/><label for="exportLine" class="input_label">Save Locally</label>
+				<input id="saveToServer" type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Save Scene to server"/><label for="saveScene" class="input_label">Save To Server</label>
+				<input id="userEnteredFileName" type="input" data-role="none" value="yourSceneName"/>
+				<div>
+			</li>
+			<li><div >
+				<input id="recordNarration" disabled type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Not fully implemented"/><label for="recordNarration" class="input_label">WebCam</label>
+				<div>
+			</li>
 
-				<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
 
-				<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Show Grid</label></li>
-			</ul>
+			<li><div><input id="playback" type="button" class="tt" value="" data-toggle="tooltip" title="Animate your drawing!"/>
+			<label class="input_label" for="playback" data-toggle="tooltip" title="Click to import a picture">Playback Drawings</label>
+			<div id="playBackSpeedSlider"></div></div></li>
+		
+			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid" class="input_label">Show Grid</label></li>
+		</ul>
 		</section>
-		<section>
-			<i id="help" class="glyphicon glyphicon-info-sign"></i>
-			<div id="tuteInstructions"></div>
-			<p>Help and Quick Keys</p><br/>
-			<ul>
-				<li>To lock plane to selection while drawing: {HOLD shift}</li>
-				<li>To draw along ground: <br/>{HOLD ctrl-g}</li>
-				<li>To draw straight vertical line: <br/>{HOLD ctrl-shift-g} </li>
-				<li>To draw straight horizontal line: <br/>{HOLD ctrl-alt-g} </li>
-				<li>To draw flat along world z axis: <br/>{HOLD alt-g}</li>
-			</ul>
-		</section>
-		<div id="infoPanel" >
-			<h3>Log:</h3>
-		</div>
-		<label id="mousecoords" value=""></label>
+		<video id="streamVid">
+		
+			<!--
+					<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
+				
+
 	</div>
 </body>
 
+
+
 <script>
-	var camera, scene, expScene, renderer, orbitcamera, light;
-	var geometry, material, mesh;
-	var controls, minicamera;
-	var effects, vrmanager;
-	var defaultControls, orientControls, transformControls;
-	var transGeo, transMat;
-	var context = null;
+ 
+ 
+ 	var camera, scene, expScene, renderer,orbitcamera,light;
+    var geometry, material, mesh;
+    var controls, minicamera;
+    var effects, vrmanager;
+    var defaultControls, orientControls, transformControls;
+    var transGeo, transMat;
+ 	var context = null;
 	var currentPlane = 0;
 	var drawnline = [];
 	var container, canvas;
 
+	
 	var manager;
+
 
 	var MAX_POINTS = 2000;
 	var PB_LINE_VERTEX_COUNT_MAX = 0; //change this once we get our first line...
 	var countVertices = 0;
-	var sketchContainer, objContainer;
+	var sketchContainer,objContainer ;
 	var CURRENTspline = -1; //incremented at initNewLine
-	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid;
+	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid ;
 	var mouse = new THREE.Vector2();
 	var mouseXOFFSET = 1.01;
 	var mouseYOFFSET = .975;
 	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
 	var lastLineIntersection = null;
-	var currentMouseRay;
 	var horizonMesh;
 	var bIsDrawing = false;
 	var bShowInfo = true;
-
+	
 	var copiedObj = null;
-
-	var ORBITMODE = 0; //when not drawing
-	var FREEHANDMODE = 1; //when drawing
-	var SNAPMODE = 0; //snap to pre-existing line/objects	
-	var DRAWMODE = 0; //ORBITMODE;
-	var MOVEMODE = 0;
+	
+	var ORBITMODE = 0;  //when not drawing
+	var FREEHANDMODE = 1;  //when drawing
+	var SNAPMODE = 0;		//snap to pre-existing line/objects	
+	var DRAWMODE = 0;//ORBITMODE;
+	var MOVEMODE=0;
 	var CURRENTLINEWIDTH = 2;
 	var PLANEROTATIONCOLOR = 0xff000;
 	var PLANELOCK = 0;  //lock currentIntersection
 	var STEREOSCOPIC = 0;
-
+	
 	var SNAPPLANETOGRID = 0;
-
+	
 	var cameraAngle, dollyAngle = 0;
 	var pivotRadius = 1;
 	var pivotPoint;
-	var initCamRotPos = 0;
+	var initCamRotPos =0;
 	var squareAngle = 90 * Math.PI/180;
-	var plane, planegeo, planemat, planeBoundsMat, planeBounds;
+	var plane, planegeo, planemat,planeBoundsMat, planeBounds, videoStream, videoTexture;
 	var PLANEROTATE = 0;
 	var COLOR = 0;
 	var linematerial = null;
 
 	var edges, cameraHelp;
-
+	
 	var start = Date.now();
 	var pbclock = new THREE.Clock();
 	var PLAYBACK = 0;
 	var playBackCount = 0;
 	var DOLLY = 1;
+
 	var PLAYBACKSPEED = .0045;
 	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
 
 	var dollyPath;
+	
+	var state = {username: 'guest', password: ''};  //will have user login etc info in it... 
 	var userSettings = {};
-
+	
 	var defUserSettings = {
+	
 		userLevel:0,
 		snapMode:1,
 		drawMode:1,
 		lockPlane:1
+
+	
 	};
 	
 	var advUserSettings = {
+	
 		userLevel:2,
 		snapMode:0,
 		drawMode:0,
 		lockPlane:1
+
+	
 	};
-
-	var tuteBegPhrases = [
-		"Press the mouse to begin drawing.",
-		"When you are done drawing, let go of the mouse",
-		"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
-		"When you see the red dot, you can connect a new line to the selected line",
-		"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
-		"You can also press r to rotate. It is best if you toggle drawing off while rotating",
-		"Unclick Draw to move the camera around your drawing"
-	];
-
-	var tuteAdvPhrases = [
-		"Rotate the camera to desired view and press the d key to enter draw mode",
-		"Press the s key to snap your new line to either the grid or to a previous line",
-		"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
-		"Start drawing!",
-		"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
-		"Hover over the previous drawn line to connect your new lines",
-		"Familiarize yourself with the Snapping keys on the menu"
-	];
+	
+	var tuteBegPhrases = ["Press the mouse to begin drawing.",
+							"When you are done drawing, let go of the mouse",
+							"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
+							"When you see the red dot, you can connect a new line to the selected line",
+							"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
+							"You can also press r to rotate. It is best if you toggle drawing off while rotating",
+							"Unclick Draw to move the camera around your drawing"];
+							
+	var tuteAdvPhrases = ["Rotate the camera to desired view and press the d key to enter draw mode",
+							"Press the s key to snap your new line to either the grid or to a previous line",
+							"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
+							"Start drawing!",
+							"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
+							"Hover over the previous drawn line to connect your new lines",
+							"Familiarize yourself with the Snapping keys on the menu"];
 	var tuteBegCount = 0;
 	var tuteAdvCount = 0;
+	var effect;
 
-	function init() {
+	
+
+	function init(){	
 		container = document.createElement( 'div' );
 		container.style.position = 'absolute';
 		container.style.top = '0';
@@ -290,11 +419,27 @@
 		
   		sketchContainer.add(horizonMesh);
   		horizonMesh.position.setY(-.001);
-  		horizonMesh.rotation.x = 90 * Math.PI / 180;	
+  		horizonMesh.rotation.x = 90 * Math.PI / 180;
+  		
+  		/*for live streaming of webcam
+  		videoStream = document.getElementById( 'streamVid' );
+		videoTexture = new THREE.Texture( videoStream );
+		videoTexture.minFilter = THREE.LinearFilter;
+		videoTexture.magFilter = THREE.LinearFilter;			
+  		var videoPlane = new THREE.PlaneGeometry(50,50); 
+		var videoMat = new THREE.MeshBasicMaterial( { map: videoTexture,overdraw: true, side:THREE.DoubleSide } );
+		videoMesh = new THREE.Mesh( videoPlane, videoMat );
+  		sketchContainer.add(videoMesh);
+  		videoMesh.position.setZ(-50);
+  		*/
+  		
+  			
   		
 		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
-		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
+		  //new THREE.DeviceControls(camera);
 		
+		effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
 		/* not using right now 
 		transformControls = new THREE.TransformControls( camera, renderer.domElement );
 		transGeo= new THREE.BoxGeometry( 1, 1, 1 );
@@ -303,18 +448,7 @@
 			
 		controls = defaultControls;
 
-		/*WebVR boilerplate implmentation */
-	 	effect = new THREE.VREffect(renderer);
-		effect.setSize(window.innerWidth, window.innerHeight);
 		
-	 	 var params = {
-		  hideButton: false, // Default: false.
-		  isUndistorted: false // Default: false.
-		};
-		vrmanager = new WebVRManager(renderer, effect, params);
-  		    
-   		vrmanager.button.vrButton.style.width = '50px';
-   		vrmanager.button.vrButton.style.height ='50px';
   		raycaster = new THREE.Raycaster();
 		raycaster.linePrecision = .055;
 		
@@ -340,53 +474,48 @@
 		planeBoundsMat2 = new THREE.MeshBasicMaterial( {color: 0x00ff00, side: THREE.DoubleSide, transparent:true, opacity:.4} );
 
 
-		lastIntersectedPoint = new THREE.Vector3(0,0,0);		
+		lastIntersectedPoint = new THREE.Vector3(0,0,0);
+		currentIntersectedPoint = new THREE.Vector3(0,0,0);
 
 
 		window.addEventListener('resize', onWindowResize, false);
 
 		document.addEventListener('mousedown', onSketchStart, false);
-		//document.addEventListener('touchstart', onSketchStart, false);
-		
-		document.addEventListener( 'mousemove', onDocumentMouseMove, false );		
-		
-		
-		//document.getElementById('instructions').onclick = advanceInstructions;
-		
+		document.addEventListener('touchstart', onSketchStart, false);
+		document.addEventListener( 'touchmove', onDocumentMouseMove, false );	//take this off when we start drawing	
+			
 		document.getElementById("stereoView").onclick = toggleStereoscopic;
 		document.getElementById("tabs").onclick = onTabClick;				
 		document.getElementById('draw').onclick = toggleDrawMode;
 		document.getElementById('orbit').onclick = toggleDrawMode;
+		//document.getElementById('linkDrawMode').onclick = toggleDrawMode;
 		//document.getElementById('move').onclick = toggleDrawMode;
+		
 		document.getElementById('snapTo').onclick = snapTo;
-		document.getElementById("import").onchange = handleImport;
-		document.getElementById('photoplane').onclick = toggleLoadMode;
-		document.getElementById('photosphere').onclick = toggleLoadMode;
 		
-		document.getElementById("importObj").onchange = handleImport;
+		document.getElementById("importObj").onclick = checkLoginThenImport;
+		document.getElementById("fileImportObj").onchange = handleFileImport;
+		document.getElementById("importSphereButton").onclick = checkLoginThenImport;
+		document.getElementById("importSphere").onchange = handleFileImport;
+		document.getElementById("importPlaneButton").onclick = checkLoginThenImport;
+		document.getElementById("importPlane").onchange = handleFileImport;
+		
 		document.getElementById('exportLine').onclick = prepAndExport;
+		document.getElementById('saveToServer').onclick = prepAndExport;
 		document.getElementById('grid').onclick = toggleGrid;
-		document.getElementById('rotateX').onclick = horizontalRotation;
+		//document.getElementById('rotateX').onclick = horizontalRotation;
 
-
-		
+		document.getElementById("copy").onclick = copySelectedLine;
+		document.getElementById('paste').onclick = pasteCopied;
 		document.getElementById("playback").onclick = togglePlayBackMode;
-
+		document.getElementById("streamWebCam").onclick = startVideoStream;
 		/*
 		document.getElementById('colorToggle').onclick = colorToggle;*/
 		
-		//get prefs but for now
-		setTutorialLevel(0);
-		
-        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
-				light.position.set( 1, 1, 1 ).normalize();
-				scene.add( light );
-		
-		
-		window.addEventListener('deviceorientation', setOrientationControls, true);
+      	
+		//window.addEventListener('deviceorientation', setOrientationControls, true);
             
-         document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
-		 document.addEventListener( 'keyup', onVRDoodlerKeyUp, false );
+        
 		 manager = new THREE.LoadingManager();
 				manager.onProgress = function ( item, loaded, total ) {
 				console.log( item, loaded, total );
@@ -396,12 +525,12 @@
 		
 		$(document).ready(function(){
 		
-			$('input').tooltip(); 	
-			$('input').click(function() {
-			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
-				
-			});	
 			
+	
+			if (!inMobileMode()){
+				$('#copy').attr({"title":"Copy currently selected line. Hint: easiest if you use ctrl-c"});
+				$('#paste').attr({"title":"Paste currently selected line. Hint: easiest if you use ctrl-v"});
+				}
 
 			$( "#playBackSpeedSlider" ).slider({
 			  min:10,
@@ -419,60 +548,185 @@
 				}
 			});
 			
-		
 			$("a.imgclose").click(function(e,preview, image){
 				$(this).parent().find("img").remove();
-				
-				if ($("#photosphere").val()==1)
+			
+				if ($(this).parent().attr("id") == "previewSphere")
 					objContainer.remove(scene.getObjectByName("photosphere"));
 				else
 					objContainer.remove(scene.getObjectByName("photoplane"));
 				objContainer.remove(scene.getObjectByName(f.name));
-				$("#preview").css("margin-bottom",10);
+				$(this).parent().css("margin-bottom",10);
 				$(this).css("visibility","hidden");
 			});
+			
 				
 			$("#help").hover(function() {
 					advanceInstructions()
 				  });
 				  
-			  
+			grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );  //why was this necessary? a double toggle or something?
 		
-			if (inMobileMode()){
-				 toggleStereoscopic();
-				 PER_MEDIA_INCREMENT = .125;
-				PLAYBACKCOUNT = 55;//slower, bigger screen
-			}else{
-				PER_MEDIA_INCREMENT = .065;
-				PLAYBACKCOUNT = 25;//slower, bigger screen
-				
-				controls.autoRotate = false;
-				controls.autoRotateSpeed = -.075
+			grid.visible = true;
+		
+			//maybe this is modified by userlogin settings?
+			PER_MEDIA_INCREMENT = .065;
+			PLAYBACKCOUNT = 25;//slower, bigger screen
+			if (orientControls !== undefined) orientControls.enabled = false;
+			defaultControls.enabled = false;
+			defaultControls.autoRotate = false;
+			defaultControls.autoRotateSpeed = -.075;
+			
+			
+			//get prefs but for now
+			setUserLevel(0); //disable defaultControls at beginning for Drawmode		
+			
+			if (!inMobileMode()){
+				$('input').tooltip(); 	//initializes tooltips
+				document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
+				document.addEventListener( 'keyup', onVRDoodlerKeyUp, false );
+			} else {
+				 //mouseXOFFSET = 1;
+				 //mouseYOFFSET = 1;
+				//raycaster.linePrecision = 2;
 			}
- 
+			
+			loadUserHelper();
+			
+			$('#registerform, #loginform').validate({ // initialize the plugin
+				rules: {
+					username: {
+						required: true,
+						minlength: 2,
+						maxlength:20
+						
+					},
+					password: {
+						required: true,
+						minlength: 2,
+						maxlength:20
+					},
+					email: {
+						required: true,
+						minlength: 5,
+						email: true
+					}
+				}
+			});
+			
 	  });
 	
 	   
 
 	}
-	
-	/*not yet implemented*/
-	var getWhatYouCanDoMode = (function() {
 
-		/*var whatyoucando = {};
-		
-		if (input.straightline is checked)
-		
-		else if
-		
-		if (usersettings...)
-		...
-		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
-		//eval usersettings, button states, return an array of can-dos
-		
-		*/
-	})();
+function setResults(txt){
+	$("#results").text(txt);
+	$("#resultsR").text(txt);
+	$("#resultsR").text(txt);
+}
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}
+
+	function runLogReg(){
 	
+		var sendData;
+		var form = event.target.parentElement.parentElement.id;
+		var email = $("#emailR").val()
+		/*if (validateEmail(email)) {
+			$("#result").text(email + " is valid :)");
+			$("#result").css("color", "green");
+		  } else {
+			$("#result").text(email + " is not valid :(");
+			$("#result").css("color", "red");
+		}*/
+		if (event.target.parentElement.parentElement.id === "registerform")
+			sendData = {"username":$("#usernameR").val(), "password":$("#passwordR").val(), "email":email};
+		else
+			sendData = {"username":$("#username").val(), "password":$("#password").val()};
+		$.ajax({
+		  data: sendData,
+		  url: "phpsessions/logReg.php",
+		  type: "post"
+		})
+		  .done(function( data ) {
+			if ( console && console.log ) {
+			  console.log( "Success Logging in:", data );
+			  $("body").append(data); //or call?
+			  //let's check the evt.target and add a confirmation to popup or something, then trigger close?
+			  //or take them to Login if they just registered...
+			}
+		  });
+	}
+	
+	//REM: adapter polyfill/promise fxnlty has to be enabled on chrome fyi - web platform experimental
+	//will not work on IE or safari yet
+	var promisifiedOldGUM = function(constraints) {
+
+	  // First get ahold of getUserMedia, if present
+	  var getUserMedia = (navigator.getUserMedia ||
+		  navigator.webkitGetUserMedia ||
+		  navigator.mozGetUserMedia);
+
+	  // Some browsers just don't implement it - return a rejected promise with an error
+	  // to keep a consistent interface
+	  if(!getUserMedia) {
+		return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+	  }
+
+	  // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
+	  return new Promise(function(resolve, reject) {
+		getUserMedia.call(navigator, constraints, resolve, reject);
+	  });
+		
+	}
+	
+	function startVideoStream(){
+	
+		// Older browsers might not implement mediaDevices at all, so we set an empty object first
+		if(navigator.mediaDevices === undefined) {
+		  navigator.mediaDevices = {};
+		}
+
+		// Some browsers partially implement mediaDevices. We can't just assign an object
+		// with getUserMedia as it would overwrite existing properties.
+		// Here, we will just add the getUserMedia property if it's missing.
+		if(navigator.mediaDevices.getUserMedia === undefined) {
+		  navigator.mediaDevices.getUserMedia = promisifiedOldGUM;
+		}
+	
+		var constraints = { audio: false, video: true}; //too much trouble: don't want to have to have adapter npm install { width: 1280, height: 720} };
+		var p = navigator.mediaDevices.getUserMedia(constraints);
+
+		p.then(function(mediaStream) {
+			  //var video = document.querySelector('video');
+			videoStream = document.getElementById( 'streamVid' );
+			videoStream.src = window.URL.createObjectURL(mediaStream);
+			videoStream.onloadedmetadata = function(e) {
+				videoStream.play(); 
+			
+				videoTexture = new THREE.Texture( videoStream );
+				videoTexture.minFilter = THREE.LinearFilter;
+				videoTexture.magFilter = THREE.LinearFilter;			
+				var videoPlane = new THREE.PlaneGeometry(50,50); //semi-opaque to help with orientation
+				var videoMat = new THREE.MeshBasicMaterial( { map: videoTexture,overdraw: true, side:THREE.DoubleSide } );
+				videoMesh = new THREE.Mesh( videoPlane, videoMat );
+				sketchContainer.add(videoMesh);
+				//videoMesh.position.setZ(-50);
+
+		  };
+		});
+
+		p.catch(function(err) { console.log(err.name + " " + err.message); }); // always check for errors at the end.
+
+	}
 	
 	function onTabClick( event ) {
 		select( event.target.textContent );
@@ -485,11 +739,11 @@
 		switch (section){
 			case "beginner":
 				$("#begTab").attr("class","selected");
-				setTutorialLevel(0);
+				setUserLevel(0);
 				break;
 			case "advanced":
 				$("#advTab").attr("class","selected");
-				setTutorialLevel(2);
+				setUserLevel(2);
 				break;
 				
 		
@@ -513,9 +767,9 @@
 	}());
 
 
-	function prepAndExport(){
+	function prepAndExport(evt){
 		convertBuffGeoToGeo();
-		exportToObj();//expscene
+		exportToObj(evt);//expscene
 	
 	}
 	function convertBuffGeoToGeo(){
@@ -531,34 +785,53 @@
 		//return exportGeo;
 	}
 
-	function exportToObj ()
+	function exportToObj (evt)
 	{				
 		var exporter = new THREE.OBJExporter();
 		var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
 		
-		saveFileLocally(result, "myDrawing.obj");
 		
-		/*var xmlhttp = new XMLHttpRequest();
-		xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
-		xmlhttp.onreadystatechange = function () {
-		  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-			//Handle response
-		  }
-		};
-		 xmlhttp.send(result);	*/			
+		if (isUserLoggedIn()){
+			if (evt.target.id == "exportLine")
+				saveFileLocally(result, "myDrawing.obj");
+			else if (evt.target.id == "saveToServer") {
+				var sendTo = "phpsessions/writeObj.php" ; 
+
+				
+				//var json = JSON.stringify(result),
+				blob = new Blob([result], {type: "octet/stream"});
+				var data = new FormData();
+      			data.append('file', blob);
+      			data.append('username', state.username);
+      			data.append("filename", $("#userEnteredFileName").val());//TODO: I know user entered val needs to be scrubbed...
+				//url = window.URL.createObjectURL(blob);
+				$.ajax({
+				  url: sendTo,
+				  type: "post",
+				  data: data, 
+				  contentType: false,
+        			processData: false,
+  
+				  /*beforeSend: function( xhr ) {
+					xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+				  }*/
+				})
+				.done(function( d ) {
+					if ( console && console.log ) {
+					  console.log( "Sample of data:", d );
+					}
+					//now give user choice of what to pick in a popup list/responsive/whatever
+			
+				});	
+			 }	
+		}else
+			alert("Sorry, please sign in so you can do these cool things!");	
 	}
 	
-
-	var onProgress = function ( xhr ) {
-					if ( xhr.lengthComputable ) {
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( Math.round(percentComplete, 2) + '% downloaded' );
-					}
-				};
-
-	var onError = function ( xhr ) {
-	};
 	
+
+	
+
 
 
 	
@@ -572,32 +845,12 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             
-           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
+           //if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
             render();
 	}
 
 
 
-	
-	
-
-	/*not used ...make it easier for user to draw on standard rotation*/
-	function rotateX(){
- 		
-		//camera.lookAt(lastIntersectedPoint);
- 		//camera.rotation.x += 90 * Math.PI / 180;	
-	}
-	function rotateY(){
- 	
- 		//planeBounds.rotation.y += 90 * Math.PI / 180;	
-	}
-	function rotateZ(){
- 
- 		//planeBounds.rotation.z += 90 * Math.PI / 180	
-	}
-	
-	
-	
 	function setPivotPoint(pt){
 		if (pivotPoint != 0){
 			pivotPoint = pt;
@@ -615,32 +868,6 @@
 		return initCamRotPos;
 	}
 	
-	function colorCameraOrientation(){
-	
-		var vX = new THREE.Vector3(1,0,0);
-  		var vZ = new THREE.Vector3(0,0,1);
-  		
-  		var orientation = camera.getWorldDirection().normalize();
-  		
-  		var offsetToX = orientation.clone().dot(vX);  //should be z, right?
-  		var offsetToZ = orientation.clone().dot(vZ);
-  		//which offset is closer to one?
-  		PLANEROTATIONCOLOR = 0x00ffff;
-  		/*if (Math.abs(offsetToX) > Math.abs(offsetToZ)){  //closer to x
-  			
-  			if (offsetToX < 0) //x is negative
-  				PLANEROTATIONCOLOR =0xff0000;
-  			else	//x is positive
-  				PLANEROTATIONCOLOR =0xff3300;
-  		}
-  		else if (Math.abs(offsetToX) < Math.abs(offsetToZ)){   //closer to z
-  			if (offsetToZ < 0)
-  				PLANEROTATIONCOLOR = 0x0033ff;
-  			else
-  				PLANEROTATIONCOLOR = 0x00ffff;
-  		}*/
-	}
-
 	
 	function horizontalRotation(){
 		var angle = null; //for later when user could specify...
@@ -660,7 +887,7 @@
   		
   		
   		/* help user with color coded orientation */
-  		colorCameraOrientation();
+  		//colorCameraOrientation();
   			
   		planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
 
@@ -683,22 +910,29 @@
 		 return PLANEROTATELOCK;
 	}
 	
+	function loadUserHelper(){
 	
-	
-	function advanceInstructions(){
-		if (userSettings.userLevel == "0"){
-			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
-			if (tuteBegCount > tuteBegPhrases.length -1)
-				tuteBegCount = 0;
-			}
-		else{
-			document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
-			if (tuteAdvCount > tuteAdvPhrases.length -1)
-				tuteAdvCount = 0;
-			}
+		if (!inMobileMode() || navigator.userAgent.match(/iPad/i)){
+			$("#tools-message").dialog({
+					modal: true,
+					draggable: false,
+					resizable: false,
+					position: ['center', 'center'],
+					show: 'blind',
+					hide: 'blind',
+					width: 400,
+					dialogClass: 'ui-dialog-osx',
+					buttons: {
+						"Got it": function() {
+							$(this).dialog("close");
+						}
+					}//maybe load more info if the user asks for it
+				}).position({my:"center", at:"center", of:"center"});
+		}
+
 	}
 	
-	function setTutorialLevel(level){
+	function setUserLevel(level){
 	
 			if (level == "0"){ //beginner
 				//maybe we keep the snap on always for beginner...
@@ -722,8 +956,9 @@
 				$("#grid").prop("disabled",true);			
 				
 				camera.lookAt(lastIntersectedPoint);
-				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
 				$(".hero-unit").css("visibility","visible");
+				
+				
 				
 			}else if (level =="1"){
 			
@@ -747,8 +982,7 @@
 				setupGrid();
 				$("#grid").prop("disabled",false);	
 
-				tuteBegCount = 0;
-				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
+				
 				//take off all restraints
 				//don't set draw mode, snap or grid, etc
 			}
@@ -761,31 +995,42 @@
 	}
 	
 	
-
+	function makeDollyPlaybackPath(){
+		var dollyPath = new THREE.CatmullRomCurve3();
+	
+	//or get bounding box of all lines? or something?
+	
+		for (var line =0;line < drawnlines.length; line++){	
+			curve.push(drawnlines[l][0]);
+		}
+		return dollyPath;
+	}
 	
 	
 	function toggleStereoscopic(){
 		STEREOSCOPIC = STEREOSCOPIC?0:1;
 	 	
 	 	if (STEREOSCOPIC){
-	 		$(".hero-unit").css("visibility","hidden");
-	 		$(".top-unit").css("background-color","black");
-	 		if (window.screen.width < 500)
-	 			$("#stereoView").css("visibility","hidden");
-	 		setDrawMode(0);
-	 		//setSnapMode(0);
-	 		orientControls.enabled=true;
-	 		setOrientationControls();
-	 		
+	 	
+        	$('#stereoView').addClass("innershadow");
+	 		orientControls = new THREE.VRControls(camera);
+			var params = {
+			  hideButton: false, // Default: false.
+			  isUndistorted: false // Default: false.
+			};
+			vrmanager = new WebVRManager(renderer, effect, params);			
+			vrmanager.button.vrButton.style.width = '25px';
+			vrmanager.button.vrButton.style.height ='25px';
+	 	
+	 		orientControls.enabled=true;  //set up the controls sensitive to the gyroscope
+	 		defaultControls.enabled = false;
+	 		setOrientationControls();	 		
+	 	} else{
+	 		$('#stereoView').removeClass("innershadow");
+	 		changeControls(false);
 	 	}
-	 	else{
-	 		$(".hero-unit").css("visibility","visible");		
-	 		controls.enabled = true;
-       		orientControls.enabled=false;
-	 	}
-	
-		
-	
+	 		 //if not, changeControls will take care of change back to default
+
 	}
 	
 	/*will eventually offer black on white or white on black (default) */
@@ -810,12 +1055,12 @@
 		}
 		grid.visible = true;
 		
+		
 	}
 	function toggleGrid(){
 		if (userSettings.userLevel >0){
 			if (grid){
 				grid.visible = grid.visible?false:true;
-				axisHelper.visible = axisHelper.visible?false:true;
 				horizonMesh.visible = grid.visible;
 			}else{
 				setupGrid();
@@ -833,17 +1078,15 @@
 	}
 	
 	
-      function setOrientationControls(e) {
+      function setOrientationControls(e) { //for mobile ipad
         if (e && !e.alpha) {
           return;
         }
-		controls.enabled =false;
-
- 
+		//controls.enabled =false;
         orientControls.update();
 
         //if (mostRecentDrawnLine() == null)
-        	//loadUserStory();
+        //	loadInitialImages();
         
         
         //window.removeEventListener('deviceorientation', setOrientationControls, true);
@@ -853,7 +1096,8 @@
     
 	
 	
-	
+	/* allow for drawing only, orbiting only, or both */
+	/* orientcontrols for VR mode handled elsewhere */
 	function changeControls(resetCam){
 	 	var prevCamera = camera;
 
@@ -866,44 +1110,12 @@
 			camera.rotation.copy( prevCamera.rotation );
 		}
 	
-			if(STEREOSCOPIC) return;
+		if(STEREOSCOPIC) return;
 	
-			if (DRAWMODE == 2){ //MOVEMODE){
-			document.removeEventListener('mousedown', onSketchStart, false);
-			
-			document.removeEventListener('mousemove', onDocumentMouseMove, false);
-			//document.removeEventListener('touchdown', onSketchStart, false);
-			
-			scene.remove(plane);
-			scene.remove(planeLockOutline);
-			scene.remove( transformControls );
-			scene.remove(scene.getObjectByName("transform"));
-			controls.enabled = false;
-				
-				
-				controls = transformControls;
-				
-			
-				
-				controls.addEventListener( 'change', render );
-				//controls.detach( mesh );
-
-				//var mesh = new THREE.Mesh( transGeo, transMat );
-				//mesh.name = "transform";
-				//scene.add( mesh );
-				//mesh.position.set(0,0,0);
-				controls.attach( lastIntersected );
-				scene.add( controls );
-				controls.enabled = true;
-				//controls.setMode( "translate" );
-				//controls.gizmo["translate"].show();
-				
-
-		}else if (DRAWMODE ==0){
-		document.addEventListener('mousedown', onSketchStart, false);
-		//document.addEventListener('touchdown', onSketchStart, false);
-			document.addEventListener('mousemove', onDocumentMouseMove, false);
-
+		if (DRAWMODE == 2 || DRAWMODE==0){ //linked drawing/orbiting or just orbiting
+		
+			document.addEventListener('touchstart', onSketchStart, false);
+			document.addEventListener('touchmove', onDocumentMouseMove, false);
 			controls = defaultControls;
 			controls.enabled = true;
 			controls.object = camera;
@@ -911,11 +1123,10 @@
 					
 			
 		}else{ //
-		document.addEventListener('mousedown', onSketchStart, false);
-		//document.addEventListener('touchdown', onSketchStart, false);
-		document.addEventListener('mousemove', onDocumentMouseMove, false);
-
-		controls = defaultControls;
+		
+			document.addEventListener('touchstart', onSketchStart, false);
+			document.addEventListener('touchmove', onDocumentMouseMove, false);
+			controls = defaultControls;
 			controls.object = camera;
 			controls.enabled = false;
 			 		
@@ -924,7 +1135,7 @@
 		if (!PLAYBACK) camera.lookAt(lastIntersectedPoint);
 	
 		camera.updateProjectionMatrix();
-        colorCameraOrientation();
+       // colorCameraOrientation();
 	}
 	
 
@@ -932,16 +1143,26 @@
 	function setDrawMode(type){
 	 	DRAWMODE = parseInt(type);
 	 	$("#draw").prop("checked",(DRAWMODE ==1));
-	 	$("#orbit").prop("checked",(DRAWMODE==0));
-	 	$("#move").prop("checked",(DRAWMODE==2));
-	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
-		console.log("draw mode is " + DRAWMODE);
+	 	$("#drawLinkMode").prop("checked",(DRAWMODE ==2));
+	 	$("#orbit").prop("checked",(DRAWMODE==0 || DRAWMODE==2 ));
+	 	//$("#move").prop("checked",(DRAWMODE==2));
+	 	console.log("draw mode is " + DRAWMODE);
 	
-		if (DRAWMODE)
+		if (DRAWMODE ==1){
         	$('html,body').css('cursor','pointer');
-        else 
-        	$('html,body').css('cursor','move');
+        	$('#draw').addClass("innershadow");
         	
+        	$('#orbit').removeClass("innershadow");
+       } else if (DRAWMODE ==2){
+        	$('html,body').css('cursor','pointer');
+        	$('#draw').addClass("innershadow");
+        	$('#drawLinkMode').addClass("innershadow");
+        	$('#orbit').addClass("innershadow");
+       } else {
+        	$('html,body').css('cursor','move');
+        	$('#draw').removeClass("innershadow");
+        	$('#orbit').addClass("innershadow");
+        }	
         return DRAWMODE;
 	}
 	
@@ -949,18 +1170,19 @@
 /* if draw, mouse draws (snapping or not). if false, mouse moves camera */
 	function toggleDrawMode(e){
 	var target ;
-       if (e == null) target = DRAWMODE?0:1;
-       else target = e.currentTarget.value;
+       if (DRAWMODE ==2){
+				//when linking is turned off, default to draw
+				target = 1; 
+				$('#drawLinkMode').removeClass("innershadow");
+		}else if (e == null) {
+			target = DRAWMODE?0:1;
+        }else {
+			target = e.currentTarget? e.currentTarget.value: e.target.value;
+       	}
 		setDrawMode(target);   
      
 		changeControls(true);		
     	return DRAWMODE;
-	}
-	
-	function toggleLoadMode(e){
-		//var LOADTOG = $("#photoplane").prop("checked");
-		//$("#photosphere").val(!LOADTOG);
-	 	//$("#photosphere").val(!LOADTOG);
 	}
 	
 
@@ -970,8 +1192,7 @@
 
 		SNAPMODE = onoroff;
 		$("#snapTo").prop("checked",SNAPMODE);
-		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
-	
+		
 		return SNAPMODE;
 	}
 	
@@ -1018,15 +1239,447 @@
 	
 	function snapPlane(mode, keepOrientation){
 		SNAPPLANETOGRID = mode;  
-        $("#infoPanel").text("SNAPPLANETOGRID ON:" + SNAPPLANETOGRID);
+       
         snapPlanesToLocal(keepOrientation); 
 	
 	}
 			
-	function onVRDoodlerKeyDown(evt) {
+
+     
+     /* with camera position and the object with which we want to align a line, transform
+     where the projection thinks the mouse is to where we want it to be */
+     
+	function transformSrcToDestination(source, destination){  //destination as a grid, plane, etc
+			
+			var cameraclone = camera.clone();
+			
+			var destpos= cameraclone.position.clone(); 
+			var camPos = cameraclone.position.clone(); 
+			
+			
+			var srcDestDiff = destination.clone().sub(source).normalize();
+			source.sub(srcDestDiff.multiplyScalar(destination.distanceTo(source)));
+			
+			
+			return source;
+						
+			/* fyi
+			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
+			var dir = unprojectedMouse.sub( camera.position ).normalize();
+			var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
+			var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
+	
+	
+	}
+
+
+
+	function onDocumentMouseMove( evt ) {
+	
+		if ((evt.clientX)&(evt.clientY)){
+			var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+			mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+			mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+		}else if (evt.targetTouches) { 
+			mouse.x= evt.targetTouches[0].clientX; 
+			mouse.y = evt.targetTouches[0].clientY; evt.preventDefault();
+		 } 
+	
+		
+	}
+
+
+
+/*sketching or raycasting... */		
+    function onSketchMove(evt){
+		if (evt.type == "touchmove") evt.preventDefault();
+		onSketchMouseMove(evt);
+	
+	}	
+
+/* if draw mode, add new vertex to line as mouse moves */
+    function onSketchMouseMove(evt) {
+    
+    	//var whatZ = .5;
+        if(renderer) {
+          
+            if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= ( evt.targetTouches[0].clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.targetTouches[0].clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			 }              
+			 var vNow = new THREE.Vector3();
+            vNow.set(
+					mouse.x,
+					mouse.y,
+					0.5 );
+            
+            if(canDraw() && bIsDrawing){
+            	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
+            	
+            		if (plane.position !== undefined  && rayPointIndSphere.position !== undefined){  //plane-of-interest better be valid!
+          		
+            			var snapToThis = rayPointIndSphere.position;
+						//intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
+						//hence, where the sphere is is where the plane is. use plane pos
+						
+						unprojectedAndTransformedMouse = rayPointIndSphere.position; 
+						
+						if (SNAPPLANETOGRID ==4){//draws straight horizontal line parallel to x axis
+            				unprojectedAndTransformedMouse.x = plane.position.x;
+            				unprojectedAndTransformedMouse.z = plane.position.z;
+            			}
+            			else if (SNAPPLANETOGRID ==5){//draws straight vertical line parallel to y axis
+            				unprojectedAndTransformedMouse.y = plane.position.y;
+            				unprojectedAndTransformedMouse.z = plane.position.z;
+            			}else if (SNAPPLANETOGRID ==6){//draws straight horizontal line parallel to z axis
+            				unprojectedAndTransformedMouse.y = snapToThis.y;
+            				unprojectedAndTransformedMouse.x = snapToThis.x;
+            			}
+						updateLineBuffer(unprojectedAndTransformedMouse);
+						//currentLine().push(unprojectedAndTransformedMouse); 
+						
+						
+					}else { 
+						console.log("hmm plane not defined");
+					}
+            	}else { //freehand
+
+            		vNow.unproject(camera);
+            		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
+            		
+            		updateLineBuffer(vNow); 
+           		}
+				 //vNow.z = 0;
+        		
+        		//push subsequent vertices into master line array
+        	
+            }          
+        }
+        else{
+        console.log("renderer null");}
+    }
+    
+        
+    
+	function mostRecentDrawnLine(){
+		CURRENTspline = drawnline.length -1;
+		return drawnline[CURRENTspline];
+	}
+
+    function onSketchTouchUp(evt){ //touch end or mouse up
+
+
+		if (evt.type == "touchend") evt.preventDefault();
+
+		if (evt.target.nodeName == 'CANVAS'){
+		
+			document.removeEventListener("mousemove",onSketchMouseMove,false);  //stop drawing...
+			document.removeEventListener("mouseup",onSketchMouseUp,false);
+			document.removeEventListener("touchmove",onSketchMove,false);
+			document.removeEventListener("touchend",onSketchMouseUp,false);
+			onSketchMouseUp(evt);
+		}else{
+			//what to do with touch end or mouse up elsewhere?
+			if (evt.type == "touchend") evt.target.click();	
+		}
+	
+	}		    
+    
+    /* after initing new line
+    */
+    function onSketchMouseUp(evt) {
+    	
+  	
+    	if (canDraw()){
+    	
+			bIsDrawing=false;
+			
+			//now that we are done drawing, trim drawn array to number of master line's vertices 
+    		var positions = mostRecentDrawnLine().geometry.attributes.position.array;
+    		
+    		
+    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3 );
+    			
+    			
+    		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
+    		currentIntersected = undefined;
+			currentIntersectedPoint = undefined			
+    	
+    		console.log("currentIntersectedPoint reset");
+
+    		}        
+    }
+   
+	/* update the line with the new vertices coming from onvrhmousemove*/
+ function updateLineBuffer(newvec) {
+		if (mostRecentDrawnLine()){
+		
+			//get array and update it with the new line vertices
+			var positions = mostRecentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
+			
+			var index = countVertices *3 ;
+			
+			if (newvec){
+				positions[index ++] = newvec.x;
+				positions[index ++] =newvec.y;
+				positions[index ++] =newvec.z;
+			}
+			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
+			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
+			
+			countVertices++;
+			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices);
+			
+		}
+	}
+	
+	
+	
+
+	function onSketchStart(evt){
+		console.log("hitting sketchstart");
+		if (evt.type == "touchstart") evt.preventDefault();
+		if (evt.target.nodeName == 'CANVAS'){
+			
+			onSketchMouseDown(evt);
+		}else { //INPUT, etc
+			console.log("click from sketchstart evt target is " + evt.target.id);
+			/*if (evt.target.name != "forFile" && evt.target.id != "stereoview" )  //I lose the mouse up otherwise...matters for some it seems...
+ 				evt.preventDefault();
+			*/
+			$(evt.target).focus().trigger("click");
+			
+			
+		}
+	}
+
+	function canDraw(){
+		if (DRAWMODE > 0)
+			return true;
+		else
+			return false;
+	}
+    /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
+    according to unprojected mouse vector 
+    
+    ps - we wat to make darwing work with the mobile's accelerometer at some point*/
+    
+     function onSketchMouseDown(evt) {
+     
+   		if(evt.which == 3) return;      	
+    	if (evt.target.nodeName == 'CANVAS'){
+          	
+          	if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= ( evt.targetTouches[0].clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.targetTouches[0].clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			 } 
+          	
+          	
+          
+       		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+			if (canDraw()){
+			
+			
+				
+				bIsDrawing=true;  //is this a problem for touchstarts?
+				lastLineIntersection = (currentIntersected && (currentIntersected.name == "line" || currentIntersected.name == "lineimported"))?currentIntersected:null;
+					
+				if (SNAPMODE ){ /*originate line according to intersected object. 	
+								  either grid or previously drawn line via plane-of-interest*/
+					// so we care about interesections with lines and imported lines first
+					//then we care about the grid snapping
+					//then we care about the plane b/c now we want to draw on it.			  
+								  
+								  //was there an intersection with a line? if so, save it b/c we are about to raycast the plane instead
+								  //save the intersection with the line here, and then add it to that object as we draw on plane
+					
+					//ok, now raycast the plane.  this raycasting is happening here b/c this event happens before the animate event
+					planeLockOutline.geometry.computeBoundingSphere(); 
+					console.log("before recasting for plane intersection" + " " + currentIntersectedPoint.x+ " "+ currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
+					
+					//if (evt.type != "touchstart"){
+						var intersects = raycaster.intersectObjects([planeLockOutline], true); //- actually it appears to work for touch events now...
+						currentIntersectedPoint = handleRayIntersections(intersects);
+					//}
+					var snapTo = currentIntersectedPoint;
+					//if no currentIntersection, and is drawing, have to wait a round or two to get intersection
+					
+					if (snapTo){
+						initNewLine(snapTo , false);
+						
+						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
+					}
+				}else { //freehand draw
+					alert("Freehand mode");
+						initNewLine(mouseVec, true);									
+				} 			
+				//set up for drawing line
+				document.addEventListener("touchmove",onSketchMove,false);
+				document.addEventListener("mousemove",onSketchMove,false);
+				document.addEventListener("touchend",onSketchTouchUp,false);
+				document.addEventListener("mouseup",onSketchTouchUp,false);
+
+				//document.addEventListener("touchup",onSketchTouchUp,false);				
+			}
+        }
+    }
+   	
+	
+	function makeDrawingPlane(planePos, name){
+			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.5,side: THREE.DoubleSide } );
+			
+			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
+			planeLockOutline.scale.x = 50;
+			planeLockOutline.scale.y = 50;
+			planeLockOutline.position.set( 0, 0, 0 );
+			planeLockOutline.position.copy(planePos);
+			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
+			
+			var cameraclone = camera.position.clone();
+			cameraclone.setY(planeLockOutline.position.y);
+			planeLockOutline.lookAt(cameraclone);
+
+			planeLockOutline.visible = true;
+			planeLockOutline.name = name;
+			planeLockOutline.material.wireframe = true;
+			planeLockOutline.material.wireframeLinewidth = 5;
+			scene.add(planeLockOutline); //note- can adding this to raycasting objects
+			
+			return planeLockOutline;
+
+	}
+	
+	
+	function copySelectedLine(evt){
+		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+			var id = currentIntersected.uuid;                			
+			$('html,body').css('cursor','copy');
+			//TODO getParent, copy all lines
+			
+			
+			function findUUID(line) { 
+				return line.uuid == id;
+			}
+			
+			lineToCopyIndex = drawnline.findIndex(findUUID);
+			if (drawnline[lineToCopyIndex].parent.name == "linegroup")
+				copiedObj = drawnline[lineToCopyIndex].parent;
+			
+		}else{
+			alert("Select a line or group of lines to copy");	
+		}
+	}
+	
+	function pasteCopied(evt){
+	  
+			if (currentIntersectedPoint && copiedObj){
+				
+				//if userSettings.userLevel == 'advanced'), use plane?		
+				var copiedObj2;
+				if (copiedObj.name == "linegroup"){
+					
+						copiedObj2 = new THREE.Object3D();
+						for (l = 0;l<copiedObj.children.length;l++){
+							
+							
+						var firstLineTranslation;
+						
+							var originalTransform = copiedObj.children[l].planeTransform;  // drawn or imported, makes a diff?
+							if (originalTransform) { 
+								
+								
+								if (l ==0) 
+									console.log("original plane Transform " + originalTransform.elements);
+								
+								var newLine = copiedObj.children[l].clone();
+								//newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
+
+								
+								newLine.geometry= newLine.geometry.clone();
+								
+																
+								
+								var box = new THREE.Box3().setFromObject(newLine);
+								newLine.geometry.computeBoundingBox();
+								var center = box.min.lerp(box.max, .5);
+			
+								newLine.planeTransform = plane.matrixWorld;//new THREE.Matrix4().makeTranslation(center.x, 0, center.z);  
+								//newLine.planeTransform = originalTransform;
+								//this does make it fully transform- so if plane is at an angle, it copies...
+								
+								
+								
+								
+								var attribute = newLine.geometry.attributes.position;
+								
+								/*my thought is that this helps the line determine where it really is */
+								newLine.geometry.applyMatrix(
+									plane.matrixWorld.clone().multiply(
+										//new THREE.Matrix4().getInverse(plane.matrixWorld)
+										// new THREE.Matrix4().getInverse(newLine.planeTransform) right location but disintegrated
+										new THREE.Matrix4().getInverse(originalTransform) //works for initial copy, not for other copies...
+									)
+								);
+                                
+
+								newLine.geometry.attributes.position = attribute;
+								newLine.geometry.attributes.position.needsUpdate = true;
+								drawnline.push(newLine);
+								mostRecentDrawnLine();
+								copiedObj2.name="linegroup";
+								copiedObj2.add(newLine);	
+							}									
+						}
+						
+						/* this isn't necessary... */
+					/*	copiedObj2.applyMatrix(
+									
+										new THREE.Matrix4().getInverse(copiedObj2.matrixWorld)
+									
+								);
+						copiedObj2.applyMatrix(
+									plane.matrixWorld.clone().multiply(
+										//new THREE.Matrix4().getInverse(plane.matrixWorld)
+										// new THREE.Matrix4().getInverse(newLine.planeTransform) right location but disintegrated
+										new THREE.Matrix4().getInverse(copiedObj2.children[0].planeTransform) //works for initial copy, not for other copies...
+									)
+								);*/
+						
+						objContainer.add(copiedObj2);
+						
+						/*var bbox = new THREE.BoundingBoxHelper( copiedObj2, 0xff0000 );
+						bbox.update();
+						scene.add( bbox );*/
+				
+						console.log("drawn lines " + drawnline.length);
+				}
+
+				
+				
+			}else{
+			alert("Nothing to paste!");	
+		}
+                   		
+                   		
+                
+	
+	}
+	 
+    function onVRDoodlerKeyDown(evt) {
 
                 switch (evt.keyCode) {
-
+					case 27: //ESC
+						$('html,body').css('cursor','pointer');
+					
+					break;
                    case 68: //d draw mode
                    		toggleDrawMode();
                    			 					  	
@@ -1104,21 +1757,8 @@
                    case 67: //ctrl-c  copy! 
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
-                   			var id = currentIntersected.uuid;                			
-                   			
-                   			//TODO getParent, copy all lines
-                   			
-                   			
-                   			function findUUID(line) { 
-								return line.uuid == id;
-							}
-							
-                   		    lineToCopyIndex = drawnline.findIndex(findUUID);
-                   		    if (drawnline[lineToCopyIndex].parent.name == "linegroup")
-                   		    	copiedObj = drawnline[lineToCopyIndex].parent;
-                   		    	//else what.. what else would be copied if every line now is in a group
-                   		   // elscopiedObj = drawnline[lineToCopyIndex].clone();
-                   		    //copiedLine.position.set( 0, 0, 0 );
+                   		bIsDrawing=false;
+                   			copySelectedLine();
                    			
                    		}	
                    		
@@ -1128,50 +1768,13 @@
                    	
                    case 86: //ctrl-v  paste! 
                    
+                   
                    evt.preventDefault();  
-                   	if (evt.ctrlKey || evt.metaKey){
-                   		if (currentIntersectedPoint && copiedObj){
-                   		
-							//if userSettings.userLevel == 'advanced'), use plane?		
-							var copiedObj2;
-							if (copiedObj.name == "linegroup"){
-								
-									copiedObj2 = new THREE.Object3D();
-									for (l = 0;l<copiedObj.children.length;l++){
-									
-                                        var originalTransform = copiedObj.children[l].planeTransform;
-                                        if (originalTransform) { 
-    										var newLine = copiedObj.children[l].clone();
-    										//newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
-    										newLine.planeTransform = originalTransform;
-    										newLine.geometry= newLine.geometry.clone();
-    										
-    										var attribute = newLine.geometry.attributes.position;
-                                            newLine.geometry.applyMatrix(
-                                                plane.matrixWorld.clone().multiply(
-                                                    new THREE.Matrix4().getInverse(originalTransform)
-                                                )
-                                            )
-                                            
-    										newLine.geometry.attributes.position = attribute;
-    										newLine.geometry.attributes.position.needsUpdate = true;
-    										drawnline.push(newLine);
-    										mostRecentDrawnLine();
-    										copiedObj2.name="linegroup";
-    										copiedObj2.add(newLine);	
-					                    }									
-									}
-									objContainer.add(copiedObj2);
-							
-									console.log("drawn lines " + drawnline.length);
-								}
-	
-                   			
-                   			
-                   		}	
-                   		
-                   		
-                   	}
+					if (evt.ctrlKey || evt.metaKey){
+					bIsDrawing=false;
+						pasteCopied();
+					}
+                  
                    	break;
                    	
                    	
@@ -1180,11 +1783,14 @@
                    	case 90: //control-z to erase last
                    	if (evt.ctrlKey || evt.metaKey){
                    		if (mostRecentDrawnLine()){
+                   		bIsDrawing=false;
                    			var deletedLineToBe = mostRecentDrawnLine();
                    			deletedLineToBe.geometry.attributes.position.array = [];
+                   			
                    			deletedLineToBe.geometry.dispose();
-                   			drawnline.pop();
                    			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			drawnline.pop();
+                   			
                    			mostRecentDrawnLine();
                    			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
                    		}
@@ -1192,9 +1798,13 @@
                  
                    	break;
                    	case 8: //backspace  
-                   		evt.preventDefault();  //otherwise loses drawing by going to past page!
-                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
-                   		 	
+                   		  //otherwise loses drawing by going to past page!
+                   		if (evt.target.nodeName == "INPUT"){ //carry on
+                   			
+                   		
+                   		}else if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   		 	evt.preventDefault();
+                   		 	bIsDrawing=false;
                    			var id = currentIntersected.uuid;                			
                    			
                    			function findUUID(line) { 
@@ -1204,6 +1814,7 @@
                    			var lineToEraseIndex = drawnline.findIndex(findUUID);
                    			var deletedLineToBe =drawnline[lineToEraseIndex];
                    			deletedLineToBe.geometry.attributes.position.array = [];
+                   			
                    			deletedLineToBe.geometry.dispose();
                    			
                    			drawnline.splice(lineToEraseIndex,1);
@@ -1216,9 +1827,7 @@
                
                 }
             }
-            
-            
-     function onVRDoodlerKeyUp(evt) {
+      function onVRDoodlerKeyUp(evt) {
       	switch (evt.keyCode) {
       		case 71: //g to erase last             	
 				//make plane 'snapped' to grid, so to speak
@@ -1235,302 +1844,13 @@
 			break;
         }
      }
-     
-     
-     
-     /* with camera position and the object with which we want to align a line, transform
-     where the projection thinks the mouse is to where we want it to be */
-     
-	function transformSrcToDestination(source, destination){  //destination as a grid, plane, etc
-			
-			var cameraclone = camera.clone();
-			
-			var destpos= cameraclone.position.clone(); 
-			var camPos = cameraclone.position.clone(); 
-			
-			
-			var srcDestDiff = destination.clone().sub(source).normalize();
-			source.sub(srcDestDiff.multiplyScalar(destination.distanceTo(source)));
-			
-			
-			return source;
-						
-			/* fyi
-			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
-			var dir = unprojectedMouse.sub( camera.position ).normalize();
-			var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
-			var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
-	
-	
-	}
-
-
-
-	function onDocumentMouseMove( evt ) {
-
-		
-		
-		if ((evt.clientX)&(evt.clientY)){
-			var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-			mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
-			mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
-		}else if (evt.targetTouches) { 
-			mouse.x= evt.targetTouches[0].clientX; 
-			mouse.y = evt.targetTouches[0].clientY; evt.preventDefault();
-		 } 
-	
-		
-	}
-
-
-
-/*sketching or raycasting... */		
-    function onSketchMove(evt){
-		evt.preventDefault();
-		onSketchMouseMove(evt);
-	
-	}	
-
-/* if draw mode, add new vertex to line as mouse moves */
-    function onSketchMouseMove(evt) {
-    
-    	//var whatZ = .5;
-        if(renderer) {
-          
-            if ((evt.clientX)&(evt.clientY)){
-				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
-				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
-			}else if (evt.targetTouches) {   //for touch events
-				mouse.x= evt.targetTouches[0].clientX; 
-				mouse.y = evt.targetTouches[0].clientY; 
-			 }             var vNow = new THREE.Vector3();
-            vNow.set(
-					mouse.x,
-					mouse.y,
-					0.5 );
+             
             
-            if(DRAWMODE ==1){
-            	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
-            	
-            		if (plane.position !== undefined  && rayPointIndSphere.position !== undefined){  //plane-of-interest better be valid!
-          		
-            			var snapToThis = rayPointIndSphere.position;
-						//if (!rayPointIndSphere)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
-							//snapToThis = lastIntersectedPoint;
-						var projectedMouse = new THREE.Vector3();
-						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
-											
-						
-						unprojectedAndTransformedMouse = rayPointIndSphere.position;
-						
-						if (SNAPPLANETOGRID ==4){//draws straight horizontal line parallel to x axis
-            				unprojectedAndTransformedMouse.x = plane.position.x;
-            				unprojectedAndTransformedMouse.z = plane.position.z;
-            			}
-            			else if (SNAPPLANETOGRID ==5){//draws straight vertical line parallel to y axis
-            				unprojectedAndTransformedMouse.y = plane.position.y;
-            				unprojectedAndTransformedMouse.z = plane.position.z;
-            			}else if (SNAPPLANETOGRID ==6){//draws straight horizontal line parallel to z axis
-            				unprojectedAndTransformedMouse.y = snapToThis.y;
-            				unprojectedAndTransformedMouse.x = snapToThis.x;
-            			}
-						updateLineBuffer(unprojectedAndTransformedMouse);
-						//currentLine().push(unprojectedAndTransformedMouse); 
-						
-						
-					}else { 
-						console.log("hmm plane not defined");
-					}
-            	}else { //freehand
-
-            		vNow.unproject(camera);
-            		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
-            		
-            		updateLineBuffer(vNow); 
-           		}
-				 //vNow.z = 0;
-        		
-        		//push subsequent vertices into master line array
-        	
-            }          
-        }
-        else{
-        console.log("renderer null");}
-    }
-    
-        
-    
-	function mostRecentDrawnLine(){
-		CURRENTspline = drawnline.length -1;
-		return drawnline[CURRENTspline];
-	}
-
-    function onSketchTouchUp(evt){
-
-
-		evt.preventDefault();
-		document.removeEventListener("touchmove",onSketchTouchMove,false);
-		if (evt.target.nodeName == 'CANVAS')
-			onSketchMouseUp(evt);
-		else
-			event.target.click();
-	
-	}		    
-    
-    /* after initing new line
-    */
-    function onSketchMouseUp(evt) {
-    	document.removeEventListener("mousemove",onSketchMouseMove,false);
-  	
-    	if (DRAWMODE ==1){
-    	
-			bIsDrawing=false;
-			
-			//now that we are done drawing, trim drawn array to number of master line's vertices 
-    		var positions = mostRecentDrawnLine().geometry.attributes.position.array;
-    		
-    		
-    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3 );
-    			
-    			
-    		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
-    		currentIntersected = undefined;
-			currentIntersectedPoint = undefined			
-    	
-    		console.log("currentIntersectedPoint reset");
-
-    		}        
-    }
-   
-	/* update the line with the new vertices coming from onvrhmousemove*/
- function updateLineBuffer(newvec) {
-		if (mostRecentDrawnLine()){
-		
-			//get array and update it with the new line vertices
-			var positions = mostRecentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
-			
-			var index = countVertices *3 ;
-			
-			if (newvec){
-				positions[index ++] = newvec.x;
-				positions[index ++] =newvec.y;
-				positions[index ++] =newvec.z;
-			}
-			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
-			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
-			
-			countVertices++;
-			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices);
-			
-		}
-	}
-	
-	
-
-
-
-	function onSketchStart(evt){
-		
-		evt.preventDefault();
-		if (evt.target.nodeName == 'CANVAS'){
-			//what we need for touch is to raycast the mouse touch coord to the grid
-			if (evt.targetTouches)
-				planeLockOutline.position.add(evt.targetTouches);
-			onSketchMouseDown(evt);
-			
-		}
-		//else
-		//	event.target.click();
-	}
-
-
-    /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
-    according to unprojected mouse vector 
-    
-    ps - we wat to make darwing work with the mobile's accelerometer at some point*/
-    
-     function onSketchMouseDown(evt) {
-     
-   		if(evt.which == 3) return;      	
-    	if (evt.target.nodeName == 'CANVAS'){
-          	
-          	if ((evt.clientX)&(evt.clientY)){
-				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
-				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
-				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
-			}else if (evt.targetTouches) {   //for touch events
-				mouse.x= evt.targetTouches[0].clientX; 
-				mouse.y = evt.targetTouches[0].clientY; 
-			 } 
-          	
-          	
-          
-       		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-			if (DRAWMODE == 1){
-			
-			
-				//was there an intersection with a line? if so, save it b/c we are about to raycast the plane instead
-				lastLineIntersection = (currentIntersected && currentIntersected.name == "line")?currentIntersected:null;
-				bIsDrawing=true;
-				
-				if (SNAPMODE ){ /*originate line according to intersected object. 	
-								  either grid or previously drawn line via plane-of-interest*/
-				
-					//ok, now raycast the plane.  it's here b/c this event happens before the animate event
-					planeLockOutline.geometry.computeBoundingSphere(); 
-					var intersects = raycaster.intersectObjects([planeLockOutline], true); //doesn't work for touch btw. bounding box is origin 0
-					currentIntersectedPoint = handleRayIntersections(intersects);
-				
-					var snapTo = currentIntersectedPoint;
-					//if no currentIntersection, and is drawing, have to wait a round or two to get intersection
-					
-					if (snapTo){
-						initNewLine(snapTo , false);
-						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
-					}
-				}else { //freehand draw
-						initNewLine(mouseVec, true);									
-				} 			
-				//set up for drawing line
-				document.addEventListener("mousemove",onSketchMove,false);
-				document.addEventListener("mouseup",onSketchMouseUp,false);
-				//document.addEventListener("touchmove",onSketchMove,false);
-				//document.addEventListener("touchup",onSketchTouchUp,false);				
-			}
-        }
-    }
-    
-    
 // animate
 	function printVerts(){		
 		
 	}
-		
 	
-	function makeDrawingPlane(planePos, name){
-			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.5,side: THREE.DoubleSide } );
-			
-			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
-			planeLockOutline.scale.x = 50;
-			planeLockOutline.scale.y = 50;
-			planeLockOutline.position.set( 0, 0, 0 );
-			planeLockOutline.position.copy(planePos);
-			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
-			
-			var cameraclone = camera.position.clone();
-			cameraclone.setY(planeLockOutline.position.y);
-			planeLockOutline.lookAt(cameraclone);
-
-			planeLockOutline.visible = true;
-			planeLockOutline.name = name;
-			planeLockOutline.material.wireframe = true;
-			planeLockOutline.material.wireframeLinewidth = 5;
-			scene.add(planeLockOutline); //note- can adding this to raycasting objects
-			
-			return planeLockOutline;
-
-	}
 	
 	function lockPlanesParallelToYAxis(inner, outer){
 	
@@ -1548,7 +1868,7 @@
 		 return planeObj;
 	
 	}
-	
+		
 	
 /* the little plane indicates location and direction
    the outline plane is the canvas/plane on which to draw... I guess it could be a vertical grid
@@ -1590,34 +1910,10 @@
 		return false;
 	
 	}
-		
-	function makePhotoSphere( tex, w, h){
-	
-	
-			var mesh;
-			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
-			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
-			mesh.name="photosphere";
-			mesh.position.set(0,8,0);
-			objContainer.add(mesh);
-			
-			return mesh;
-	}
-	
 
 	
 	
 	
-	function makePhotoPlane( tex, w, h){
-			var mesh;
-			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
-			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
-			mesh.name="photoplane";
-			mesh.position.set(0,0,0);
-			objContainer.add(mesh);		
-			return mesh;
-	}
-
 	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
 	//shader code currently commented out...
 	//maybe be able to select line and make thicker or thinner (nice to have...)
@@ -1756,7 +2052,7 @@
 
 	function runPlayBack(){
 		runLinesPlayBack();
-		runCameraPlayBack(controls, .075); //orbit or straight path
+		//runCameraPlayBack(controls, .075); //orbit or straight path
 	}
 
 		
@@ -1769,7 +2065,10 @@
 		camera.updateMatrixWorld();
 		camera.updateProjectionMatrix();
 		
-		if (!runPlayBack() && DRAWMODE ==1){
+		if ( videoTexture ) 
+			videoTexture.needsUpdate = true;
+		
+		if (!runPlayBack() && canDraw()){
 			raycaster.setFromCamera( mouse, camera );
 			
 			//doesn't work for touch events b/c have to touchstart to get coords
@@ -1804,24 +2103,26 @@
 		if (STEREOSCOPIC){
 		
 			 orientControls.update();
-			 vrmanager.render(scene, camera, timestamp);
+			vrmanager.render(scene, camera, timestamp);
 			
 		
     
   		}else{
-  			if (controls.gizmo) controls.gizmo["translate"].show();
-  			controls.update(pbclock.getDelta()); //this should do the autoRotate for photosphere/playback
-  		
-			/*minicamera.position.set(5,5,5);
-			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+  			//if (controls.gizmo) controls.gizmo["translate"].show();
+  			defaultControls.update(pbclock.getDelta()); //this should do the autoRotate for photosphere/playback
+  		  	
+  		  	if (!inMobileMode()){
+				minicamera.position.set(5,5,5);
+				minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
 				
-			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
-			renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
-			renderer.setScissor( 10, 10, 200, 200  );
-						//renderer.setScissorTest( true );
-						//renderer.setClearColor( view.background );
-			minicamera.updateProjectionMatrix();
-			//renderer.render( scene, minicamera );*/
+				renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
+				renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
+				renderer.setScissor( 10, 10, 200, 200  );
+							//renderer.setScissorTest( true );
+							//renderer.setClearColor( view.background );
+				minicamera.updateProjectionMatrix();
+				renderer.render( scene, minicamera );
+			}
 				
 					
 			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	

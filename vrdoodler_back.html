@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<!--  <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">VRDoodler</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="www.vrdoodler.com" property="cc:attributionName" rel="cc:attributionURL">VRDoodler</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.<br />Based on a work at <a xmlns:dct="http://purl.org/dc/terms/" href="github.com/cindyloo/vrdoodler" rel="dct:source">github.com/cindyloo/vrdoodler</a>
+-->
+<head>
+	<meta charset="utf-8">
+	<title>VRDoodler!!!-beta</title>
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+
+
+<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+<script src="js/three.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/exporters/OBJExporter.js"></script>
+<script src="js/loaders/OBJLoader.js"></script>
+
+<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/controls/VRControls.js"></script>
+<script src="node_modules/webvr-boilerplate/node_modules/three/examples/js/effects/VREffect.js"></script>
+
+<script src="js/webvr-polyfill.js"></script>
+<script src="js/webvr-manager.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-75274623-1', 'auto');
+	ga('send', 'pageview');
+</script>
+
+<body>
+	<p id="browserError"></p>
+	<div class="top-unit">
+		<h1><a href="index.html"><img class="logo" src="assets/images/vrdoodler_icon.png"></a></h1>
+		<input id="stereoView" class="tt" type="button" data-toggle="tooltip" value="" title="Preview/Mobile view: not fully implemented"><i class="glyphicon glyphicon glyphicon-sunglasses"></i></input>
+	</div>
+
+	<div class="hero-unit">
+		<div id="tabs"><a id="begTab" class="selected" href="#">beginner</a><a id="advTab" href="#">advanced</a></div>
+		<section>
+			<ul>
+				<li><form class="draw_mode">
+					<input id="draw" class="mytt" type="radio" name="drawmode" value="1" data-toggle="tooltip" title="Click or press 'd' to toggle drawing mode" /><span class="input_label"><span class="keyboard_shortcut">d</span>raw</span>
+					<input id="orbit" type="radio"  name="drawmode" value="0"/><span class="input_label">orbit</span>
+					<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+				</form></li>
+
+				<li><form><input id="snapTo" type="checkbox" class="mytt" disabled name="mode" value="snapTo" data-toggle="tooltip" title="Click to or press 's' to toggle snapping mode" /><span class="input_label"><span class="keyboard_shortcut">s</span>nap to grid</span></form></li>
+
+				<li><p class="input_label">Line Width</p><div id="lineWidthSlider"></div></li>
+
+				<li><input id="rotateX" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Click or press 'r' to rotate view 90 degrees. Beginner Mode rotates only around origin."><i class="glyphicon glyphicon-repeat"></i></input>
+					<input id="copy" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Copy currently selected line. Hint: use ctrl-c"><i class="glyphicon glyphicon-copy"></i></input>
+					<input id="paste" class="mytt" type="button" data-toggle="tooltip" data-placement="bottom" value="" title="Paste currently selected line. Hint: use ctrl-v"><i class="glyphicon glyphicon-paste"></i></input>
+				</li>
+
+				<li>
+					<div>
+						<div id="preview" class="loadFiles">
+							<input type="file" name="file" id="import" class="inputfile tt" />
+							<label for="import" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Image</label>
+						</div>
+						<form class="load_mode">
+							<input id="photoplane" class="mytt" type="radio" name="loadmode" value="1" data-toggle="tooltip" title="Load image as a plane" /><span class="input_label">Photoplane</span>
+							<input id="photosphere" type="radio"  name="loadmode" value="0"/><span class="input_label">Photosphere</span>
+							<!--<input id="move" type="radio"  name="drawmode" value="2"/><span class="input_label">move</span> -->
+						</form>
+						<a class="imgclose" id="imgclose"></a>
+						
+					</div>
+				</li>
+				<li>
+					<div>
+						<div id="previewObj" class="loadFiles">
+							<input type="file" name="file" id="importObj" class="inputfile tt" />
+							<label for="importObj" data-toggle="tooltip" title="Click to import an object: OBJ ">Load OBJ</label>
+						</div>
+						
+						
+					</div>
+				</li>
+				
+				<li>
+					<div>
+						<div id="previewAudio" class="loadFiles">
+							<input type="file" name="file" id="importAudio" class="inputfile tt" />
+							<label for="importAudio" data-toggle="tooltip" title="Click to import an object: OBJ ">Load Audio</label>
+						</div>
+						
+						
+					</div>
+				</li>
+
+				<li><input id="exportLine" type="button" class="tt" value="Download" data-toggle="tooltip" title="Export drawing as an OBJ file"/></li>
+
+				<li><div><input id="playback" type="button" class="tt" value="PlayBack" data-toggle="tooltip" title="Animate your drawing!"/><div id="playBackSpeedSlider"></div></div></li>
+
+				<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid">Show Grid</label></li>
+			</ul>
+		</section>
+		<section>
+			<i id="help" class="glyphicon glyphicon-info-sign"></i>
+			<div id="tuteInstructions"></div>
+			<p>Help and Quick Keys</p><br/>
+			<ul>
+				<li>To lock plane to selection while drawing: {HOLD shift}</li>
+				<li>To draw along ground: <br/>{HOLD ctrl-g}</li>
+				<li>To draw straight vertical line: <br/>{HOLD ctrl-shift-g} </li>
+				<li>To draw straight horizontal line: <br/>{HOLD ctrl-alt-g} </li>
+				<li>To draw flat along world z axis: <br/>{HOLD alt-g}</li>
+			</ul>
+		</section>
+		<div id="infoPanel" >
+			<h3>Log:</h3>
+		</div>
+		<label id="mousecoords" value=""></label>
+	</div>
+</body>
+
+<script>
+	var camera, scene, expScene, renderer, orbitcamera, light;
+	var geometry, material, mesh;
+	var controls, minicamera;
+	var effects, vrmanager;
+	var defaultControls, orientControls, transformControls;
+	var transGeo, transMat;
+	var context = null;
+	var currentPlane = 0;
+	var drawnline = [];
+	var container, canvas;
+
+	var manager;
+
+	var MAX_POINTS = 2000;
+	var PB_LINE_VERTEX_COUNT_MAX = 0; //change this once we get our first line...
+	var countVertices = 0;
+	var sketchContainer, objContainer;
+	var CURRENTspline = -1; //incremented at initNewLine
+	var raycaster, parentTransform, planeLockInd, rayPointIndSphere, planeLockOutline, grid;
+	var mouse = new THREE.Vector2();
+	var mouseXOFFSET = 1.01;
+	var mouseYOFFSET = .975;
+	var currentIntersected, currentIntersectedPoint, lastIntersected, lastIntersectedPoint;
+	var lastLineIntersection = null;
+	var currentMouseRay;
+	var horizonMesh;
+	var bIsDrawing = false;
+	var bShowInfo = true;
+
+	var copiedObj = null;
+
+	var ORBITMODE = 0; //when not drawing
+	var FREEHANDMODE = 1; //when drawing
+	var SNAPMODE = 0; //snap to pre-existing line/objects	
+	var DRAWMODE = 0; //ORBITMODE;
+	var MOVEMODE = 0;
+	var CURRENTLINEWIDTH = 2;
+	var PLANEROTATIONCOLOR = 0xff000;
+	var PLANELOCK = 0;  //lock currentIntersection
+	var STEREOSCOPIC = 0;
+
+	var SNAPPLANETOGRID = 0;
+
+	var cameraAngle, dollyAngle = 0;
+	var pivotRadius = 1;
+	var pivotPoint;
+	var initCamRotPos = 0;
+	var squareAngle = 90 * Math.PI/180;
+	var plane, planegeo, planemat, planeBoundsMat, planeBounds;
+	var PLANEROTATE = 0;
+	var COLOR = 0;
+	var linematerial = null;
+
+	var edges, cameraHelp;
+
+	var start = Date.now();
+	var pbclock = new THREE.Clock();
+	var PLAYBACK = 0;
+	var playBackCount = 0;
+	var DOLLY = 1;
+	var PLAYBACKSPEED = .0045;
+	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
+
+	var dollyPath;
+	var userSettings = {};
+
+	var defUserSettings = {
+		userLevel:0,
+		snapMode:1,
+		drawMode:1,
+		lockPlane:1
+	};
+	
+	var advUserSettings = {
+		userLevel:2,
+		snapMode:0,
+		drawMode:0,
+		lockPlane:1
+	};
+
+	var tuteBegPhrases = [
+		"Press the mouse to begin drawing.",
+		"When you are done drawing, let go of the mouse",
+		"Hover over the previous drawn line. Note how the intersection point color changes depending on object intersected.",						
+		"When you see the red dot, you can connect a new line to the selected line",
+		"You can also toggle the 'd' key to stop drawing and rotate the view to a specific perspective",
+		"You can also press r to rotate. It is best if you toggle drawing off while rotating",
+		"Unclick Draw to move the camera around your drawing"
+	];
+
+	var tuteAdvPhrases = [
+		"Rotate the camera to desired view and press the d key to enter draw mode",
+		"Press the s key to snap your new line to either the grid or to a previous line",
+		"Note how the intersection point color changes depending on object intersected. Hold the shift key to ignore grid intersections.",
+		"Start drawing!",
+		"Toggle the draw key to move around drawing or press r to rotate 90 degrees to the side view of your drawing",
+		"Hover over the previous drawn line to connect your new lines",
+		"Familiarize yourself with the Snapping keys on the menu"
+	];
+	var tuteBegCount = 0;
+	var tuteAdvCount = 0;
+
+	function init() {
+		container = document.createElement( 'div' );
+		container.style.position = 'absolute';
+		container.style.top = '0';
+		container.style.width = '100%';
+		container.style.textAlign = 'center';
+		container.style.color = '#000';
+		container.style.fontWeight = 'bold';
+		container.style.backgroundColor = '#000';
+		container.style.zIndex = '1';
+		container.style.fontFamily = 'Monospace';
+		document.body.appendChild( container );
+
+	
+		scene = new THREE.Scene();
+
+    	axisHelper = new THREE.AxisHelper(500);
+    	//scene.add(axisHelper  );  
+    	
+    	
+    	light = new THREE.DirectionalLight( 0xffffff );
+		scene.add( light );
+    	renderer = new THREE.WebGLRenderer( { antialias: false } );		
+		renderer.setSize( window.innerWidth, window.innerHeight );
+	
+		renderer.autoClear = false;	
+		container.appendChild( renderer.domElement );
+	
+		camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set(1, 1, 1);
+		camera.name="orig";
+
+		minicamera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+		minicamera.name="mini";
+		scene.add(minicamera);
+		
+		
+
+		//TODO merge the settings param here - when we have a user config
+
+			   		   
+		sketchContainer = new THREE.Object3D();  //helpers etc that aren't included in raycasting
+		objContainer = new THREE.Object3D();
+		objContainer.name = "objContainer";
+		objContainer.geometry = null;
+
+  		scene.add(objContainer);
+  		scene.add(sketchContainer);
+  		
+  		var horizonPlane = new THREE.PlaneGeometry(50,50); //semi-opaque to help with orientation
+		var horizonMat = new THREE.MeshLambertMaterial( {color: 0x222222, side: THREE.DoubleSide, transparent:true, opacity:.5, depthWrite: false} );
+		horizonMesh = new THREE.Mesh( horizonPlane, horizonMat );
+		
+  		sketchContainer.add(horizonMesh);
+  		horizonMesh.position.setY(-.001);
+  		horizonMesh.rotation.x = 90 * Math.PI / 180;	
+  		
+		defaultControls = new THREE.OrbitControls( camera, renderer.domElement );		
+		orientControls = new THREE.VRControls( camera );  //new THREE.DeviceControls(camera);
+		
+		/* not using right now 
+		transformControls = new THREE.TransformControls( camera, renderer.domElement );
+		transGeo= new THREE.BoxGeometry( 1, 1, 1 );
+		transMat = new THREE.MeshBasicMaterial( {color:0xff33de } );*/
+				
+			
+		controls = defaultControls;
+
+		/*WebVR boilerplate implmentation */
+	 	effect = new THREE.VREffect(renderer);
+		effect.setSize(window.innerWidth, window.innerHeight);
+		
+	 	 var params = {
+		  hideButton: false, // Default: false.
+		  isUndistorted: false // Default: false.
+		};
+		vrmanager = new WebVRManager(renderer, effect, params);
+  		    
+   		vrmanager.button.vrButton.style.width = '50px';
+   		vrmanager.button.vrButton.style.height ='50px';
+  		raycaster = new THREE.Raycaster();
+		raycaster.linePrecision = .055;
+		
+		/*indicator sphere */
+		var geometry = new THREE.SphereGeometry( .05,2,1 );
+		var material = new THREE.MeshBasicMaterial( { color: 0xee0055 } );
+		rayPointIndSphere = new THREE.Mesh( geometry, material );
+		rayPointIndSphere.visible = false;
+		scene.add( rayPointIndSphere );
+		
+		geometry = new THREE.SphereGeometry( .1 );
+		material = new THREE.MeshBasicMaterial( { color: 0x003333 } ); //???
+		
+		planeLockInd = new THREE.Mesh( geometry, material );
+		planeLockInd.visible = false;
+		//scene.add( planeLockInd );
+		
+
+		
+		planegeo = new THREE.PlaneGeometry(.5,.5);
+		planemat = new THREE.MeshBasicMaterial( {color: 0xddcccc, side: THREE.DoubleSide, transparent:true, opacity:.4} );
+		planeBoundsMat = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.DoubleSide, transparent:true, opacity:.4} );
+		planeBoundsMat2 = new THREE.MeshBasicMaterial( {color: 0x00ff00, side: THREE.DoubleSide, transparent:true, opacity:.4} );
+
+
+		lastIntersectedPoint = new THREE.Vector3(0,0,0);		
+
+
+		window.addEventListener('resize', onWindowResize, false);
+
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchstart', onSketchStart, false);
+		
+		document.addEventListener( 'mousemove', onDocumentMouseMove, false );		
+		
+		
+		//document.getElementById('instructions').onclick = advanceInstructions;
+		
+		document.getElementById("stereoView").onclick = toggleStereoscopic;
+		document.getElementById("tabs").onclick = onTabClick;				
+		document.getElementById('draw').onclick = toggleDrawMode;
+		document.getElementById('orbit').onclick = toggleDrawMode;
+		//document.getElementById('move').onclick = toggleDrawMode;
+		document.getElementById('snapTo').onclick = snapTo;
+		document.getElementById("import").onchange = handleImport;
+		document.getElementById('photoplane').onclick = toggleLoadMode;
+		document.getElementById('photosphere').onclick = toggleLoadMode;
+		
+		document.getElementById("importObj").onchange = handleImport;
+		document.getElementById('exportLine').onclick = prepAndExport;
+		document.getElementById('grid').onclick = toggleGrid;
+		document.getElementById('rotateX').onclick = horizontalRotation;
+
+
+		
+		document.getElementById("playback").onclick = togglePlayBackMode;
+
+		/*
+		document.getElementById('colorToggle').onclick = colorToggle;*/
+		
+		//get prefs but for now
+		setTutorialLevel(0);
+		
+        var light = new THREE.DirectionalLight( 0xcccccc, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+		
+		
+		window.addEventListener('deviceorientation', setOrientationControls, true);
+            
+         document.addEventListener( 'keydown', onVRDoodlerKeyDown, false );
+		 document.addEventListener( 'keyup', onVRDoodlerKeyUp, false );
+		 manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+				console.log( item, loaded, total );
+
+		};
+	
+		
+		$(document).ready(function(){
+		
+			$('input').tooltip(); 	
+			$('input').click(function() {
+			 $("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE) );
+				
+			});	
+			
+
+			$( "#playBackSpeedSlider" ).slider({
+			  min:10,
+			  max:20,
+			  change: function( event, ui ) {
+				PLAYBACKSPEED = (ui.value)/1000;
+				}
+			});
+	
+			$( "#lineWidthSlider" ).slider({
+				min:2,
+				max:40,
+				change: function( event, ui ) {
+					CURRENTLINEWIDTH = ui.value;
+				}
+			});
+			
+		
+			$("a.imgclose").click(function(e,preview, image){
+				$(this).parent().find("img").remove();
+				
+				if ($("#photosphere").val()==1)
+					objContainer.remove(scene.getObjectByName("photosphere"));
+				else
+					objContainer.remove(scene.getObjectByName("photoplane"));
+				objContainer.remove(scene.getObjectByName(f.name));
+				$("#preview").css("margin-bottom",10);
+				$(this).css("visibility","hidden");
+			});
+				
+			$("#help").hover(function() {
+					advanceInstructions()
+				  });
+				  
+			  
+		
+			if (inMobileMode()){
+				 toggleStereoscopic();
+				 PER_MEDIA_INCREMENT = .125;
+				PLAYBACKCOUNT = 55;//slower, bigger screen
+			}else{
+				PER_MEDIA_INCREMENT = .065;
+				PLAYBACKCOUNT = 25;//slower, bigger screen
+				
+				controls.autoRotate = false;
+				controls.autoRotateSpeed = -.075
+			}
+ 
+	  });
+	
+	   
+
+	}
+	
+	/*not yet implemented*/
+	var getWhatYouCanDoMode = (function() {
+
+		/*var whatyoucando = {};
+		
+		if (input.straightline is checked)
+		
+		else if
+		
+		if (usersettings...)
+		...
+		//eg "draw","horizontal_plane", "straightline_vert", "straightline_hor",...
+		//eval usersettings, button states, return an array of can-dos
+		
+		*/
+	})();
+	
+	
+	function onTabClick( event ) {
+		select( event.target.textContent );
+	}
+	
+	function select(section){
+		$("#begTab").attr("class","");
+		$("#advTab").attr("class","");
+	
+		switch (section){
+			case "beginner":
+				$("#begTab").attr("class","selected");
+				setTutorialLevel(0);
+				break;
+			case "advanced":
+				$("#advTab").attr("class","selected");
+				setTutorialLevel(2);
+				break;
+				
+		
+		}
+	}
+	
+	/*local file download*/
+	var saveFileLocally = (function () {
+		var a = document.createElement("a");
+		document.body.appendChild(a);
+		a.style = "display: none";
+		return function (data, fileName) {
+			var json = JSON.stringify(data),
+				blob = new Blob([data], {type: "octet/stream"}),
+				url = window.URL.createObjectURL(blob);
+			a.href = url;
+			a.download = fileName;
+			a.click();
+			window.URL.revokeObjectURL(url);
+		};
+	}());
+
+
+	function prepAndExport(){
+		convertBuffGeoToGeo();
+		exportToObj();//expscene
+	
+	}
+	function convertBuffGeoToGeo(){
+		
+		expScene = new THREE.Scene();
+		for (var i = 0;i<objContainer.children.length;i++){
+			/*temp = new THREE.Mesh( drawnline[i],  linematerial );
+			temp.position.copy(drawnline[i].userData);
+			temp.name="exportedLine" + i;*/
+			if (objContainer.children[i].name == "linegroup")
+				expScene.add(objContainer.children[i].clone());
+		}
+		//return exportGeo;
+	}
+
+	function exportToObj ()
+	{				
+		var exporter = new THREE.OBJExporter();
+		var result = exporter.parse(expScene);  /*not exporting right?? only exports as mesh and buffer geometry*/
+		
+		saveFileLocally(result, "myDrawing.obj");
+		
+		/*var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("POST", "http://localhost:8080/writeObj", true);
+		xmlhttp.onreadystatechange = function () {
+		  if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+			//Handle response
+		  }
+		};
+		 xmlhttp.send(result);	*/			
+	}
+	
+
+	var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+	var onError = function ( xhr ) {
+	};
+	
+
+
+	
+	
+	function onWindowResize() {
+		var width = container.offsetWidth;
+        var height = container.offsetHeight;
+       
+	
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+           if (STEREOSCOPIC) effect.setSize(window.innerWidth, window.innerHeight);
+            render();
+	}
+
+
+
+	
+	
+
+	/*not used ...make it easier for user to draw on standard rotation*/
+	function rotateX(){
+ 		
+		//camera.lookAt(lastIntersectedPoint);
+ 		//camera.rotation.x += 90 * Math.PI / 180;	
+	}
+	function rotateY(){
+ 	
+ 		//planeBounds.rotation.y += 90 * Math.PI / 180;	
+	}
+	function rotateZ(){
+ 
+ 		//planeBounds.rotation.z += 90 * Math.PI / 180	
+	}
+	
+	
+	
+	function setPivotPoint(pt){
+		if (pivotPoint != 0){
+			pivotPoint = pt;
+			pivotRadius = camera.position.distanceTo(pivotPoint);
+		}		
+	}
+	
+
+	function cameraInitRotPos(camPos){
+		if (!initCamRotPos){
+			initCamRotPos = camPos?camPos:camera.position;	
+			cameraAngle = Math.atan(camera.position.z/camera.position.x);
+		}	
+		
+		return initCamRotPos;
+	}
+	
+	function colorCameraOrientation(){
+	
+		var vX = new THREE.Vector3(1,0,0);
+  		var vZ = new THREE.Vector3(0,0,1);
+  		
+  		var orientation = camera.getWorldDirection().normalize();
+  		
+  		var offsetToX = orientation.clone().dot(vX);  //should be z, right?
+  		var offsetToZ = orientation.clone().dot(vZ);
+  		//which offset is closer to one?
+  		PLANEROTATIONCOLOR = 0x00ffff;
+  		/*if (Math.abs(offsetToX) > Math.abs(offsetToZ)){  //closer to x
+  			
+  			if (offsetToX < 0) //x is negative
+  				PLANEROTATIONCOLOR =0xff0000;
+  			else	//x is positive
+  				PLANEROTATIONCOLOR =0xff3300;
+  		}
+  		else if (Math.abs(offsetToX) < Math.abs(offsetToZ)){   //closer to z
+  			if (offsetToZ < 0)
+  				PLANEROTATIONCOLOR = 0x0033ff;
+  			else
+  				PLANEROTATIONCOLOR = 0x00ffff;
+  		}*/
+	}
+
+	
+	function horizontalRotation(){
+		var angle = null; //for later when user could specify...
+		setPivotPoint(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+		cameraInitRotPos();
+			
+			
+		if (userSettings.userLevel=="0"){
+			currentIntersectedPoint = new THREE.Vector3(0,0,0);
+			setPivotPoint(currentIntersectedPoint);//help orient user
+			}
+		cameraAngle-=angle?angle:squareAngle; //later when a user can specify degree of rotation
+	
+		
+  		camera.position.x =  pivotPoint.x +  Math.cos(cameraAngle) * pivotRadius;
+  		camera.position.z = pivotPoint.z +  Math.sin(cameraAngle) * pivotRadius;
+  		
+  		
+  		/* help user with color coded orientation */
+  		colorCameraOrientation();
+  			
+  		planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
+
+  		controls.target =pivotPoint;
+		//camera.target = pivotPoint;
+		camera.lookAt(pivotPoint);
+		
+		if (SNAPPLANETOGRID){
+			planeLockOutline.lookAt(camera.position);
+			plane.lookAt(camera.position);
+		}
+		
+    
+} 
+
+	
+//not used
+	function togglePlaneRotateLock(){
+		PLANEROTATELOCK =PLANEROTATELOCK?0:1;	
+		 return PLANEROTATELOCK;
+	}
+	
+	
+	
+	function advanceInstructions(){
+		if (userSettings.userLevel == "0"){
+			document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
+			if (tuteBegCount > tuteBegPhrases.length -1)
+				tuteBegCount = 0;
+			}
+		else{
+			document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
+			if (tuteAdvCount > tuteAdvPhrases.length -1)
+				tuteAdvCount = 0;
+			}
+	}
+	
+	function setTutorialLevel(level){
+	
+			if (level == "0"){ //beginner
+				//maybe we keep the snap on always for beginner...
+				camera.position.x = 0;
+				camera.position.z = 5;
+				camera.position.y = .5;
+				
+				 
+				//plane = makePlanes(planemat,lastIntersectedPoint ,"guide", plane);
+				
+				$.extend(userSettings, defUserSettings );
+				
+				//snapPlane(1); //this will fix the camera position and keep the plane where it is
+				setDrawMode(userSettings.drawMode);
+				setSnapMode(userSettings.snapMode); //need this to properly pivot for rotation.
+				$("#snapTo").prop("disabled", userSettings.snapMode);
+				changeControls(false);
+				
+				setupGrid();	
+				$("#grid").prop("checked",true);
+				$("#grid").prop("disabled",true);			
+				
+				camera.lookAt(lastIntersectedPoint);
+				document.getElementById("tuteInstructions").innerHTML = tuteBegPhrases[tuteBegCount++];
+				$(".hero-unit").css("visibility","visible");
+				
+			}else if (level =="1"){
+			
+				setDrawMode(false);//allow user to set camera orbit
+				setSnapMode(true);
+				
+				setupGrid();
+				
+				
+			}else if (level ==2){ //advanced
+			
+			 	$.extend(userSettings, advUserSettings );
+				setDrawMode(userSettings.drawMode);//allow user to set camera orbit
+				setSnapMode(userSettings.snapMode);
+				$("#snapTo").prop("disabled", userSettings.snapMode);
+				changeControls(false);
+				
+				//show how to unsnap plane //unforce plane
+				
+				$(".hero-unit").css("visibility","visible");
+				setupGrid();
+				$("#grid").prop("disabled",false);	
+
+				tuteBegCount = 0;
+				document.getElementById("tuteInstructions").innerHTML = tuteAdvPhrases[tuteAdvCount++];
+				//take off all restraints
+				//don't set draw mode, snap or grid, etc
+			}
+
+	}
+
+
+	function getCurrentLineWidth(){
+		return CURRENTLINEWIDTH;
+	}
+	
+	
+
+	
+//this should really only be avail on a mobile device.  doesn't make sense other wise, does it?	
+	function toggleStereoscopic(){
+		STEREOSCOPIC = STEREOSCOPIC?0:1;
+	 	
+	 	if (STEREOSCOPIC){
+	 		$(".hero-unit").css("visibility","hidden");
+	 		$(".top-unit").css("background-color","black");
+	 		if (window.screen.width < 500)
+	 			$("#stereoView").css("visibility","hidden");
+	 		setDrawMode(0);
+	 		//setSnapMode(0);
+	 		orientControls.enabled=true;
+	 		setOrientationControls();
+	 		
+	 	}
+	 	else{
+	 		$(".hero-unit").css("visibility","visible");		
+	 		controls.enabled = true;
+       		orientControls.enabled=false;
+	 	}
+	
+		
+	
+	}
+	
+	/*will eventually offer black on white or white on black (default) */
+	function colorToggle(){
+		//TODO need to change background color in tandem...
+		COLOR = COLOR?0:1;
+		return COLOR;
+	}
+	
+	/* not yet implemented */
+	function toggleInfoPanel(){
+		//controls.stop();
+		//bShowInfo = bShowInfo?0:1;
+		return fallse;
+	}
+	function setupGrid(){
+		if (!grid){grid = new THREE.GridHelper( 20, .5 );
+			grid.name="grid";
+			grid.setColors( 0x0000ff, 0x808080 );
+			grid.position.y = 0;
+			objContainer.add( grid );
+		}
+		grid.visible = true;
+		
+	}
+	function toggleGrid(){
+		if (userSettings.userLevel >0){
+			if (grid){
+				grid.visible = grid.visible?false:true;
+				axisHelper.visible = axisHelper.visible?false:true;
+				horizonMesh.visible = grid.visible;
+			}else{
+				setupGrid();
+			}
+		}
+		$("#grid").prop("checked",grid.visible);
+	}
+
+
+	//maybe plus/minus 2?
+	function toggleCurrentLineWidth(){
+		//controls.stop();
+		CURRENTLINEWIDTH = CURRENTLINEWIDTH--;			
+		return CURRENTLINEWIDTH;
+	}
+	
+	
+      function setOrientationControls(e) {
+        if (e && !e.alpha) {
+          return;
+        }
+		controls.enabled =false;
+
+ 
+        orientControls.update();
+
+        //if (mostRecentDrawnLine() == null)
+        	//loadUserStory();
+        
+        
+        //window.removeEventListener('deviceorientation', setOrientationControls, true);
+      }
+      
+
+    
+	
+	
+	
+	function changeControls(resetCam){
+	 	var prevCamera = camera;
+
+		
+		if (resetCam){
+			camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
+			camera.name="new";
+		
+			camera.position.copy( prevCamera.position );
+			camera.rotation.copy( prevCamera.rotation );
+		}
+	
+			if(STEREOSCOPIC) return;
+	
+			if (DRAWMODE == 2){ //MOVEMODE){
+			document.removeEventListener('mousedown', onSketchStart, false);
+			
+			document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			//document.removeEventListener('touchdown', onSketchStart, false);
+			
+			scene.remove(plane);
+			scene.remove(planeLockOutline);
+			scene.remove( transformControls );
+			scene.remove(scene.getObjectByName("transform"));
+			controls.enabled = false;
+				
+				
+				controls = transformControls;
+				
+			
+				
+				controls.addEventListener( 'change', render );
+				//controls.detach( mesh );
+
+				//var mesh = new THREE.Mesh( transGeo, transMat );
+				//mesh.name = "transform";
+				//scene.add( mesh );
+				//mesh.position.set(0,0,0);
+				controls.attach( lastIntersected );
+				scene.add( controls );
+				controls.enabled = true;
+				//controls.setMode( "translate" );
+				//controls.gizmo["translate"].show();
+				
+
+		}else if (DRAWMODE ==0){
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchdown', onSketchStart, false);
+			document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+			controls = defaultControls;
+			controls.enabled = true;
+			controls.object = camera;
+			  
+					
+			
+		}else{ //
+		document.addEventListener('mousedown', onSketchStart, false);
+		//document.addEventListener('touchdown', onSketchStart, false);
+		document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+		controls = defaultControls;
+			controls.object = camera;
+			controls.enabled = false;
+			 		
+		}
+		controls.target = lastIntersectedPoint;
+		if (!PLAYBACK) camera.lookAt(lastIntersectedPoint);
+	
+		camera.updateProjectionMatrix();
+        colorCameraOrientation();
+	}
+	
+
+	
+	function setDrawMode(type){
+	 	DRAWMODE = parseInt(type);
+	 	$("#draw").prop("checked",(DRAWMODE ==1));
+	 	$("#orbit").prop("checked",(DRAWMODE==0));
+	 	$("#move").prop("checked",(DRAWMODE==2));
+	 	$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));
+		console.log("draw mode is " + DRAWMODE);
+	
+		if (DRAWMODE)
+        	$('html,body').css('cursor','pointer');
+        else 
+        	$('html,body').css('cursor','move');
+        	
+        return DRAWMODE;
+	}
+	
+	
+/* if draw, mouse draws (snapping or not). if false, mouse moves camera */
+	function toggleDrawMode(e){
+	var target ;
+       if (e == null) target = DRAWMODE?0:1;
+       else target = e.currentTarget.value;
+		setDrawMode(target);   
+     
+		changeControls(true);		
+    	return DRAWMODE;
+	}
+	
+	function toggleLoadMode(e){
+		//var LOADTOG = $("#photoplane").prop("checked");
+		//$("#photosphere").val(!LOADTOG);
+	 	//$("#photosphere").val(!LOADTOG);
+	}
+	
+
+
+	
+	function setSnapMode(onoroff){
+
+		SNAPMODE = onoroff;
+		$("#snapTo").prop("checked",SNAPMODE);
+		$("#infoPanel").text("Draw Mode is " + DRAWMODE + " Line Width is " + CURRENTLINEWIDTH + " Snap Mode is " + (SNAPMODE));	
+	
+		return SNAPMODE;
+	}
+	
+	function snapTo(){
+		if (userSettings.userLevel){
+			if (SNAPMODE){
+				scene.remove(plane);
+				scene.remove(planeLockOutline);
+				$("#freehand").prop("checked",true);
+				rayPointIndSphere.visible = false;
+			}else{			
+				$('html,body').css('cursor','crosshair');
+			}
+			
+			SNAPMODE = SNAPMODE?setSnapMode(0):setSnapMode(1);
+			changeControls(true);
+		}	
+ 		return SNAPMODE;
+	}
+	
+	/*reset rotation so plane can be oriented along grid  via key strokes */
+	function snapPlanesToLocal(keepOrientation){
+	
+		var cameraclone = camera.clone();
+		cameraclone.position.y = 0;
+	
+		if (plane){
+			plane.rotation.x= 0;
+			plane.rotation.z= 0;
+			
+			cameraclone.position.setY(planeLockOutline.position.y);
+			planeLockOutline.lookAt(cameraclone.position); //at same level as y of intersection
+			plane.lookAt(cameraclone.position); 	
+			
+			if (!keepOrientation){
+				plane.rotation.y= 0;
+				planeLockOutline.rotation.y = 0;
+			}
+			
+		}
+	}
+	
+	
+	
+	function snapPlane(mode, keepOrientation){
+		SNAPPLANETOGRID = mode;  
+        $("#infoPanel").text("SNAPPLANETOGRID ON:" + SNAPPLANETOGRID);
+        snapPlanesToLocal(keepOrientation); 
+	
+	}
+			
+	function onVRDoodlerKeyDown(evt) {
+
+                switch (evt.keyCode) {
+
+                   case 68: //d draw mode
+                   		toggleDrawMode();
+                   			 					  	
+                   break;
+                    /*case 65: // a for axis 
+                    
+                        PLANEROTATE = PLANEROTATE?0:1;
+                        edges.update();
+                  
+                        break;
+                     */   
+                   case 16: //shift 
+                   planeLockOutline.material.wireframe = false;
+				  	PLANELOCK =true;
+				   	$("#infoPanel").text("PLANE LOCKED TO P-O-I");	
+				   	planeLockOutline.material.opacity = .3;
+					break;     
+                     
+                    case 71: // g for grid,  make plane 'snapped' to grid along one or two of the axes, so to speak
+                    planeLockOutline.material.wireframe = false;
+                    	planeLockOutline.material.opacity = .3;  
+                       if (evt.shiftKey && (evt.ctrlKey || evt.metaKey)){  //d
+                   			//will draw straight vertical line parallel to x axis
+                   			snapPlane(4);
+              
+                   		}else if ((evt.ctrlKey || evt.metaKey) && evt.altKey){
+                   			//will draw straight horizontal line parallel to x axis
+                   			snapPlane(5); 
+                   			planeLockOutline.rotation.z = squareAngle;
+                   		
+                   		}else if (evt.altKey){
+                   			//draw along z
+                   			snapPlane(6); 
+                   			planeLockOutline.rotation.y = squareAngle;
+                   		
+                   		}else if (evt.shiftKey){
+							//draws at fixed 'squared' plane  No x, y z rotation	
+							
+                   			snapPlane(2);  
+                   			
+                   		}else if (evt.ctrlKey || evt.metaKey){  //draw on horizontal plane
+                   			//Draw at fixed y with x.rotation = 90 degrees
+                   		
+                   			snapPlane(3);  
+                   			planeLockOutline.rotation.x = squareAngle;
+                   			
+                   		}else {
+                   			toggleGrid();
+                   		}
+                   		
+                  
+                        break;
+                        
+                        
+                     case 82: //r for rotate panel 90
+						
+						horizontalRotation();
+							
+						break;
+                    case 83: //snap to s	
+						snapTo();
+						break;
+					/* case 80: //p audio
+                    	if (CURRENTCOLLISION){
+                    		if(CURRENTCOLLISION.userData.audio)
+                    			loadProximalSound(CURRENTCOLLISION.userData.configOrder);
+                    	
+                    	}
+                     */   
+                    break;
+                 
+                     
+     
+                   	
+                   case 67: //ctrl-c  copy! 
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   			var id = currentIntersected.uuid;                			
+                   			
+                   			//TODO getParent, copy all lines
+                   			
+                   			
+                   			function findUUID(line) { 
+								return line.uuid == id;
+							}
+							
+                   		    lineToCopyIndex = drawnline.findIndex(findUUID);
+                   		    if (drawnline[lineToCopyIndex].parent.name == "linegroup")
+                   		    	copiedObj = drawnline[lineToCopyIndex].parent;
+                   		    	//else what.. what else would be copied if every line now is in a group
+                   		   // elscopiedObj = drawnline[lineToCopyIndex].clone();
+                   		    //copiedLine.position.set( 0, 0, 0 );
+                   			
+                   		}	
+                   		
+                   		
+                   	}
+                   	break;
+                   	
+                   case 86: //ctrl-v  paste! 
+                   
+                   evt.preventDefault();  
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (currentIntersectedPoint && copiedObj){
+                   		
+							//if userSettings.userLevel == 'advanced'), use plane?		
+							var copiedObj2;
+							if (copiedObj.name == "linegroup"){
+								
+									copiedObj2 = new THREE.Object3D();
+									for (l = 0;l<copiedObj.children.length;l++){
+									
+                                        var originalTransform = copiedObj.children[l].planeTransform;
+                                        if (originalTransform) { 
+    										var newLine = copiedObj.children[l].clone();
+    										//newLine.planeTransform = plane.matrixWorld;  //bc 2nd gen copied lines need get past this..
+    										newLine.planeTransform = originalTransform;
+    										newLine.geometry= newLine.geometry.clone();
+    										
+    										var attribute = newLine.geometry.attributes.position;
+                                            newLine.geometry.applyMatrix(
+                                                plane.matrixWorld.clone().multiply(
+                                                    new THREE.Matrix4().getInverse(originalTransform)
+                                                )
+                                            )
+                                            
+    										newLine.geometry.attributes.position = attribute;
+    										newLine.geometry.attributes.position.needsUpdate = true;
+    										drawnline.push(newLine);
+    										mostRecentDrawnLine();
+    										copiedObj2.name="linegroup";
+    										copiedObj2.add(newLine);	
+					                    }									
+									}
+									objContainer.add(copiedObj2);
+							
+									console.log("drawn lines " + drawnline.length);
+								}
+	
+                   			
+                   			
+                   		}	
+                   		
+                   		
+                   	}
+                   	break;
+                   	
+                   	
+                   	
+                   	
+                   	case 90: //control-z to erase last
+                   	if (evt.ctrlKey || evt.metaKey){
+                   		if (mostRecentDrawnLine()){
+                   			var deletedLineToBe = mostRecentDrawnLine();
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
+                   			drawnline.pop();
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
+                   			console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
+                   		}
+                   	}
+                 
+                   	break;
+                   	case 8: //backspace  
+                   		evt.preventDefault();  //otherwise loses drawing by going to past page!
+                   		if (currentIntersected.name == "line" || currentIntersected.name == "lineimported"){
+                   		 	
+                   			var id = currentIntersected.uuid;                			
+                   			
+                   			function findUUID(line) { 
+								return line.uuid == id;
+							}
+							console.log("drawn line " + drawnline.length + " currentindex " + CURRENTspline);
+                   			var lineToEraseIndex = drawnline.findIndex(findUUID);
+                   			var deletedLineToBe =drawnline[lineToEraseIndex];
+                   			deletedLineToBe.geometry.attributes.position.array = [];
+                   			deletedLineToBe.geometry.dispose();
+                   			
+                   			drawnline.splice(lineToEraseIndex,1);
+                   			deletedLineToBe.parent.remove(deletedLineToBe);
+                   			mostRecentDrawnLine();
+                   			//get it out of drawnline
+                   			
+                   		}
+                   	break;
+               
+                }
+            }
+            
+            
+     function onVRDoodlerKeyUp(evt) {
+      	switch (evt.keyCode) {
+      		case 71: //g to erase last             	
+				//make plane 'snapped' to grid, so to speak
+				SNAPPLANETOGRID = false;
+				 $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+            break;
+                   	
+			case 16: //shift 
+			  SNAPPLANETOGRID =false;
+			  PLANELOCK =false;
+			  planeLockOutline.material.wireframe = true;
+			  	planeLockOutline.material.opacity = 1;
+			   $("#infoPanel").text("SNAPPLANETOGRID OFF");	
+			break;
+        }
+     }
+     
+     
+     
+     /* with camera position and the object with which we want to align a line, transform
+     where the projection thinks the mouse is to where we want it to be */
+     
+	function transformSrcToDestination(source, destination){  //destination as a grid, plane, etc
+			
+			var cameraclone = camera.clone();
+			
+			var destpos= cameraclone.position.clone(); 
+			var camPos = cameraclone.position.clone(); 
+			
+			
+			var srcDestDiff = destination.clone().sub(source).normalize();
+			source.sub(srcDestDiff.multiplyScalar(destination.distanceTo(source)));
+			
+			
+			return source;
+						
+			/* fyi
+			this Stack Overflow answer  did not work for me re: z differences.  the distanceTo made it work	
+			var dir = unprojectedMouse.sub( camera.position ).normalize();
+			var distance = (-currentIntersectedPoint.z- camera.position.z) / dir.z;
+			var pos = unprojectedMouse.clone().add( dir.multiplyScalar( distance ) );*/
+	
+	
+	}
+
+
+
+	function onDocumentMouseMove( evt ) {
+
+		
+		
+		if ((evt.clientX)&(evt.clientY)){
+			var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+			mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+			mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+		}else if (evt.targetTouches) { 
+			mouse.x= evt.targetTouches[0].clientX; 
+			mouse.y = evt.targetTouches[0].clientY; evt.preventDefault();
+		 } 
+	
+		
+	}
+
+
+
+/*sketching or raycasting... */		
+    function onSketchMove(evt){
+		evt.preventDefault();
+		onSketchMouseMove(evt);
+	
+	}	
+
+/* if draw mode, add new vertex to line as mouse moves */
+    function onSketchMouseMove(evt) {
+    
+    	//var whatZ = .5;
+        if(renderer) {
+          
+            if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= evt.targetTouches[0].clientX; 
+				mouse.y = evt.targetTouches[0].clientY; 
+			 }             var vNow = new THREE.Vector3();
+            vNow.set(
+					mouse.x,
+					mouse.y,
+					0.5 );
+            
+            if(DRAWMODE ==1){
+            	if (SNAPMODE){  /*TODO add ability to draw between two planes...*/
+            	
+            		if (plane.position !== undefined  && rayPointIndSphere.position !== undefined){  //plane-of-interest better be valid!
+          		
+            			var snapToThis = rayPointIndSphere.position;
+						//if (!rayPointIndSphere)  //intersection is at plane b/c we are drawing and raytracer is interacting w/ plane
+							//snapToThis = lastIntersectedPoint;
+						var projectedMouse = new THREE.Vector3();
+						projectedMouse.set(vNow.x, vNow.y, 0.5 );				
+											
+						
+						unprojectedAndTransformedMouse = rayPointIndSphere.position;
+						
+						if (SNAPPLANETOGRID ==4){//draws straight horizontal line parallel to x axis
+            				unprojectedAndTransformedMouse.x = plane.position.x;
+            				unprojectedAndTransformedMouse.z = plane.position.z;
+            			}
+            			else if (SNAPPLANETOGRID ==5){//draws straight vertical line parallel to y axis
+            				unprojectedAndTransformedMouse.y = plane.position.y;
+            				unprojectedAndTransformedMouse.z = plane.position.z;
+            			}else if (SNAPPLANETOGRID ==6){//draws straight horizontal line parallel to z axis
+            				unprojectedAndTransformedMouse.y = snapToThis.y;
+            				unprojectedAndTransformedMouse.x = snapToThis.x;
+            			}
+						updateLineBuffer(unprojectedAndTransformedMouse);
+						//currentLine().push(unprojectedAndTransformedMouse); 
+						
+						
+					}else { 
+						console.log("hmm plane not defined");
+					}
+            	}else { //freehand
+
+            		vNow.unproject(camera);
+            		console.log("drawing at plane vNow " +  vNow.x+ " " +vNow.y);
+            		
+            		updateLineBuffer(vNow); 
+           		}
+				 //vNow.z = 0;
+        		
+        		//push subsequent vertices into master line array
+        	
+            }          
+        }
+        else{
+        console.log("renderer null");}
+    }
+    
+        
+    
+	function mostRecentDrawnLine(){
+		CURRENTspline = drawnline.length -1;
+		return drawnline[CURRENTspline];
+	}
+
+    function onSketchTouchUp(evt){
+
+
+		evt.preventDefault();
+		document.removeEventListener("touchmove",onSketchTouchMove,false);
+		if (evt.target.nodeName == 'CANVAS')
+			onSketchMouseUp(evt);
+		else
+			event.target.click();
+	
+	}		    
+    
+    /* after initing new line
+    */
+    function onSketchMouseUp(evt) {
+    	document.removeEventListener("mousemove",onSketchMouseMove,false);
+  	
+    	if (DRAWMODE ==1){
+    	
+			bIsDrawing=false;
+			
+			//now that we are done drawing, trim drawn array to number of master line's vertices 
+    		var positions = mostRecentDrawnLine().geometry.attributes.position.array;
+    		
+    		
+    		mostRecentDrawnLine().geometry.attributes.position.array = positions.slice(0, countVertices *3 );
+    			
+    			
+    		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
+    		currentIntersected = undefined;
+			currentIntersectedPoint = undefined			
+    	
+    		console.log("currentIntersectedPoint reset");
+
+    		}        
+    }
+   
+	/* update the line with the new vertices coming from onvrhmousemove*/
+ function updateLineBuffer(newvec) {
+		if (mostRecentDrawnLine()){
+		
+			//get array and update it with the new line vertices
+			var positions = mostRecentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
+			
+			var index = countVertices *3 ;
+			
+			if (newvec){
+				positions[index ++] = newvec.x;
+				positions[index ++] =newvec.y;
+				positions[index ++] =newvec.z;
+			}
+			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
+			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
+			
+			countVertices++;
+			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices);
+			
+		}
+	}
+	
+	
+
+
+
+	function onSketchStart(evt){
+		
+		evt.preventDefault();
+		if (evt.target.nodeName == 'CANVAS'){
+			//what we need for touch is to raycast the mouse touch coord to the grid
+			if (evt.targetTouches)
+				planeLockOutline.position.add(evt.targetTouches);
+			onSketchMouseDown(evt);
+			
+		}
+		//else
+		//	event.target.click();
+	}
+
+
+    /* set isDrawing to true, init new line at point of intersection with grid or previous line, or if freehand draw, init new line
+    according to unprojected mouse vector 
+    
+    ps - we wat to make darwing work with the mobile's accelerometer at some point*/
+    
+     function onSketchMouseDown(evt) {
+     
+   		if(evt.which == 3) return;      	
+    	if (evt.target.nodeName == 'CANVAS'){
+          	
+          	if ((evt.clientX)&(evt.clientY)){
+				var mouseQuotient = evt.clientX / window.innerWidth;  //.0 to .9
+				mouse.x = ( evt.clientX / window.innerWidth ) * 2 - mouseXOFFSET;
+				mouse.y = - ( (evt.clientY- container.offsetTop)/ window.innerHeight ) * 2 + mouseYOFFSET;
+			}else if (evt.targetTouches) {   //for touch events
+				mouse.x= evt.targetTouches[0].clientX; 
+				mouse.y = evt.targetTouches[0].clientY; 
+			 } 
+          	
+          	
+          
+       		var mouseVec = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+			if (DRAWMODE == 1){
+			
+			
+				//was there an intersection with a line? if so, save it b/c we are about to raycast the plane instead
+				lastLineIntersection = (currentIntersected && currentIntersected.name == "line")?currentIntersected:null;
+				bIsDrawing=true;
+				
+				if (SNAPMODE ){ /*originate line according to intersected object. 	
+								  either grid or previously drawn line via plane-of-interest*/
+				
+					//ok, now raycast the plane.  it's here b/c this event happens before the animate event
+					planeLockOutline.geometry.computeBoundingSphere(); 
+					var intersects = raycaster.intersectObjects([planeLockOutline], true); //doesn't work for touch btw. bounding box is origin 0
+					currentIntersectedPoint = handleRayIntersections(intersects);
+				
+					var snapTo = currentIntersectedPoint;
+					//if no currentIntersection, and is drawing, have to wait a round or two to get intersection
+					
+					if (snapTo){
+						initNewLine(snapTo , false);
+						console.log("drawing at plane lock intersection " + snapTo.x + " " + snapTo.y + " " + snapTo.z );
+					}
+				}else { //freehand draw
+						initNewLine(mouseVec, true);									
+				} 			
+				//set up for drawing line
+				document.addEventListener("mousemove",onSketchMove,false);
+				document.addEventListener("mouseup",onSketchMouseUp,false);
+				//document.addEventListener("touchmove",onSketchMove,false);
+				//document.addEventListener("touchup",onSketchTouchUp,false);				
+			}
+        }
+    }
+    
+    
+// animate
+	function printVerts(){		
+		
+	}
+		
+	
+	function makeDrawingPlane(planePos, name){
+			var outlineMaterial2 = new THREE.MeshBasicMaterial( { color: 0x00eeee, transparent:true, opacity:.5,side: THREE.DoubleSide } );
+			
+			planeLockOutline = new THREE.Mesh( planegeo, outlineMaterial2 );
+			planeLockOutline.scale.x = 50;
+			planeLockOutline.scale.y = 50;
+			planeLockOutline.position.set( 0, 0, 0 );
+			planeLockOutline.position.copy(planePos);
+			planeLockOutline.material.color.set(PLANEROTATIONCOLOR);
+			
+			var cameraclone = camera.position.clone();
+			cameraclone.setY(planeLockOutline.position.y);
+			planeLockOutline.lookAt(cameraclone);
+
+			planeLockOutline.visible = true;
+			planeLockOutline.name = name;
+			planeLockOutline.material.wireframe = true;
+			planeLockOutline.material.wireframeLinewidth = 5;
+			scene.add(planeLockOutline); //note- can adding this to raycasting objects
+			
+			return planeLockOutline;
+
+	}
+	
+	function lockPlanesParallelToYAxis(inner, outer){
+	
+			snapPlanesToLocal(true);
+	}
+	
+	/*create a plane with desired material and set to desired position) */
+	function makePlane(material, vecPlane, name, planeObj){
+	 	 planeObj = new THREE.Mesh( planegeo, material );
+		 planeObj.position.set( 0, 0, 0 );
+		 planeObj.name = name;
+		 planeObj.position.copy(vecPlane);
+
+		 scene.add( planeObj );
+		 return planeObj;
+	
+	}
+	
+	
+/* the little plane indicates location and direction
+   the outline plane is the canvas/plane on which to draw... I guess it could be a vertical grid
+*/
+	function makePlanes(material, vecPlane, name, planeObj){
+
+		 planeObj = makePlane(material, vecPlane, name, planeObj);
+		 planeObj.lookAt(camera.position);
+		 
+		 if (!isDrawingPlaneLocked()){
+		 	planeLockOutline = makeDrawingPlane(planeObj.position, name);
+		 }	
+		//evalSettingsAndLockOrUnlock(); -- look at level and decide granular capabilities...
+		if (defUserSettings.lockPlane)
+			lockPlanesParallelToYAxis(planeObj, planeLockOutline);
+		return planeObj;
+	}
+	
+	
+		/*given what the user is doing, disallow plane from moving*/
+	function isDrawingPlaneLocked(){
+	
+		/*if set, we need the plane to stay fixed in place according to framing
+		*/
+		if (SNAPPLANETOGRID ){
+			return true;	
+		}
+		return false;
+	}	
+	
+	/*given what the user is doing, disallow grid ray intersection */
+	function ignoreGridRays(){
+	
+		/*we don't want to disrupt drawing on the plane to the grid by raycasting to the grid
+		*/
+		if (SNAPMODE && SNAPPLANETOGRID || (SNAPMODE && PLANELOCK)) {//&& bIsDrawing ){
+			return true;	
+		}
+		return false;
+	
+	}
+		
+	function makePhotoSphere( tex, w, h){
+	
+	
+			var mesh;
+			var sphereGeo = new THREE.SphereGeometry(w,h,h);				
+			mesh = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.DoubleSide}));
+			mesh.name="photosphere";
+			mesh.position.set(0,8,0);
+			objContainer.add(mesh);
+			
+			return mesh;
+	}
+	
+
+	
+	
+	
+	function makePhotoPlane( tex, w, h){
+			var mesh;
+			var planePhotoGeo = new THREE.PlaneGeometry(w,h);				
+			mesh = new THREE.Mesh(planePhotoGeo, new THREE.MeshBasicMaterial({map:tex, color:0xffffff, side:THREE.FrontSide}));
+			mesh.name="photoplane";
+			mesh.position.set(0,0,0);
+			
+			if ($("#load_horz").prop("checked"))
+				mesh.rotation.x = 90;
+			objContainer.add(mesh);		
+			return mesh;
+	}
+
+	/* highlight selected line, add plane to indicate direction of new to-be-attached line */
+	//shader code currently commented out...
+	//maybe be able to select line and make thicker or thinner (nice to have...)
+
+	function handleRayIntersections(intersects){	
+		if ( intersects.length > 0 ) {
+		
+				if ( currentIntersected !== undefined ) {
+					//currentIntersected.material.linewidth = CURRENTLINEWIDTH;
+					//currentIntersected.material.color.setRGB(200,200,200);
+				}				
+				currentIntersected = intersects[ 0 ].object;
+				
+				if(currentIntersected.name == 'grid'){ //TODO use reg expressions instead
+					if(ignoreGridRays() ){
+						intersects = intersects.reduce(function(obj) {
+							if (obj && obj.object.name !="grid")
+								return obj;
+							
+						});
+					
+						if (intersects && intersects[1])
+							currentIntersected = intersects[ 1 ].object;
+						else{
+							//currentIntersected = undefined;
+							//currentIntersectedPoint = undefined;
+							//rayPointIndSphere.visible = false;
+							return;
+						}
+				
+					}else {
+						rayPointIndSphere.material.color.set(0xffffcc);
+					}	
+					
+					//I think we want to be able to turn this off to draw at a certain plane from far away
+				}else if (currentIntersected.name == 'line' || currentIntersected.name == "lineimported"){
+				
+					console.log("line vertex " + currentIntersected);
+					rayPointIndSphere.material.color.set(0xff0000); //line intersection
+					
+				}else if (currentIntersected.name == 'sphere' ){
+					console.log("sphere vertex " + currentIntersected);
+					if (intersects && intersects[1])
+							currentIntersected = intersects[ 1 ].object;
+					//ignoreintersections for now
+					//rayPointIndSphere.material.color.set(0xff0000); //line intersection
+				
+				}else if (currentIntersected.name == 'guide'){ //plane intersection - this is generally always enabled
+				
+					//if there are other intersections, ignore plane intersection,hmmm
+					if (intersects[1] && !bIsDrawing){
+						currentIntersected = intersects[ 1 ].object;
+						return;
+					}else{
+						currentIntersectedPoint = undefined;
+						currentIntersectedPoint= intersects[ 0 ].point;
+						
+						rayPointIndSphere.material.color.set(0x00ff00);
+						rayPointIndSphere.position.copy(currentIntersectedPoint);
+						console.log("raycasted plane");
+
+					}
+					 
+				}	
+					
+					
+
+					currentIntersectedPoint= intersects[ 0 ].point;  //sorted in desc. order, not really accurate for mouse hover FYI 
+					
+					lastIntersected = currentIntersected;
+					lastIntersectedPoint = currentIntersectedPoint;
+					
+					rayPointIndSphere.position.copy(currentIntersectedPoint);
+					rayPointIndSphere.visible = true;
+					
+						
+					
+					//don't refresh the plane if we are snapping/locking/drawing to/on it
+				
+					if (!bIsDrawing && !SNAPPLANETOGRID && !PLANELOCK){  //and maybe plane lock/snap...
+						scene.remove(plane); 
+						scene.remove(planeLockOutline);
+						plane = makePlanes(planemat, currentIntersectedPoint,"guide", plane);		
+					}					
+					
+					/*for use with shaders
+					for( var i = 0; i < intersects.length; i++ ) {
+						var intersection = intersects[ i ],
+						obj = intersection.object;
+	
+						//obj.material.color.setRGB( 100,10,10);//1.0 - i / intersects.length, 0, 0 );
+						//obj.material.uniforms.color.value = 1.0;
+					}*/
+				
+		} else {
+				//reset
+				if ( currentIntersected !== undefined ) {
+					//currentIntersected.material.linewidth = CURRENTLINEWIDTH;
+					//currentIntersected.material.color.setRGB(250,250,250);
+					//currentIntersected.material.uniforms.color.value = 1.0;
+				}
+				
+				currentIntersected = undefined;
+				currentIntersectedPoint = undefined;
+				rayPointIndSphere.visible = false;
+				
+		}
+		
+		return currentIntersectedPoint;
+	
+	}
+	
+	function toggleDolly(evt){
+		if (evt !== undefined) evt.preventDefault();
+		DOLLY = DOLLY?0:1;
+		defaultControls.autoRotate = DOLLY;
+	}
+	
+	
+	/* this... is not really right yet.  The camera dolly is a made-up thing for now- either orbiting or moving towards - z */
+	/*dupe function also...in app.js    to be figured out... */
+	function runCameraPlayBack(ctrls, cameraSpeed){
+		//what kind of camera playback is it?
+		if (PLAYBACK){
+			if (isPhotosphereStory()){
+			//raycast for OrbitDolly?
+				controls.autoRotate = true;
+				controls.autoRotateSpeed = -.075
+			}else{
+				//updateSimpleCameraPath(controls, .075);
+			}
+		}
+	}
+	
+
+
+	function runPlayBack(){
+		runLinesPlayBack();
+		runCameraPlayBack(controls, .075); //orbit or straight path
+	}
+
+		
+
+	function animate(timestamp) {
+
+		requestAnimationFrame(animate);
+
+		
+		camera.updateMatrixWorld();
+		camera.updateProjectionMatrix();
+		
+		if (!runPlayBack() && DRAWMODE ==1){
+			raycaster.setFromCamera( mouse, camera );
+			
+			//doesn't work for touch events b/c have to touchstart to get coords
+			
+			var intersects = raycaster.intersectObjects( objContainer.children, true); 
+			if (DRAWMODE && SNAPMODE &&!bIsDrawing){
+			
+				currentIntersectedPoint = handleRayIntersections(intersects);
+				
+			}else if (DRAWMODE && SNAPMODE && bIsDrawing){  //only look at plane intersections if we are drawing (on that plane!)
+	
+				var intersects = raycaster.intersectObjects([planeLockOutline], true);
+				currentIntersectedPoint = handleRayIntersections(intersects);
+				
+			}
+			//TODO add ability to draw while moving plane backwards or forwards
+		
+		}
+	
+		render(timestamp);	 
+		  
+	
+	
+	   } 
+	   
+	function render(timestamp) {
+		
+
+		renderer.setClearColor( 0x000000);
+
+
+		if (STEREOSCOPIC){
+		
+			 orientControls.update();
+			 vrmanager.render(scene, camera, timestamp);
+			
+		
+    
+  		}else{
+  			if (controls.gizmo) controls.gizmo["translate"].show();
+  			controls.update(pbclock.getDelta()); //this should do the autoRotate for photosphere/playback
+  		
+			/*minicamera.position.set(5,5,5);
+			minicamera.lookAt(currentIntersectedPoint?currentIntersectedPoint:lastIntersectedPoint);
+				
+			renderer.setViewport( window.innerWidth - (window.innerWidth/4),window.innerHeight - (window.innerHeight/4), window.innerWidth / 4, window.innerHeight/4);
+			renderer.setClearColor( 0x000000 );  //trying to make this mini viewport opaque 
+			renderer.setScissor( 10, 10, 200, 200  );
+						//renderer.setScissorTest( true );
+						//renderer.setClearColor( view.background );
+			minicamera.updateProjectionMatrix();
+			//renderer.render( scene, minicamera );*/
+				
+					
+			renderer.setViewport( 10, 10, window.innerWidth, window.innerHeight);	
+			renderer.setScissor( 10, 10, window.innerWidth ,window.innerHeight );
+			camera.updateProjectionMatrix();
+	 
+			renderer.render( scene, camera );
+			
+			
+  		}
+  			//renderer.clearDepth();
+	}
+		
+	init();
+	//cameraHelp = new THREE.CameraHelper(camera);
+	//scene.add(cameraHelp);
+	animate();
+	
+</script>
+</html>
