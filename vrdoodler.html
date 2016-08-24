@@ -2,12 +2,30 @@
 <head>
     <meta charset="utf-8">
     <title>VRDoodler!!!-beta</title>
- <meta name="mobile-web-app-capable" content="yes">
+    
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
+    <!--<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />-->
+    <!-- Good default declaration:
+    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+        * Enable inline JS: add 'unsafe-inline' to default-src
+        * Enable eval(): add 'unsafe-eval' to default-src
+    * Create your own at http://cspisawesome.com
+    -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+
+    
+    
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-</head>
+   </head>
 	<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
@@ -41,6 +59,12 @@
      <script src="js/webvr-polyfill.js"></script>
       <script src="js/webvr-manager.js"></script>
 	<script src="js/app.js"></script>
+	
+	
+	    <script type="text/javascript" src="cordova.js"></script>
+    
+       
+
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -216,7 +240,8 @@
 			</li>
 			
 				<li><div >
-				<input id="streamWebCam" type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Record Narration"/><label for="recordNarration" class="input_label">Record</label>
+				<input id="streamWebCam" type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Record Narration"/><label for="recordNarration" class="input_label">WebCam</label>
+				<video id="streamVid">
 				<div>
 			</li>
 
@@ -227,7 +252,7 @@
 				<div>
 			</li>
 			<li><div >
-				<input id="recordNarration" disabled type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Not fully implemented"/><label for="recordNarration" class="input_label">WebCam</label>
+				<input id="recordNarration" disabled type="button" class="tt" value="" data-role="none" data-toggle="tooltip" title="Not fully implemented"/><label for="recordNarration" class="input_label">Record</label>
 				<div>
 			</li>
 
@@ -238,8 +263,12 @@
 		
 			<li><input id="grid" type="checkbox" class="tt" value="toggleGrid" enabled="false" data-toggle="tooltip" title="Toggle grid on"/><label for="grid" class="input_label">Show Grid</label></li>
 		</ul>
+		
+		<div id="slider">
+			<p>Sliding out and in</p>
+		</div>
 		</section>
-		<video id="streamVid">
+		
 		
 			<!--
 					<input id="colorToggle" type="checkbox" value="colorToggle" enabled="false"/>Color-->
@@ -318,7 +347,10 @@
 	var PLAYBACKSPEED = .0045;
 	var PLAYBACKCOUNT = 55; //mobile, smaller screen, needs to go faster vs 
 
-	var dollyPath;
+var PHOTOSPHERE = SPHERICAL_PATH = 0;
+	var PHOTOPLANE = LINEAR_PATH= 1;
+	var CUSTOM_PATH=2;
+		var dollyPath;
 	
 	var state = {username: 'guest', password: ''};  //will have user login etc info in it... 
 	var userSettings = {};
@@ -523,9 +555,11 @@
 		};
 	
 		
+		
 		$(document).ready(function(){
 		
 			
+			document.addEventListener('deviceready', onDeviceReady, false);
 	
 			if (!inMobileMode()){
 				$('#copy').attr({"title":"Copy currently selected line. Hint: easiest if you use ctrl-c"});
@@ -592,8 +626,17 @@
 			} else {
 				 //mouseXOFFSET = 1;
 				 //mouseYOFFSET = 1;
-				//raycaster.linePrecision = 2;
+				//raycaster.linePrecision = .70;
+				
 			}
+			
+			checkCookie(); //not paying attention to user param unless there is already a cookie...
+							//probably change a little for public URLs and sharing content
+			
+			state.username = whichUser();
+			loadUserStory(state.username);
+			
+			
 			
 			loadUserHelper();
 			
@@ -624,6 +667,11 @@
 
 	}
 
+function onDeviceReady() {
+
+			  console.log('Received Ready Event: ' + id);
+}
+
 function setResults(txt){
 	$("#results").text(txt);
 	$("#resultsR").text(txt);
@@ -635,22 +683,31 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-	function runLogReg(){
+
+//here either because user clicked login/register or init page with cookie
+	function runLogReg(temp){
 	
 		var sendData;
-		var form = event.target.parentElement.parentElement.id;
-		var email = $("#emailR").val()
-		/*if (validateEmail(email)) {
-			$("#result").text(email + " is valid :)");
-			$("#result").css("color", "green");
-		  } else {
-			$("#result").text(email + " is not valid :(");
-			$("#result").css("color", "red");
-		}*/
-		if (event.target.parentElement.parentElement.id === "registerform")
-			sendData = {"username":$("#usernameR").val(), "password":$("#passwordR").val(), "email":email};
-		else
-			sendData = {"username":$("#username").val(), "password":$("#password").val()};
+		
+		var phpSess = getCookie("PHPSESSID");
+		
+		if (temp){
+			sendData = {"username":temp.username, "password":temp.password,"PHPSESSID":phpSess};
+		}else{
+			var form = event.target.parentElement.parentElement.id;
+			var email = $("#emailR").val()
+			/*if (validateEmail(email)) {
+				$("#result").text(email + " is valid :)");
+				$("#result").css("color", "green");
+			  } else {
+				$("#result").text(email + " is not valid :(");
+				$("#result").css("color", "red");
+			}*/
+			if (event.target.parentElement.parentElement.id === "registerform")
+				sendData = {"username":$("#usernameR").val(), "password":$("#passwordR").val(), "email":email};
+			else
+				sendData = {"username":$("#username").val(), "password":$("#password").val(), "sessionKey":phpSess};
+		}
 		$.ajax({
 		  data: sendData,
 		  url: "phpsessions/logReg.php",
@@ -802,7 +859,7 @@ function validateEmail(email) {
 				blob = new Blob([result], {type: "octet/stream"});
 				var data = new FormData();
       			data.append('file', blob);
-      			data.append('username', state.username);
+      			data.append('username', whichUser());
       			data.append("filename", $("#userEnteredFileName").val());//TODO: I know user entered val needs to be scrubbed...
 				//url = window.URL.createObjectURL(blob);
 				$.ajax({
@@ -1384,7 +1441,7 @@ function validateEmail(email) {
 			onSketchMouseUp(evt);
 		}else{
 			//what to do with touch end or mouse up elsewhere?
-			if (evt.type == "touchend") evt.target.click();	
+			if (evt.type == "touchend") evt.target.click();	 //this is needed for the buttons!
 		}
 	
 	}		    
@@ -1406,6 +1463,7 @@ function validateEmail(email) {
     			
     			
     		mostRecentDrawnLine().geometry.computeBoundingSphere();  //help w raycasting?
+    		mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; 
     		currentIntersected = undefined;
 			currentIntersectedPoint = undefined			
     	
@@ -1422,17 +1480,19 @@ function validateEmail(email) {
 			var positions = mostRecentDrawnLine().geometry.attributes.position.array; //has one vertex to begin with
 			
 			var index = countVertices *3 ;
-			
-			if (newvec){
+			//if (newvec.x != 0 && newvec.y != 0 && newvec.z != 0)
+			if (newvec && (newvec.x != 0 && newvec.y != 0 && newvec.z != 0)){ //avoid adding empty points
 				positions[index ++] = newvec.x;
 				positions[index ++] =newvec.y;
 				positions[index ++] =newvec.z;
+				
+				countVertices++;
 			}
 			//what is better, to initialize float32array with a set of vertices (which I don't know yet), or to add to it like this?
 			mostRecentDrawnLine().geometry.attributes.position.needsUpdate = true; // required after the first render
 			
-			countVertices++;
-			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices);
+			
+			mostRecentDrawnLine().geometry.setDrawRange( 0, countVertices -1);
 			
 		}
 	}
@@ -1442,17 +1502,16 @@ function validateEmail(email) {
 
 	function onSketchStart(evt){
 		console.log("hitting sketchstart");
-		if (evt.type == "touchstart") evt.preventDefault();
+		
 		if (evt.target.nodeName == 'CANVAS'){
-			
+			if (evt.type == "touchstart") evt.preventDefault();
 			onSketchMouseDown(evt);
 		}else { //INPUT, etc
 			console.log("click from sketchstart evt target is " + evt.target.id);
-			/*if (evt.target.name != "forFile" && evt.target.id != "stereoview" )  //I lose the mouse up otherwise...matters for some it seems...
+			if (evt.target.name != "forFile" && evt.target.id != "stereoView" && evt.type == "touchstart") { //I lose the mouse up otherwise...matters for some it seems...
  				evt.preventDefault();
-			*/
-			$(evt.target).focus().trigger("click");
-			
+				$(evt.target).focus().trigger("click");
+			}
 			
 		}
 	}
@@ -1503,12 +1562,12 @@ function validateEmail(email) {
 					
 					//ok, now raycast the plane.  this raycasting is happening here b/c this event happens before the animate event
 					planeLockOutline.geometry.computeBoundingSphere(); 
+					
+	
+					var intersects = raycaster.intersectObjects([planeLockOutline], true); //- actually it appears to work for touch events now...
+					currentIntersectedPoint = handleRayIntersections(intersects);
 					console.log("before recasting for plane intersection" + " " + currentIntersectedPoint.x+ " "+ currentIntersectedPoint.y + " " + currentIntersectedPoint.z );
 					
-					//if (evt.type != "touchstart"){
-						var intersects = raycaster.intersectObjects([planeLockOutline], true); //- actually it appears to work for touch events now...
-						currentIntersectedPoint = handleRayIntersections(intersects);
-					//}
 					var snapTo = currentIntersectedPoint;
 					//if no currentIntersection, and is drawing, have to wait a round or two to get intersection
 					
@@ -1612,10 +1671,6 @@ function validateEmail(email) {
 								var center = box.min.lerp(box.max, .5);
 			
 								newLine.planeTransform = plane.matrixWorld;//new THREE.Matrix4().makeTranslation(center.x, 0, center.z);  
-								//newLine.planeTransform = originalTransform;
-								//this does make it fully transform- so if plane is at an angle, it copies...
-								
-								
 								
 								
 								var attribute = newLine.geometry.attributes.position;
@@ -2061,9 +2116,9 @@ function validateEmail(email) {
 
 		requestAnimationFrame(animate);
 
-		
+		/*
 		camera.updateMatrixWorld();
-		camera.updateProjectionMatrix();
+		camera.updateProjectionMatrix();*/
 		
 		if ( videoTexture ) 
 			videoTexture.needsUpdate = true;

@@ -447,21 +447,31 @@ Left-hand control bar.
 		background: url("../assets/images/arrows.png") no-repeat center center;	
 	}
 	#saveToServer {
-		background: url("../assets/images/arrow.png") no-repeat center center;	
+		background: url("../assets/images/saveToServer.png") no-repeat center center;	
 	}
 	#playback{
 		background: url("../assets/images/multimedia.png") no-repeat center center;	
 	}
-	
+	#streamWebCam{
+		background: url("../assets/images/webCam.png") no-repeat center center;	
+	}
 	#recordNarration{
-		background: url("../assets/images/record.png") no-repeat center center;	
+		background: url("../assets/images/music.png") no-repeat center center;	
 	}
 
 	/* bootstrap/jquery-mobile overwrites */
 	.ui-mobile label, .ui-controlgroup-label {
 		display: inline-block;
 	}
-	
+	#streamVid{
+			float:left;
+			position:absolute;
+			z-index:0;
+			width:100px;
+			height:50px;
+			top:0;
+		}
+			
 	@media screen and (max-width: 1024px){
 	
 		div label{
@@ -484,25 +494,31 @@ Left-hand control bar.
 		.ui-input-text{
 			display:inline-block;
 			}
-			
 		#streamVid{
-			float:left;
-			position:absolute;
-			z-index:0;
-		width:100px;
-			height:50px;
-			top:0;
-		}
-	}
-		
-#streamVid{
 			float:left;
 			position:absolute;
 			z-index:0;
 			width:100px;
 			height:50px;
+			top:inherit;
+			left:50px;
+		}	
+		
+		width:100px;
+			height:50px;
 			top:0;
 		}
+		
+		#slider {
+			
+		}
+		#slider .show{
+		
+			
+		}
+	}
+		
+
 		
 @media screen and (max-width: 780px) {
 	
@@ -520,6 +536,9 @@ Left-hand control bar.
 		border-width:none;
 	   border-style: none;
 		}
+		#streamVid{
+			display:none;
+		}
 
 		
 	}
@@ -534,4 +553,6 @@ Left-hand control bar.
    -webkit-box-shadow: inset 0 0 10px #000000;
    box-shadow:         inset 0 0 10px #000000;
 }
+
+
 

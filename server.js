@@ -173,7 +173,7 @@ function writeObjFiles(path, data){
 			  return;
 			}
 			console.log('OBJ saved successfully.')
-		  });*/
+		  });
 		}		
 		
 		

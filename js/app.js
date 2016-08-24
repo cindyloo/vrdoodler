@@ -8,7 +8,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 
 
 /*load user's objs and narration.  what kind of camera path? could divide according to narration length, although getting that after.. hmm */
-	function loadUserStory(userDir){
+	function loadUserStory(userDir, pathType){
 		    var xhrImg = new XMLHttpRequest();
  
        		xhrImg.onreadystatechange=function() {
@@ -27,7 +27,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 							if (obj.length > MINIMUM_OBJ_LENGTH)
 								return obj;
 						});
-						var cameraPathVectors = setupCameraDolly(objects.length); //setup camera path - could be spiral, circle, straight path...
+						var cameraPathVectors = setupCameraDolly(objects.length, pathType); //setup camera path - could be spiral, circle, straight path...
 						var i = 1;
 						objects.forEach(function(object){
 							var cleanedobj = object.replace(/EOF/,'');
@@ -41,7 +41,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 						//if (sound && sound1.buffer) //how bad is this to do?
 						//	sound1.start(0); //start audio when images load	
 						
-				  		//raycastGazeForDollyCam();
+				  		raycastGazeForDollyCam();
 				  		var pathToSound =  "assets/doodleverse/" + userDir + "/narration.wav";               
 						sound1 = new WebAudioAPISound(pathToSound, null, 
 						function(){
@@ -108,7 +108,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 						//texture.name=f.name;
 						texture.needsUpdate = true;
 						
-						if (isPhotosphereStory()){
+						if (hasPhotosphere()){
 							var psphere = makePhotoSphere(texture,15, 300);
 						}
 						else{
@@ -160,7 +160,7 @@ var MINIMUM_OBJ_LENGTH = 10;
 	
 	function getUserObjectFileList(){
 		$.ajax({
-		  url: "phpsessions/getObjFiles.php?q=" + state.username,
+		  url: "phpsessions/getObjFiles.php?q=" + whichUser(),
 		  beforeSend: function( xhr ) {
 			xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
 		  }
@@ -177,15 +177,61 @@ var MINIMUM_OBJ_LENGTH = 10;
 	
 	
 	function isUserLoggedIn(){
-		return (state.username != null && state.username != undefined && state.username != 'guest');
+		return (whichUser() != null && whichUser() != undefined && whichUser() != 'guest');
+	}
+	function getCookie(cname) {
+		var name = cname + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i <ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0)==' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length,c.length);
+			}
+		}
+		return "";
+	}
+
+	function checkCookie() {
+		var tempCookie = {};
+		var tempParams = {};
+		tempParams.admin = getParams["admin"]; //TODO: backdoor for invitees or something...
+		tempParams.username= getParams["username"] || getParams["user"];
+		tempCookie.username= getCookie("username");
+		tempCookie.sessKey= getCookie("PHPSESSID");
+		
+		if ((tempParams.username != undefined && tempParams.username !== tempCookie.username) ||
+			(!tempParams.admin==="4670" && (tempCookie.username == undefined || tempCookie.sessKey== undefined))) {
+			alert("Sorry, you have to have logged in prior to access this content");
+		}
+		else{
+			runLogReg(tempCookie);
+			console.log("Cookie says I am " + tempCookie.username);
+		}
+
+	}
+		
+	function setCookie(namevalstring) {
+		var d = new Date();
+		d.setTime(d.getTime() + (365*24*60*60*1000));
+		var expires = "expires="+ d.toUTCString();
+		document.cookie = namevalstring + "; " + expires;
 	}
 	
-	function setUserAndEmail(un, email){
+	//from login
+	function setUserAndEmail(username, email, sessionkey){
 		if (!state)
 			state = {};
-		state.username = un;
+			//check values here? coming from php so...
+		state.username = username;
+		state.sessionkey = sessionkey
 		state.email = email;
 		$("#userLogin").text(state.username);
+		
+		setCookie("username=" + state.username + "; sessionKey=" + state.sessionkey);
+
 	}
 	
 	function checkLoginThenImport(e){
@@ -400,28 +446,58 @@ var MINIMUM_OBJ_LENGTH = 10;
 	
 
 
-function makePath(howManyObjects){  //will use path later
+	function makePath(howManyObjects, pathType, customcurve){  //will use path later
 	
-		var neighborhoodcurve = new THREE.CatmullRomCurve3([
-			new THREE.Vector3(0, 0, 15 ),
+		var ptsPos = [];
+		if (howManyObjects < 1) return 0; //TODO throw error
+		if (pathType == SPHERICAL_PATH){		
+			var degArcs = 360/howManyObjects; //degrees
+			for (arc = 0;arc < howManyObjects; arc++){
+				var pt ={};
+				//assume radius of 5
+				pt.x =   5 * Math.sin((arc*degArcs) * (Math.PI / 180));
+    			pt.z =  5 * Math.cos((arc*degArcs) * (Math.PI / 180));
+    			pt.y = 0;
+    			ptsPos.push(pt);
+    		}
+		
+		}else if (pathType == CUSTOM_PATH){
+			//take line path and do the catmull rom on it
+			var segments = howManyObjects ; // see if this helps
+			if (customcurve == null) return 0;//TODO throw error
+			if (segments > 0){
+				var radiusSegments = 1;  //just a single line, no volume needed
+				tube = new THREE.TubeGeometry(customcurve, segments, 2, radiusSegments, false);
+				makePathGeo(tube, 0xff00ff);
+			}
+			ptsPos = customcurve.getPoints(segments);
+			
+			
+		}else{ //path = linear
+		
+			var neighborhoodcurve = new THREE.CatmullRomCurve3([
+				new THREE.Vector3(0, 0, 15 ),
 
-			new THREE.Vector3(0, 0, -15 )
+				new THREE.Vector3(0, 0, -15 )
 		
-		] );
-		var segments = howManyObjects ; // see if this helps
+			] );
+			var segments = howManyObjects ; // see if this helps
 		
-		if (segments > 0){
+			
 			var radiusSegments = 1;  //just a single line, no volume needed
 			tube = new THREE.TubeGeometry(neighborhoodcurve	, segments, 2, radiusSegments, false);
 			makePathGeo(tube, 0xff00ff);
+			
+			ptsPos = neighborhoodcurve.getPoints(segments);
+		
+		
 		}
-		var ptsPos = neighborhoodcurve.getPoints(segments);
 		return ptsPos;
 	}
 	
-	function setupCameraDolly(howManyObjects){
+	function setupCameraDolly(howManyObjects, pathType){
 
-		cameraDollyPathVecArray = makePath(howManyObjects);
+		cameraDollyPathVecArray = makePath(howManyObjects, pathType, null); //TODO: custom
 		//playback should follow cameraPath ...
 		return cameraDollyPathVecArray;
 	}
@@ -468,7 +544,9 @@ function makePath(howManyObjects){  //will use path later
                // if (!child.planeTransform)  //so I thought this was repetitive but not so, some kind of recursion where this is necessary for transform (for cut/paste) to be correct
                 	child.planeTransform = new THREE.Matrix4().makeTranslation(center.x, 0, center.z);                
             }
-			newOrImportedLine = lineImported;//.clone();
+            if (mv) 
+				lineImported.position.set(mv); 
+			newOrImportedLine = lineImported.clone();
 			newOrImportedLine.material.linewidth = 2;
 			drawnline.push(newOrImportedLine); //to store line
 			if (mv) 
@@ -711,9 +789,9 @@ function makePath(howManyObjects){  //will use path later
 	function runCameraPlayBack(ctrls, cameraSpeed){
 		//what kind of camera playback is it?
 		if (PLAYBACK){
-			if (isPhotosphereStory()){
+			if (hasPhotosphere()){
 				raycastGazeForDollyCam();
-			}else if (isPhotoplaneStory()){
+			}else if (hasPhotoplane()){
 				updateSimpleCameraPath(ctrls, cameraSpeed);
 			} else {
 				//do nothing
@@ -796,11 +874,11 @@ function makePath(howManyObjects){  //will use path later
 	}
 	
 	/* make better descriptive parameters that both control camera movement and describe any photo usage */
-	function isPhotosphereStory(){
+	function hasPhotosphere(){
 		return (getParams["photosphere"] == 1);
 	}
 	
-	function isPhotoplaneStory(){
+	function hasPhotoplane(){
 		return (getParams["photoplane"] == 1);
 	}
 	
@@ -809,7 +887,7 @@ function makePath(howManyObjects){  //will use path later
 	}		
 	
 	function whichUser(){
-		return (getParams["user"]);
+		return (state.username || state.user);
 	}
 	
 	
